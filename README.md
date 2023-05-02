@@ -3,6 +3,8 @@ Bu oyun **Web Tabanlı Programlama** dersinin proje ödevi olarak hazırlanmış
 
 Oyunu internet üzerinden oynamak için [buraya tıklayınız](http://dodgeandshoot.eu5.org/).
 
+Oyun hakkında bilgi edinmek için bu videoyuda izleyebilirsiniz. [tıklayınız](https://www.youtube.com/watch?v=I1MFfeqhGWo).
+
 ## Yapım Aşaması
 
 İlk olarak yapacağım oyunun nasıl olacağı düşünüp paint yardımı ile çizdim. Çizim becerilerim pek iyi değildir :d.
