@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dodge And Shoot</title>
+    <link rel="shortcut icon" type="image/png" href="images/player.png"/>
+    <link rel="stylesheet" href="game.css">
+    <script type="text/javascript" src="game.js"></script>
+  </head>
+  <body>
+  <div id="gamewindow">
+  <div id="maingame">
+    <canvas id="game"></canvas>
+  </div>
+  <div id="upgrademenu">
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/firerate.png"/>
+        <div class="level_div">
+          <p class="level-text">SİLAH ATIŞ HIZI(Seviye <b id="frlvl">1</b>)</p>
+            <div style="display: flex;">
+              <div style="background-color:rgb(226, 241, 12)" class="level"  id="fr-1"></div>
+              <div class="level" id="fr-2"></div>
+              <div class="level" id="fr-3"></div>
+              <div class="level" id="fr-4"></div>
+            </div>
+          <button id="upgradefirerate" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/bulletdamage.png"/>
+        <div class="level_div">
+          <p class="level-text">MERMİ HASARI(Seviye <b id="bdmglvl">1</b>)</p>
+            <div style="display: flex;">
+              <div class="level" style="background-color:rgb(226, 241, 12)" id="bdmg-1"></div>
+              <div class="level" id="bdmg-2"></div>
+              <div class="level" id="bdmg-3"></div>
+              <div class="level" id="bdmg-4"></div>
+            </div>
+          <button id="upgradefiredamage" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/bulletspeed.png"/>
+        <div class="level_div">
+          <p class="level-text">MERMİ HIZI(Seviye <b id="bspeedlvl">1</b>)</p>
+            <div style="display: flex;">
+              <div class="level" style="background-color:rgb(226, 241, 12)" id="bspeed-1"></div>
+              <div class="level" id="bspeed-2"></div>
+              <div class="level" id="bspeed-3"></div>
+              <div class="level" id="bspeed-4"></div>
+            </div>
+          <button id="upgradefirespeed" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/playerhp.png"/>
+        <div class="level_div">
+          <p class="level-text">OYUNCU CANI(Seviye <b id="hplvl">1</b>)</p>
+            <div style="display: flex;">
+              <div class="level" style="background-color:rgb(226, 241, 12)" id="hp-1"></div>
+              <div class="level" id="hp-2"></div>
+              <div class="level" id="hp-3"></div>
+            </div>
+          <button id="upgradeplayerhp" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/playerspeed.png"/>
+        <div class="level_div">
+          <p class="level-text">OYUNCU HIZI(Seviye <b id="speedlvl">1</b>)</p>
+            <div style="display: flex;">
+              <div class="level" style="background-color:rgb(226, 241, 12)" id="speed-1"></div>
+              <div class="level" id="speed-2"></div>
+              <div class="level" id="speed-3"></div>
+              <div class="level" id="speed-4"></div>
+            </div>
+          <button id="upgradeplayerspeed" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/upgradewall.png"/>
+        <div class="level_div">
+          <p class="level-text">DUVAR LEVELİ(Seviye <b id="walllvl">1</b>)</p>
+            <div style="display: flex;">
+              <div class="level" style="background-color:rgb(226, 241, 12)" id="wall-1"></div>
+              <div class="level" id="wall-2"></div>
+              <div class="level" id="wall-3"></div>
+            </div>
+          <button id="upgradewall" class="button_upgrade">LEVEL ARTIR</button>
+      </div>
+    </div>
+    <div class="upgrade_div">
+      <img class="upgrade_img" src="images/repairwall.png"/>
+        <div class="level_div">
+          <p class="level-text">DUVARI ONAR(Ücret 1 Seviye Puanı)</p>
+          <button id="repairwall" class="button_upgrade" style="margin-top: 15px;">DUVARI ONAR</button>
+      </div>
+    </div>
+    <div style="display: flex;">
+      <b class="gametext">Kullanılabilir Seviye Puanları :<b style="margin-left: 110px;" id="levelpoints"></b></b>
+    </div>
+    <div class="playerlvltext_div">
+      <b class="bartextlbl">Oyuncu <b id="player_level"></b> Seviye :</b>
+        <div class="barbackground">
+        <div class="lvl-red-area"></div>
+        <div class="lvl-back-area"></div>
+        <span class="barspan"><b id="cr-lvl-txt"></b>/<b id="rq-lvl-txt"></b></span>
+        </div>
+      </div>
+    <div class="castletext_div">
+      <b class="bartextlbl" >Kale Canı :</b>
+        <div class="barbackground">
+        <div class="cs-red-area-hp"></div>
+        <div class="cs-green-area-hp"></div>
+        <span class="barspan"><b id="cs-hp"></b>HP</span>
+        </div>
+      </div>
+    <div class="hptext_div">
+    <b class="bartextlbl" >Oyuncu Canı :</b>
+      <div class="barbackground">
+      <div class="red-area-hp"></div>
+      <div class="green-area-hp"></div>
+      <span class="barspan"><b id="hp"></b> HP</span>
+      </div>
+    </div>
+    <div class="gameinfo">
+      <p class="gametext">Tur : <b style="margin-left: 84%;" id="round"></b></p>
+      <p class="gametext">Kalan Düşman Sayısı: <b style="margin-left: 45%;" id="remain_enemy"></b></p>
+      <p class="gametext">Bu Tur Doğacak Düşman Sayısı : <b style="margin-left:20%;" id="round_enemy"></b></p>
+    </div>
+    <div style="height: 30px;margin: 0;">
+      <button id="roundstart" >TURU BAŞLAT</button>
+    </div>
+    
+  </div>
+  </div>
+  <script type="text/javascript" src="game.js"></script>
+  </body>
+</html>
