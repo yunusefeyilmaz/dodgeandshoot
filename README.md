@@ -1,39 +1,23 @@
-# Dodge And Shoot ( Oyun )
-Bu oyun **Web Tabanlı Programlama** dersinin proje ödevi olarak hazırlanmıştır. Oyun JavaScript,Html,CSS kullanılarak hazırlanmıştır. Bu projede JavaScript'in hiçbir oyun kütüphanesi kullanılmamıştır. Kullanılan görseller bana aittir.
-
-Oyunu internet üzerinden oynamak için [buraya tıklayınız](http://dodgeandshoot.eu5.org/).
-
-Oyun hakkında bilgi edinmek için bu videoyuda izleyebilirsiniz. [tıklayınız](https://www.youtube.com/watch?v=I1MFfeqhGWo).
-
-## Yapım Aşaması
-
-İlk olarak yapacağım oyunun nasıl olacağı düşünüp paint yardımı ile çizdim. Çizim becerilerim pek iyi değildir :d.
-
-<img src="https://user-images.githubusercontent.com/89478740/235720569-d5224c45-8b5e-4158-9413-16d60c27fd42.png"  style="height: 300px; width:500px;">
-
-
-Sonra oyunun ana mekaniklerini belirleyip gerekli kodlamaları yaptım. Görselleri eklemeden önce kareler çizerek oyunu test ettim.
-
-<img src="https://user-images.githubusercontent.com/89478740/235720799-dcd2f09b-a8ec-4a14-8774-fe9a42828e17.png"  style="height: 300px; width:500px;">
-
-Düşmanların tura bağlı artmasını, oyunun ilerlemesiyle güçlenmesini ve düşmanlar rastgele doğmasını  ekledim. Böylelikle oyun daha oynanabilir bir hale geldi.
-
-Ve en sevidiğim kısma geldik çizim aşaması. Çizimi tablet üzerinden **sketchbook** uygulaması yardımı ile elim ile çizdim. Eğlenceli ve yorucuydu ama kullanmak isterseniz diye resimler klasörünü ekledim.
-
-<img src="https://user-images.githubusercontent.com/89478740/235720940-fe23a3ed-c855-4a47-b682-62211b0ba499.png"  style="height: 400px; width:900px;">
-
-Her şey bittikten sonra oyun tam olarak böyle gözüktü.
-
-<img src="https://user-images.githubusercontent.com/89478740/235721211-d43eb3b9-844b-4d8d-bebb-7a6336965532.png"  style="height: 400px; width:800px;">
-
-### Testler
-Oyunu bitirdikten sonra ailem ve arkadaşlarıma oynattım. Tabiki de hatalar vardı :(.
-> Düzeltilenler ; <br>
-> Düşmanın bazen hasar vurmaması.<br>
-> Düşmanın seviye dengesi<br>
-> Seviye artırma hataları.<br>
-> Oyun bitmeme hatası.<br>
-> Ekran çözünürlük hataları.<br>
-> Eklenenler ; <br>
-> Düşmanları daha iyi hedef almak için nişangah.<br>
-> Nasıl hareket edilimesi ile ilgili görseller.
+import { state } from '../core/state.js';
+import { stat } from '../core/stats.js';
+import { startWave } from '../systems/waves.js';
+import { openShop } from './shop.js';
+import { picked } from './cards.js';
+const $ = id => document.getElementById(id);
+export function initHud() {
+  $('startBtn').onclick = startWave;
+  $('shopBtn').onclick = openShop;
+  $('auto').onchange = e => state.wave.auto = e.target.checked;
+}
+export function updateHud() {
+  const p = state.player, w = state.wave;
+  $('coins').textContent = 'Coin: ' + state.coins;
+  $('wave').textContent = 'Tur: ' + w.n + (w.phase === 'active' ? ' (devam ediyor)' : '');
+  $('startBtn').disabled = w.phase === 'active' || state.over;
+  $('inv').innerHTML = state.inventory.map(i => '<div class="slot' + (i ? ' on' : '') + '">' + (i ? i.name : '') + '</div>').join('');
+  $('cards').innerHTML = picked.map(c => '<span>' + c + '</span>').join('') || '—';
+  const f = (n, d = 0) => stat(p, n).toFixed(d);
+  $('stats').innerHTML = 'Skiller: ' + p.abilities.map(a => a.name).join(', ') +
+    '<br>Kritik: %' + (stat(p, 'critChance') * 100).toFixed(0) + ' x' + f('critDmg', 2) +
+    ' · Zırh delme: %' + (stat(p, 'armorPen') * 100).toFixed(0) + ' · Zırh: ' + f('armor') + ' · Magnet: ' + f('magnet');
+}

@@ -1,0 +1,120 @@
+:root {
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  background: #14161c;
+  color: #e8e6df;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+}
+#top,
+#hud,
+#wrap {
+  width: 100%;
+  max-width: 800px;
+}
+#top {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#coins {
+  color: #e0b040;
+  font-weight: 600;
+}
+#wrap {
+  position: relative;
+}
+canvas {
+  width: 100%;
+  display: block;
+  background: #1d2029;
+  border-radius: 6px;
+}
+#hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+}
+.slots {
+  display: flex;
+  gap: 6px;
+}
+.slot {
+  width: 44px;
+  height: 44px;
+  border: 1px dashed #4a5060;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  text-align: center;
+}
+.slot.on {
+  border: 1px solid #e0b040;
+  background: #2a2618;
+}
+#cards span {
+  display: inline-block;
+  background: #26303f;
+  border-radius: 3px;
+  padding: 2px 7px;
+  margin: 2px;
+}
+#ov {
+  position: absolute;
+  inset: 0;
+  background: #000c;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 6px;
+  overflow: auto;
+}
+#choices {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button {
+  background: #26303f;
+  color: inherit;
+  border: 1px solid #5a6b88;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+button:hover,
+button:focus-visible {
+  border-color: #e0b040;
+  outline: none;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+#choices button {
+  width: 170px;
+}
+#choices b {
+  display: block;
+}
+h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: #9aa3b5;
+}
