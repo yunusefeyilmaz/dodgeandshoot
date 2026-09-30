@@ -5,10 +5,12 @@ const g = document.getElementById('c').getContext('2d');
 export function render() {
   const p = state.player;
   g.clearRect(0, 0, W, H);
-  g.strokeStyle = '#e0b04033';
-  g.beginPath();
-  g.arc(p.x, p.y, stat(p, 'magnet'), 0, 7);
-  g.stroke(); // magnet alanı
+  if (state.showMagnet) {
+    g.strokeStyle = '#e0b04033';
+    g.beginPath();
+    g.arc(p.x, p.y, stat(p, 'magnet'), 0, 7);
+    g.stroke();
+  }
   for (const f of state.fx) {
     g.strokeStyle = '#9be0ff';
     g.globalAlpha = f.t * 4;
@@ -32,6 +34,16 @@ export function render() {
     g.fill();
   }
   for (const e of state.ents) {
+    if (e.face !== undefined) {
+      g.strokeStyle = '#fff8';
+      g.beginPath();
+      g.moveTo(e.x, e.y);
+      g.lineTo(
+        e.x + Math.cos(e.face) * (e.r + 6),
+        e.y + Math.sin(e.face) * (e.r + 6),
+      );
+      g.stroke();
+    }
     g.fillStyle = e === p ? '#5cc8ff' : e.col;
     g.beginPath();
     g.arc(e.x, e.y, e.r, 0, 7);

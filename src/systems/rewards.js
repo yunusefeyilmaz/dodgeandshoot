@@ -6,20 +6,21 @@ import { ITEMS } from '../data/items.js';
 
 export const xpNeed = () => 4 + state.level * 3;
 
-// Kill olayına abone: coin, item ve xp düşürür (combat.js bunu bilmez)
+// Kill olayına abone: coin, item, xp. Luck: coin değeri ve item şansını artırır.
 on('Kill', ({ target: t }) => {
   if (t.team !== 'e') return;
+  const luck = stat(state.player, 'luck');
   state.kills++;
   state.xp += t.xp;
   const k = t.boss ? 8 : 1;
   for (let i = 0; i < k; i++)
     state.pickups.push({
       type: 'coin',
-      v: Math.max(1, Math.round(t.coin / k)),
+      v: Math.max(1, Math.round((t.coin / k) * (1 + luck * 0.01))),
       x: t.x + rnd(-18, 18),
       y: t.y + rnd(-18, 18),
     });
-  if (t.boss || Math.random() < 0.15)
+  if (t.boss || Math.random() < Math.min(0.6, 0.15 + luck * 0.004))
     state.pickups.push({
       type: 'item',
       item: ITEMS[Math.floor(Math.random() * ITEMS.length)],
@@ -28,7 +29,6 @@ on('Kill', ({ target: t }) => {
     });
 });
 
-// Yerdeki coin/itemlar: magnet alanına girince oyuncuya çekilir ve toplanır
 export function updatePickups(dt) {
   const p = state.player,
     m = stat(p, 'magnet');
@@ -45,7 +45,7 @@ export function updatePickups(dt) {
       return false;
     }
     const slot = state.inventory.indexOf(null);
-    if (slot < 0) return true; // envanter dolu: yerde kalır
+    if (slot < 0) return true;
     state.inventory[slot] = k.item;
     addPart(p, k.item.part);
     toast('Item: ' + k.item.name);

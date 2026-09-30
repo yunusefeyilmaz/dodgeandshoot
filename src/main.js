@@ -8,10 +8,11 @@ import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
 import { render } from './systems/render.js';
 import { initHud, updateHud } from './ui/hud.js';
-import { openCards } from './ui/cards.js';
+import { openCards, openWeaponPick } from './ui/cards.js';
 
 const player = make({
   team: 'p',
+  classes: [],
   x: 400,
   y: 250,
   r: 11,
@@ -23,6 +24,7 @@ addPart(player, upgradePart);
 state.player = player;
 state.ents.push(player);
 initHud();
+openWeaponPick();
 
 let last = performance.now();
 function loop(now) {

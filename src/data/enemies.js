@@ -2,7 +2,7 @@
 export const ENEMIES = {
   grunt: {
     hp: 18,
-    speed: 65,
+    speed: 95,
     armor: 0,
     xp: 1,
     coin: 1,
@@ -12,7 +12,7 @@ export const ENEMIES = {
   },
   spitter: {
     hp: 28,
-    speed: 45,
+    speed: 55,
     armor: 0,
     xp: 2,
     coin: 2,
@@ -23,7 +23,7 @@ export const ENEMIES = {
   },
   tank: {
     hp: 70,
-    speed: 40,
+    speed: 60,
     armor: 30,
     xp: 3,
     coin: 3,

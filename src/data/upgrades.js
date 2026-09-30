@@ -1,12 +1,40 @@
-// Coin ile alınan basic statlar. Maliyet = base * grow^seviye
+// Shop'taki genel (LoL tarzı) statlar. U() açıklamayı otomatik üretir. Maliyet = base * grow^seviye
+export const U = (id, name, stat, op, value, base, grow, max, o = {}) => ({
+  id,
+  name,
+  stat,
+  op,
+  value,
+  base,
+  grow,
+  max,
+  tag: o.tag,
+  desc:
+    op === 'add'
+      ? '+' + (o.pct ? Math.round(value * 100) + '%' : value) + ' ' + name
+      : '+%' + Math.round((value - 1) * 100) + ' ' + name,
+});
 export const UPGRADES = [
-  { id: 'damage',     name: 'Hasar',           desc: '+%10 hasar',            stat: 'damage',     op: 'mul', value: 1.10, base: 10, grow: 1.35 },
-  { id: 'critChance', name: 'Kritik şansı',    desc: '+%3 kritik şansı',      stat: 'critChance', op: 'add', value: .03,  base: 15, grow: 1.4, max: 25 },
-  { id: 'critDmg',    name: 'Kritik hasarı',   desc: '+%15 kritik çarpanı',   stat: 'critDmg',    op: 'add', value: .15,  base: 15, grow: 1.4 },
-  { id: 'armorPen',   name: 'Zırh delme',      desc: '+%4 düşman zırhı yok sayılır', stat: 'armorPen', op: 'add', value: .04, base: 20, grow: 1.45, max: 20 },
-  { id: 'maxHp',      name: 'Max can',         desc: '+20 can',               stat: 'maxHp',      op: 'add', value: 20,   base: 8,  grow: 1.3 },
-  { id: 'armor',      name: 'Zırh',            desc: '+4 zırh',               stat: 'armor',      op: 'add', value: 4,    base: 12, grow: 1.35 },
-  { id: 'speed',      name: 'Hareket hızı',    desc: '+10 hız',               stat: 'speed',      op: 'add', value: 10,   base: 10, grow: 1.3, max: 12 },
-  { id: 'cdr',        name: 'Bekleme süresi',  desc: '-%5 cooldown',          stat: 'cdr',        op: 'mul', value: .95,  base: 25, grow: 1.5, max: 10 },
-  { id: 'magnet',     name: 'Mıknatıs alanı',  desc: '+25 toplama menzili',   stat: 'magnet',     op: 'add', value: 25,   base: 10, grow: 1.35, max: 15 },
+  U('ad', 'Saldırı gücü (AD)', 'ad', 'add', 4, 10, 1.3),
+  U('ap', 'Büyü gücü (AP)', 'ap', 'add', 4, 10, 1.3),
+  U('as', 'Saldırı hızı', 'attackSpeed', 'mul', 1.08, 12, 1.35, 15),
+  U('haste', 'Yetenek hızlandırma', 'haste', 'add', 8, 20, 1.4, 12),
+  U('crit', 'Kritik şansı', 'critChance', 'add', 0.03, 15, 1.4, 25, { pct: 1 }),
+  U('critd', 'Kritik hasarı', 'critDmg', 'add', 0.15, 15, 1.4),
+  U('armor', 'Zırh', 'armor', 'add', 4, 12, 1.35),
+  U('mr', 'Büyü direnci', 'mr', 'add', 4, 12, 1.35),
+  U('apen', 'Zırh delme %', 'armorPen', 'add', 0.04, 20, 1.45, 15, { pct: 1 }),
+  U('leth', 'Lethality (sabit zırh delme)', 'lethality', 'add', 3, 15, 1.4, 15),
+  U('mpen', 'Büyü delme %', 'magicPen', 'add', 0.04, 20, 1.45, 15, { pct: 1 }),
+  U('mflat', 'Sabit büyü delme', 'magicFlat', 'add', 3, 15, 1.4, 15),
+  U('hp', 'Max can', 'maxHp', 'add', 20, 8, 1.3),
+  U('regen', 'Can yenileme /sn', 'regen', 'add', 0.5, 15, 1.4, 20),
+  U('ls', 'Lifesteal (silah)', 'lifesteal', 'add', 0.02, 25, 1.5, 10, {
+    pct: 1,
+  }),
+  U('ov', 'Omnivamp (tüm hasar)', 'omnivamp', 'add', 0.02, 25, 1.5, 10, {
+    pct: 1,
+  }),
+  U('ms', 'Hareket hızı', 'speed', 'add', 10, 10, 1.3, 12),
+  U('mag', 'Mıknatıs alanı', 'magnet', 'add', 25, 10, 1.35, 15),
 ];

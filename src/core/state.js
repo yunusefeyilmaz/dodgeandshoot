@@ -26,6 +26,10 @@ export const state = {
   },
   upgradeLevels: {},
   inventory: Array(6).fill(null),
+  classSlots: 2,
+  weapon: null,
+  showMagnet: false,
+  combos: [],
 };
 export const toast = (s) => {
   state.msg = s;

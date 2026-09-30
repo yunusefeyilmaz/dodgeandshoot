@@ -1,16 +1,27 @@
-// Skill = sadece veri. Kim kullanırsa kullansın (oyuncu, düşman, boss) aynı şekilde çalışır.
+// dmgType: 'phys' (AD + zırh) veya 'magic' (AP + büyü direnci). 'Weapon' tag'i saldırı hızı/lifesteal için.
 export const ABILITIES = {
-  bolt: {
-    id: 'bolt',
-    name: 'Arcane Bolt',
-    tags: ['Arcane', 'Projectile'],
-    cooldown: 0.8,
-    effects: [{ type: 'Projectile', damage: 12, speed: 380, color: '#8ab4ff' }],
+  bow: {
+    id: 'bow',
+    name: 'Ok',
+    tags: ['Weapon', 'Bow', 'Projectile'],
+    dmgType: 'phys',
+    cooldown: 0.7,
+    effects: [{ type: 'Projectile', damage: 14, speed: 420, color: '#d8c08a' }],
+  },
+  sword: {
+    id: 'sword',
+    name: 'Kılıç',
+    tags: ['Weapon', 'Sword', 'Area'],
+    dmgType: 'phys',
+    cooldown: 0.6,
+    range: 70,
+    effects: [{ type: 'Nova', damage: 18, radius: 62 }],
   },
   fireball: {
     id: 'fireball',
     name: 'Fireball',
     tags: ['Fire', 'Projectile'],
+    dmgType: 'magic',
     cooldown: 1.6,
     effects: [{ type: 'Projectile', damage: 30, speed: 300, color: '#ff8a3d' }],
   },
@@ -18,13 +29,16 @@ export const ABILITIES = {
     id: 'nova',
     name: 'Frost Nova',
     tags: ['Ice', 'Area'],
+    dmgType: 'magic',
     cooldown: 3,
+    range: 100,
     effects: [{ type: 'Nova', damage: 18, radius: 95 }],
   },
   spit: {
     id: 'spit',
     name: 'Dark Spit',
     tags: ['Dark', 'Projectile'],
+    dmgType: 'magic',
     cooldown: 2.6,
     effects: [{ type: 'Projectile', damage: 8, speed: 200, color: '#c46bff' }],
   },
@@ -32,6 +46,7 @@ export const ABILITIES = {
     id: 'fan',
     name: 'Shadow Fan',
     tags: ['Dark', 'Projectile'],
+    dmgType: 'magic',
     cooldown: 2.2,
     effects: [
       {
@@ -48,6 +63,7 @@ export const ABILITIES = {
     id: 'ring',
     name: 'Blood Ring',
     tags: ['Blood', 'Projectile'],
+    dmgType: 'phys',
     cooldown: 3,
     effects: [
       {
@@ -64,6 +80,7 @@ export const ABILITIES = {
     id: 'quake',
     name: 'Quake',
     tags: ['Earth', 'Area'],
+    dmgType: 'phys',
     cooldown: 3.5,
     range: 120,
     effects: [{ type: 'Nova', damage: 20, radius: 110 }],
