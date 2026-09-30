@@ -3,7 +3,7 @@ export const ITEMS = [
   {
     name: 'Vamp Sword',
     part: {
-      mods: [{ stat: 'damage', op: 'mul', value: 0.1 }],
+      mods: [{ stat: 'damage', op: 'mul', value: 1.1 }],
       triggers: [
         {
           on: 'DamageDealt',
