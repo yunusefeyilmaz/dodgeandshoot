@@ -4,12 +4,13 @@ import { stat } from '../core/stats.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { ABILITIES } from '../data/abilities.js';
 
-export const isBossWave = (n) => n % 10 === 0;
-// Tur 10..100 -> boss 1..10, sonra aynı bosslar her döngüde %75 daha güçlü
+export const isBossWave = (n) => n % 5 === 0;
+// Tur 5..50 -> boss 1..5, sonra aynı bosslar her döngüde %75 daha güçlü
 export function bossFor(n) {
-  const i = n / 10 - 1;
-  return { def: BOSSES[i % 10], power: 1 + Math.floor(i / 10) * 0.75 };
+  const i = n / 5 - 1;
+  return { def: BOSSES[i % 5], power: 1 + Math.floor(i / 5) * 0.75 };
 }
+export const isSwarmWave = (n) => n > 5 && n % 3 === 0;
 
 function spawn(def, hpScale, power = 1) {
   const n = state.wave.n,
@@ -47,8 +48,15 @@ export function startWave() {
   w.bossPending = isBossWave(w.n);
   w.toSpawn = w.bossPending
     ? 5
-    : 30 + (w.n * 2 + Math.floor(Math.random() * w.n * 2));
-  toast(w.bossPending ? 'BOSS: ' + bossFor(w.n).def.name : 'Tur ' + w.n);
+    : isSwarmWave(w.n)
+      ? 20 + (w.n * 10 + Math.floor(Math.random() * w.n * 10))
+      : 30 + (w.n * 2 + Math.floor(Math.random() * w.n * 2));
+  const waveType = w.bossPending
+    ? 'BOSS: ' + bossFor(w.n).def.name
+    : isSwarmWave(w.n)
+      ? 'SWARM: ' + w.n
+      : 'Tur ' + w.n;
+  toast(waveType);
 }
 
 export function updateWaves(dt) {
@@ -60,16 +68,32 @@ export function updateWaves(dt) {
       spawn(b.def, 1 + w.n * 0.02, b.power);
       w.bossPending = false;
     } else if (w.toSpawn > 0 && w.timer <= 0) {
-      const r = Math.random(),
-        t =
-          w.n >= 5 && r < 0.15
-            ? 'tank'
-            : w.n >= 2 && r < 0.4
-              ? 'spitter'
-              : 'grunt';
-      spawn(ENEMIES[t], 1 + w.n * 0.12);
-      w.toSpawn--;
-      w.timer = Math.max(0.25, 0.9 - w.n * 0.01);
+      if (isSwarmWave(w.n)) {
+        // Swarm: spawn 10 enemies at once
+        for (let i = 0; i < 10; i++) {
+          const r = Math.random(),
+            t =
+              w.n >= 5 && r < 0.15
+                ? 'tank'
+                : w.n >= 2 && r < 0.4
+                  ? 'spitter'
+                  : 'grunt';
+          spawn(ENEMIES[t], 1 + w.n * 0.12);
+          w.toSpawn--;
+        }
+        w.timer = Math.max(0.5, 1.5 - w.n * 0.05);
+      } else {
+        const r = Math.random(),
+          t =
+            w.n >= 5 && r < 0.15
+              ? 'tank'
+              : w.n >= 2 && r < 0.4
+                ? 'spitter'
+                : 'grunt';
+        spawn(ENEMIES[t], 1 + w.n * 0.12);
+        w.toSpawn--;
+        w.timer = Math.max(0.25, 0.9 - w.n * 0.01);
+      }
     }
     if (!w.bossPending && w.toSpawn <= 0 && state.ents.length === 1) {
       // tur bitti

@@ -47,14 +47,14 @@ const B = (name, col, hp, speed, armor, abilities) => ({
 });
 // 10 boss: tur 10, 20, ... 100. Sonra başa döner ve güçlenir (waves.js).
 export const BOSSES = [
-  B('Gölge Bekçi', '#8b3fd9', 500, 50, 10, ['fan']),
-  B('Kızıl Golem', '#d94a3f', 900, 38, 40, ['quake']),
-  B('Kan Rahibi', '#ff4f6a', 1000, 55, 20, ['ring']),
-  B('Buz Ejderi', '#6fd3ff', 1400, 50, 30, ['fan', 'quake']),
-  B('Taş Muhafız', '#9a8f7a', 2200, 30, 90, ['quake']),
-  B('Zehir Kraliçe', '#7bd94a', 1800, 60, 30, ['ring', 'spit']),
-  B('Ateş Lordu', '#ff8a3d', 2600, 55, 50, ['fan', 'ring']),
-  B('Boşluk Gezgini', '#5a4fff', 3000, 65, 60, ['fan', 'ring', 'spit']),
-  B('Demir Titan', '#c0c8d8', 4500, 35, 140, ['quake', 'fan']),
-  B('Kadim Ruh', '#ffd84f', 5000, 60, 80, ['fan', 'ring', 'quake']),
+  B('Gölge Bekçi', '#8b3fd9', 10000, 50, 10, ['fan']),
+  B('Kızıl Golem', '#d94a3f', 35000, 38, 40, ['quake']),
+  B('Kan Rahibi', '#ff4f6a', 100000, 55, 20, ['ring']),
+  B('Buz Ejderi', '#6fd3ff', 150000, 50, 30, ['fan', 'quake']),
+  B('Taş Muhafız', '#9a8f7a', 200000, 30, 90, ['quake']),
+  B('Zehir Kraliçe', '#7bd94a', 400000, 60, 30, ['ring', 'spit']),
+  B('Ateş Lordu', '#ff8a3d', 680000, 55, 50, ['fan', 'ring']),
+  B('Boşluk Gezgini', '#5a4fff', 740000, 65, 60, ['fan', 'ring', 'spit']),
+  B('Demir Titan', '#c0c8d8', 880000, 35, 140, ['quake', 'fan']),
+  B('Kadim Ruh', '#ffd84f', 9999999, 60, 80, ['fan', 'ring', 'quake']),
 ];
