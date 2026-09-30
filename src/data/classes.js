@@ -20,20 +20,20 @@ export const CLASSES = {
   },
   vampire: {
     name: 'Vampire',
-    desc: '%10 omnivamp. Her öldürmede 3 can.',
+    desc: '%5 omnivamp. Her öldürmede 1 can.',
     part: {
-      mods: [{ stat: 'omnivamp', op: 'add', value: 0.1 }],
+      mods: [{ stat: 'omnivamp', op: 'add', value: 0.05 }],
       triggers: [
         {
           on: 'Kill',
-          run: (o) => (o.hp = Math.min(stat(o, 'maxHp'), o.hp + 3)),
+          run: (o) => (o.hp = Math.min(stat(o, 'maxHp'), o.hp + 1)),
         },
       ],
     },
   },
   tank: {
     name: 'Tank',
-    desc: '+60 can, +12 zırh, +12 büyü direnci. Her 20 öldürmede +1 zırh.',
+    desc: '+60 can, +12 zırh, +12 büyü direnci. Her 20 öldürmede +1 zırh, +1 büyü direnci.',
     part: {
       mods: [
         { stat: 'maxHp', op: 'add', value: 60 },
@@ -41,6 +41,13 @@ export const CLASSES = {
         { stat: 'mr', op: 'add', value: 12 },
         {
           stat: 'armor',
+          op: 'add',
+          get value() {
+            return state.kills * 0.05;
+          },
+        },
+        {
+          stat: 'mr',
           op: 'add',
           get value() {
             return state.kills * 0.05;

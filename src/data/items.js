@@ -3,20 +3,20 @@ export const ITEMS = [
   {
     name: 'Vamp Sword',
     part: {
-      mods: [{ stat: 'damage', op: 'mul', value: 1.2 }],
+      mods: [{ stat: 'damage', op: 'mul', value: 0.1 }],
       triggers: [
         {
           on: 'DamageDealt',
-          run: (o) => (o.hp = Math.min(stat(o, 'maxHp'), o.hp + 2)),
+          run: (o) => (o.hp = Math.min(stat(o, 'maxHp'), o.hp + 0.1)),
         },
       ],
     },
   },
-  { name: 'Boots', part: { mods: [{ stat: 'speed', op: 'add', value: 45 }] } },
+  { name: 'Boots', part: { mods: [{ stat: 'speed', op: 'add', value: 15 }] } },
   { name: 'Amulet', part: { mods: [{ stat: 'maxHp', op: 'add', value: 30 }] } },
   {
     name: 'Ember Ring',
-    part: { mods: [{ stat: 'damage', tag: 'Fire', op: 'mul', value: 1.3 }] },
+    part: { mods: [{ stat: 'damage', tag: 'Fire', op: 'mul', value: 2.3 }] },
   },
   {
     name: 'Piercer',
