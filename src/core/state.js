@@ -15,6 +15,8 @@ export const state = {
   over: false,
   msg: '',
   msgT: 0,
+  dmgVignette: 0,
+  flashT: 0,
   wave: {
     n: 0,
     phase: 'idle',

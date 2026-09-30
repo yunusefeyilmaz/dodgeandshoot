@@ -11,7 +11,23 @@ export function render() {
     g.arc(p.x, p.y, stat(p, 'magnet'), 0, 7);
     g.stroke();
   }
+  // Vignet when player takes damage
+  if (state.dmgVignette > 0) {
+    state.dmgVignette -= 1 / 60;
+    g.fillStyle = 'rgba(255, 0, 0, ' + state.dmgVignette * 0.3 + ')';
+    g.fillRect(0, 0, W, H);
+  }
   for (const f of state.fx) {
+    if (f.text !== undefined) {
+      const alpha = Math.max(0, f.t / 1.5);
+      g.fillStyle = f.color || '#ffff00';
+      g.font = '14px system-ui';
+      g.textAlign = 'center';
+      g.globalAlpha = alpha;
+      g.fillText(f.text, f.x, f.y - 4);
+      g.globalAlpha = 1;
+      continue;
+    }
     g.strokeStyle = '#9be0ff';
     g.globalAlpha = f.t * 4;
     g.beginPath();
@@ -44,10 +60,24 @@ export function render() {
       );
       g.stroke();
     }
-    g.fillStyle = e === p ? '#5cc8ff' : e.col;
+    // Player flash on hit
+    const isPlayerFlash = e === p && e.flashT > 0;
+    g.fillStyle = isPlayerFlash
+      ? '#ff0000'
+      : e === p
+        ? '#5cc8ff'
+        : e.flashT > 0
+          ? '#ff0000'
+          : e.col;
+
+    // Death shrink animation
+    const scale = e.deathTimer > 0 ? 1 - (1 - e.deathTimer / 1.5) * 0.8 : 1;
+    const drawnR = e.r * scale;
+
     g.beginPath();
-    g.arc(e.x, e.y, e.r, 0, 7);
+    g.arc(e.x, e.y, drawnR, 0, 7);
     g.fill();
+
     if (e.boss) {
       g.fillStyle = '#333';
       g.fillRect(200, 44, 400, 8);

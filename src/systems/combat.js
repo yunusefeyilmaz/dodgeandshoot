@@ -28,6 +28,19 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     (tags.includes('Weapon') ? stat(src, 'lifesteal') : 0);
   if (vamp > 0) src.hp = Math.min(stat(src, 'maxHp'), src.hp + amt * vamp);
   emit('DamageDealt', { source: src, target: t, amount: amt, tags, crit });
+  if (t === state.player) {
+    state.dmgVignette = 0.5;
+    state.flashT = 0.3;
+  }
+  state.fx.push({
+    x: t.x,
+    y: t.y - t.r - 8,
+    text: Math.round(amt),
+    color: crit ? '#ff0000' : '#ffff00',
+    t: 1.5,
+    team: src.team,
+  });
+  t.flashT = 0.4;
   if (t.hp <= 0 && !t.dead) {
     t.dead = true;
     emit('Kill', { source: src, target: t });
@@ -99,8 +112,13 @@ export function updateCombat(dt) {
         e.x += Math.cos(e.face) * s;
         e.y += Math.sin(e.face) * s;
       }
-      if (d < e.r + 10)
+      if (d < e.r + 10) {
         p.hp -= (12 * stat(e, 'damage') * dt * 100) / (100 + stat(p, 'armor'));
+        if (p === state.player) {
+          state.dmgVignette = 0.5;
+          state.flashT = 0.3;
+        }
+      }
     }
     for (const ab of e.abilities) {
       e.cd[ab.id] = (e.cd[ab.id] || 0) - dt;
@@ -136,6 +154,9 @@ export function updateCombat(dt) {
       }
   }
   state.projs = state.projs.filter((x) => x.life > 0);
+  for (const e of state.ents) {
+    if (e.flashT > 0) e.flashT -= dt;
+  }
   state.ents = state.ents.filter((e) => e === p || e.hp > 0);
   state.fx = state.fx.filter((f) => (f.t -= dt) > 0);
   p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'regen') * dt);
