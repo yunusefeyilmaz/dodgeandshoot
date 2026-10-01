@@ -7,29 +7,42 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <div id="top">
-      <span id="coins"></span><span id="wave"></span>
-      <button id="startBtn">Turu başlat</button>
-      <label><input type="checkbox" id="auto" /> Otomatik tur</label>
-      <button id="shopBtn">Yükseltmeler</button>
-    </div>
-    <div id="wrap">
-      <canvas id="c" width="800" height="500"></canvas>
+    <canvas id="c"></canvas>
+    <div id="ui">
+      <div id="tl">
+        <div class="bar hp"><i id="hpf"></i><span id="hpt"></span></div>
+        <div class="bar xp"><i id="xpf"></i></div>
+        <div id="coins"></div>
+      </div>
+      <div id="tc">
+        <div id="wave"></div>
+        <div id="pips"></div>
+        <div id="bossbar"><i></i><span></span></div>
+        <button id="startBtn">Turu başlat <kbd>Space</kbd></button>
+        <label><input type="checkbox" id="auto" /> Otomatik tur</label>
+      </div>
+      <div id="tr">
+        <button data-p="inv">Envanter <kbd>I</kbd></button>
+        <button data-p="stat">Statlar <kbd>C</kbd></button>
+        <button data-p="shop">Mağaza <kbd>B</kbd></button>
+      </div>
+      <div id="bl"></div>
+      <div id="toast"></div>
+      <div class="panel" id="invP">
+        <h4>Envanter</h4>
+        <div id="invGrid"></div>
+        <div id="invSel"></div>
+      </div>
+      <div class="panel" id="statP">
+        <h4>Statlar</h4>
+        <div id="statGrid"></div>
+        <div id="statExtra"></div>
+      </div>
       <div id="ov">
         <div id="ovt"></div>
         <div id="choices"></div>
       </div>
-    </div>
-    <div id="hud">
-      <div>
-        <h3>Envanter</h3>
-        <div class="slots" id="inv"></div>
-      </div>
-      <div style="flex: 1; min-width: 200px">
-        <h3>Kartlar</h3>
-        <div id="cards"></div>
-      </div>
-      <div id="stats"></div>
+      <div id="tip"></div>
     </div>
     <script type="module" src="src/main.js"></script>
   </body>

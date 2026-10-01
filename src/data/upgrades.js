@@ -9,6 +9,7 @@ export const U = (id, name, stat, op, value, base, grow, max, o = {}) => ({
   grow,
   max,
   tag: o.tag,
+  rarity: o.rarity,
   desc:
     op === 'add'
       ? '+' + (o.pct ? Math.round(value * 100) + '%' : value) + ' ' + name
@@ -37,4 +38,5 @@ export const UPGRADES = [
   }),
   U('ms', 'Hareket hızı', 'speed', 'add', 10, 10, 1.3, 12),
   U('mag', 'Mıknatıs alanı', 'magnet', 'add', 25, 10, 1.35, 15),
+  U('kb', 'Geri itme', 'knockback', 'add', 40, 10, 1.4, 10),
 ];

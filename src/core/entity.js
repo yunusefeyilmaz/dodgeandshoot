@@ -24,6 +24,12 @@ const BASE = {
   area: 1,
   pierce: 0,
   multishot: 0,
+  poison: 0,
+  chain: 0,
+  slow: 0,
+  voidShred: 0,
+  knockback: 0,
+  kbResist: 0,
 };
 export const make = (o) => ({
   parts: [],

@@ -33,11 +33,15 @@ const item = (u) =>
     isMax(u) || state.coins < costOf(u),
   );
 export function openShop() {
-  showOverlay('Yükseltmeler — ' + state.coins + ' coin', [
-    sec('Silah: ' + WEAPONS[state.weapon].name),
-    ...weaponUpgrades().map(item),
-    sec('Statlar'),
-    ...UPGRADES.map(item),
-    btn('Kapat', hideOverlay),
-  ]);
+  showOverlay(
+    'Yükseltmeler — ' + state.coins + ' coin',
+    [
+      sec('Silah: ' + WEAPONS[state.weapon].name),
+      ...weaponUpgrades().map(item),
+      sec('Statlar'),
+      ...UPGRADES.map(item),
+      btn('Kapat [B]', hideOverlay),
+    ],
+    'shop',
+  );
 }

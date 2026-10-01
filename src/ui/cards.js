@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
 import { stat } from '../core/stats.js';
+import { RARITIES, weightOf } from '../core/rarity.js';
 import { addPart } from '../core/entity.js';
 import { CARDS } from '../data/cards.js';
 import { CLASSES } from '../data/classes.js';
@@ -37,6 +38,7 @@ export function openCards() {
           name: 'Class: ' + CLASSES[id].name,
           desc: CLASSES[id].desc,
           cls: 1,
+          rarity: 'rare',
           apply: () => addClass(id),
         });
   for (const c of CARDS)
@@ -50,6 +52,7 @@ export function openCards() {
       pool.push({
         name: 'Silah: ' + u.name,
         desc: u.desc,
+        rarity: u.rarity,
         apply: () => freeLevel(u),
       });
   const picks = [],
@@ -61,7 +64,7 @@ export function openCards() {
     const cl = pool.filter((c) => c.cls);
     take(cl[Math.floor(Math.random() * cl.length)]);
   } // boş slot varken en az 1 class kartı gelir
-  const w = (c) => (c.rare ? 0.4 + luck * 0.03 : 1); // luck nadir kartların ağırlığını artırır
+  const w = (c) => weightOf(c.rarity, luck); // luck nadir kartların ağırlığını artırır
   while (picks.length < 3 && pool.length) {
     let r = Math.random() * pool.reduce((s, c) => s + w(c), 0);
     take(pool.find((c) => (r -= w(c)) <= 0) || pool[0]);
@@ -69,11 +72,23 @@ export function openCards() {
   showOverlay(
     'Level ' + state.level + ' — bir kart seç',
     picks.map((c) =>
-      btn('<b>' + c.name + (c.rare ? ' ★' : '') + '</b>' + c.desc, () => {
-        c.apply();
-        picked.push(c.name);
-        hideOverlay();
-      }),
+      btn(
+        '<b>' +
+          c.name +
+          '</b><small style="color:' +
+          RARITIES[c.rarity || 'common'].col +
+          '">' +
+          RARITIES[c.rarity || 'common'].name +
+          '</small><br>' +
+          c.desc,
+        () => {
+          c.apply();
+          picked.push(c.name);
+          hideOverlay();
+        },
+        false,
+        RARITIES[c.rarity || 'common'].col,
+      ),
     ),
   );
 }

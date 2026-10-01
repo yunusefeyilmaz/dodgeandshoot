@@ -1,4 +1,4 @@
-import { state } from './core/state.js';
+import { state, W, H } from './core/state.js';
 import { make, addPart } from './core/entity.js';
 import { ABILITIES } from './data/abilities.js';
 import { upgradePart } from './systems/upgrades.js';
@@ -13,11 +13,11 @@ import { openCards, openWeaponPick } from './ui/cards.js';
 const player = make({
   team: 'p',
   classes: [],
-  x: 400,
-  y: 250,
+  x: W / 2,
+  y: H / 2,
   r: 11,
   hp: 100,
-  base: { speed: 170, magnet: 70, critChance: 0.05 },
+  base: { speed: 170, magnet: 70, critChance: 0.05, knockback: 180 },
 });
 addPart(player, { ability: ABILITIES.bolt });
 addPart(player, upgradePart);

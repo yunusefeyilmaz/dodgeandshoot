@@ -1,18 +1,19 @@
-// hp/speed/armor = temel değerler, tur ilerledikçe waves.js ölçekler.
+// hp/speed/armor = temel değerler, tur ilerledikçe waves.js ölçekler. kbResist: geri itilmeye direnç (0-0.95)
 export const ENEMIES = {
   grunt: {
     hp: 18,
-    speed: 95,
+    speed: 65,
     armor: 0,
     xp: 1,
     coin: 1,
     r: 9,
     col: '#e05a5a',
     abilities: [],
+    kbResist: 0,
   },
   spitter: {
     hp: 28,
-    speed: 55,
+    speed: 45,
     armor: 0,
     xp: 2,
     coin: 2,
@@ -20,22 +21,35 @@ export const ENEMIES = {
     col: '#c46bff',
     abilities: ['spit'],
     keep: 200,
+    kbResist: 0.1,
   },
   tank: {
     hp: 70,
-    speed: 60,
+    speed: 40,
     armor: 30,
     xp: 3,
     coin: 3,
     r: 14,
     col: '#7a8aa0',
     abilities: [],
+    kbResist: 0.6,
   },
+  swarmer: {
+    hp: 14,
+    speed: 85,
+    armor: 0,
+    xp: 1,
+    coin: 1,
+    r: 7,
+    col: '#ff9a4a',
+    abilities: [],
+    kbResist: 0,
+  }, // swarm turlarında
 };
 const B = (name, col, hp, speed, armor, abilities) => ({
   name,
   col,
-  hp,
+  hp: hp * 1.6,
   speed,
   armor,
   abilities,
@@ -44,17 +58,18 @@ const B = (name, col, hp, speed, armor, abilities) => ({
   coin: 40,
   boss: true,
   keep: 120,
+  kbResist: 0.9,
 });
-// 10 boss: tur 10, 20, ... 100. Sonra başa döner ve güçlenir (waves.js).
+// Her 5 turda bir boss. 10 boss bitince başa döner ve her döngüde %75 güçlenir (waves.js).
 export const BOSSES = [
-  B('Gölge Bekçi', '#8b3fd9', 10000, 50, 10, ['fan']),
-  B('Kızıl Golem', '#d94a3f', 35000, 38, 40, ['quake']),
-  B('Kan Rahibi', '#ff4f6a', 100000, 55, 20, ['ring']),
-  B('Buz Ejderi', '#6fd3ff', 150000, 50, 30, ['fan', 'quake']),
-  B('Taş Muhafız', '#9a8f7a', 200000, 30, 90, ['quake']),
-  B('Zehir Kraliçe', '#7bd94a', 400000, 60, 30, ['ring', 'spit']),
-  B('Ateş Lordu', '#ff8a3d', 680000, 55, 50, ['fan', 'ring']),
-  B('Boşluk Gezgini', '#5a4fff', 740000, 65, 60, ['fan', 'ring', 'spit']),
-  B('Demir Titan', '#c0c8d8', 880000, 35, 140, ['quake', 'fan']),
-  B('Kadim Ruh', '#ffd84f', 9999999, 60, 80, ['fan', 'ring', 'quake']),
+  B('Gölge Bekçi', '#8b3fd9', 500, 50, 10, ['fan']),
+  B('Kızıl Golem', '#d94a3f', 900, 38, 40, ['quake']),
+  B('Kan Rahibi', '#ff4f6a', 1000, 55, 20, ['ring']),
+  B('Buz Ejderi', '#6fd3ff', 1400, 50, 30, ['fan', 'quake']),
+  B('Taş Muhafız', '#9a8f7a', 2200, 30, 90, ['quake']),
+  B('Zehir Kraliçe', '#7bd94a', 1800, 60, 30, ['ring', 'spit']),
+  B('Ateş Lordu', '#ff8a3d', 2600, 55, 50, ['fan', 'ring']),
+  B('Boşluk Gezgini', '#5a4fff', 3000, 65, 60, ['fan', 'ring', 'spit']),
+  B('Demir Titan', '#c0c8d8', 4500, 35, 140, ['quake', 'fan']),
+  B('Kadim Ruh', '#ffd84f', 5000, 60, 80, ['fan', 'ring', 'quake']),
 ];

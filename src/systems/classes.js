@@ -14,7 +14,7 @@ export function addClass(id) {
         {
           on: 'DamageDealt',
           run: (own, d) => {
-            if (d.tags.includes('Combo')) return; // combo hasarı tekrar combo tetiklemez
+            if (d.tags.includes('Combo') || d.tags.includes('Status')) return; // combo hasarı tekrar combo tetiklemez
             const dealt = dealDamage(
               own,
               d.target,

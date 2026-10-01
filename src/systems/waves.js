@@ -4,21 +4,48 @@ import { stat } from '../core/stats.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { ABILITIES } from '../data/abilities.js';
 
-export const isBossWave = (n) => n % 5 === 0;
-// Tur 5..50 -> boss 1..5, sonra aynı bosslar her döngüde %75 daha güçlü
+export const BOSS_EVERY = 5,
+  SWARM_EVERY = 3;
+export const isBossWave = (n) => n % BOSS_EVERY === 0;
+export const isSwarmWave = (n) => n % SWARM_EVERY === 0;
+// Tur 5,10,... -> boss 1..10, sonra aynı bosslar her döngüde %75 daha güçlü
 export function bossFor(n) {
-  const i = n / 5 - 1;
-  return { def: BOSSES[i % 5], power: 1 + Math.floor(i / 5) * 0.75 };
+  const i = n / BOSS_EVERY - 1;
+  return { def: BOSSES[i % 10], power: 1 + Math.floor(i / 10) * 0.75 };
 }
-export const isSwarmWave = (n) => n > 5 && n % 3 === 0;
 
-function spawn(def, hpScale, power = 1) {
+// Oyuncunun hemen ekran dışı. ang verilirse (swarm) o yönde, yoksa rastgele; boss daha uzakta.
+function spawnPos(boss, ang) {
+  const p = state.player,
+    v = state.view,
+    ok = (x, y) => x > 20 && x < W - 20 && y > 20 && y < H - 20;
+  const d = boss
+    ? Math.max(v.w, v.h) * 0.75 + 200
+    : Math.max(v.w, v.h) * 0.5 + 40 + rnd(0, 120);
+  let x, y;
+  if (ang !== undefined) {
+    x = p.x + Math.cos(ang) * d;
+    y = p.y + Math.sin(ang) * d;
+  } else
+    for (let i = 0; i < 12; i++) {
+      const a = rnd(0, 6.28);
+      x = p.x + Math.cos(a) * d;
+      y = p.y + Math.sin(a) * d;
+      if (ok(x, y)) break;
+    }
+  return {
+    x: Math.min(W - 20, Math.max(20, x)),
+    y: Math.min(H - 20, Math.max(20, y)),
+  };
+}
+
+function spawn(def, hpScale, power = 1, ang) {
   const n = state.wave.n,
-    a = rnd(0, 6.28);
+    sp = spawnPos(def.boss, ang);
   const e = make({
     team: 'e',
-    x: W / 2 + Math.cos(a) * 520,
-    y: H / 2 + Math.sin(a) * 520,
+    x: sp.x,
+    y: sp.y,
     r: def.r,
     col: def.col,
     xp: def.xp,
@@ -27,13 +54,14 @@ function spawn(def, hpScale, power = 1) {
       speed: def.speed,
       armor: def.armor * (1 + n * 0.02) * power,
       damage: (1 + n * 0.05) * power,
+      kbResist: def.kbResist || 0,
     },
   });
   e.hpMax = e.hp = def.hp * hpScale * power;
   e.keep = def.keep;
   e.boss = def.boss;
   e.name = def.name;
-  e.face = a + Math.PI;
+  e.face = Math.atan2(state.player.y - sp.y, state.player.x - sp.x);
   e.turn = def.boss ? 1.6 : 3;
   def.abilities.forEach((id) => e.abilities.push(ABILITIES[id]));
   state.ents.push(e);
@@ -46,17 +74,12 @@ export function startWave() {
   w.phase = 'active';
   w.timer = 0;
   w.bossPending = isBossWave(w.n);
-  w.toSpawn = w.bossPending
-    ? 5
-    : isSwarmWave(w.n)
-      ? 20 + (w.n * 10 + Math.floor(Math.random() * w.n * 10))
-      : 30 + (w.n * 2 + Math.floor(Math.random() * w.n * 2));
-  const waveType = w.bossPending
-    ? 'BOSS: ' + bossFor(w.n).def.name
-    : isSwarmWave(w.n)
-      ? 'SWARM: ' + w.n
-      : 'Tur ' + w.n;
-  toast(waveType);
+  w.swarmPending = isSwarmWave(w.n);
+  w.toSpawn = w.bossPending ? 5 : 6 + w.n * 2;
+  toast(
+    (w.bossPending ? 'BOSS: ' + bossFor(w.n).def.name : 'Tur ' + w.n) +
+      (w.swarmPending ? ' · SWARM! Her yönden geliyorlar' : ''),
+  );
 }
 
 export function updateWaves(dt) {
@@ -67,36 +90,37 @@ export function updateWaves(dt) {
       const b = bossFor(w.n);
       spawn(b.def, 1 + w.n * 0.02, b.power);
       w.bossPending = false;
-    } else if (w.toSpawn > 0 && w.timer <= 0) {
-      if (isSwarmWave(w.n)) {
-        // Swarm: spawn 10 enemies at once
-        for (let i = 0; i < 10; i++) {
-          const r = Math.random(),
-            t =
-              w.n >= 5 && r < 0.15
-                ? 'tank'
-                : w.n >= 2 && r < 0.4
-                  ? 'spitter'
-                  : 'grunt';
-          spawn(ENEMIES[t], 1 + w.n * 0.12);
-          w.toSpawn--;
-        }
-        w.timer = Math.max(0.5, 1.5 - w.n * 0.05);
-      } else {
-        const r = Math.random(),
-          t =
-            w.n >= 5 && r < 0.15
-              ? 'tank'
-              : w.n >= 2 && r < 0.4
-                ? 'spitter'
-                : 'grunt';
-        spawn(ENEMIES[t], 1 + w.n * 0.12);
-        w.toSpawn--;
-        w.timer = Math.max(0.25, 0.9 - w.n * 0.01);
-      }
     }
-    if (!w.bossPending && w.toSpawn <= 0 && state.ents.length === 1) {
-      // tur bitti
+    if (w.swarmPending) {
+      // 10-17 düşman AYNI ANDA, oyuncunun etrafında çember şeklinde
+      const c = 10 + Math.min(5, Math.floor(w.n / 6)) + Math.floor(rnd(0, 3));
+      for (let i = 0; i < c; i++)
+        spawn(
+          ENEMIES.swarmer,
+          1 + w.n * 0.1,
+          1,
+          (i * 6.283) / c + rnd(-0.1, 0.1),
+        );
+      w.swarmPending = false;
+    }
+    if (w.toSpawn > 0 && w.timer <= 0) {
+      const r = Math.random(),
+        t =
+          w.n >= 5 && r < 0.15
+            ? 'tank'
+            : w.n >= 2 && r < 0.4
+              ? 'spitter'
+              : 'grunt';
+      spawn(ENEMIES[t], 1 + w.n * 0.12);
+      w.toSpawn--;
+      w.timer = Math.max(0.25, 0.9 - w.n * 0.01);
+    }
+    if (
+      !w.bossPending &&
+      !w.swarmPending &&
+      w.toSpawn <= 0 &&
+      state.ents.length === 1
+    ) {
       w.phase = 'idle';
       w.cd = 3;
       state.coins += 5 + w.n * 2;

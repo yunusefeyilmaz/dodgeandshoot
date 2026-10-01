@@ -1,11 +1,15 @@
 // Oyunun tek paylaşılan durum nesnesi. Sistemler buradan okur/yazar.
-export const W = 800,
-  H = 500;
+export const W = 3200,
+  H = 2400; // dünya boyutu (kamera bunun içinde gezer)
 export const state = {
   ents: [],
   projs: [],
   pickups: [],
   fx: [],
+  texts: [],
+  deaths: [],
+  lines: [],
+  flash: 0,
   player: null,
   coins: 0,
   xp: 0,
@@ -15,8 +19,6 @@ export const state = {
   over: false,
   msg: '',
   msgT: 0,
-  dmgVignette: 0,
-  flashT: 0,
   wave: {
     n: 0,
     phase: 'idle',
@@ -27,7 +29,8 @@ export const state = {
     bossPending: false,
   },
   upgradeLevels: {},
-  inventory: Array(6).fill(null),
+  inventory: Array(10).fill(null),
+  view: { w: 800, h: 500, x: 0, y: 0 },
   classSlots: 2,
   weapon: null,
   showMagnet: false,

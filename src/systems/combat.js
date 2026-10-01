@@ -1,46 +1,80 @@
-import { state, dist } from '../core/state.js';
+import { state, W, H, dist, rnd } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { emit } from '../core/events.js';
 import { foes, nearest } from '../core/entity.js';
 
-// Tüm hasar buradan geçer: arkadan vuruş -> kritik -> zırh/MR (yüzde delme, sonra sabit delme) -> omnivamp/lifesteal
-// o: {dir: vuruş yönü (backstab için), type: 'phys'|'magic', trueDmg: savunmayı yok say}
+export const DMG_COL = {
+  phys: '#ffffff',
+  magic: '#6fb4ff',
+  poison: '#6be04a',
+  void: '#c05bff',
+  true: '#ffd84f',
+};
+
+// Tüm hasar buradan geçer: backstab -> kritik -> savunma (void aşındırması dahil) -> knockback -> on-hit efektleri.
+// tags'te 'Status' varsa (zehir tiki, zincir, void) kritik ve yeni efekt tetiklenmez (sonsuz döngü olmaz).
+// o: {dir, type: 'phys'|'magic'|'poison'|'void', trueDmg}
 export function dealDamage(src, t, amt, tags = [], o = {}) {
   if (t.hp <= 0) return 0;
+  const status = tags.includes('Status');
   if (
     o.dir !== undefined &&
     t.face !== undefined &&
     Math.cos(o.dir - t.face) > 0.3
   )
     amt *= stat(src, 'backstab', tags);
-  const crit = Math.random() < Math.min(1, stat(src, 'critChance', tags));
+  const crit =
+    !status && Math.random() < Math.min(1, stat(src, 'critChance', tags));
   if (crit) amt *= stat(src, 'critDmg', tags);
   if (!o.trueDmg) {
-    const m = o.type === 'magic';
+    const m = o.type === 'magic',
+      shred = 1 - (t.shred ? t.shred.v : 0);
     const pct = Math.min(0.9, stat(src, m ? 'magicPen' : 'armorPen', tags)),
       flat = stat(src, m ? 'magicFlat' : 'lethality', tags);
     amt *=
-      100 / (100 + Math.max(0, stat(t, m ? 'mr' : 'armor') * (1 - pct) - flat));
+      100 /
+      (100 +
+        Math.max(0, stat(t, m ? 'mr' : 'armor') * shred * (1 - pct) - flat));
   }
   t.hp -= amt;
+  t.hurt = 0.12;
+  t.barT = 2.5;
+  const kind = o.type || (o.trueDmg ? 'true' : 'phys');
+  if (t.team === 'e') {
+    if (state.texts.length > 90) state.texts.shift();
+    state.texts.push({
+      x: t.x + rnd(-8, 8),
+      y: t.y - t.r - 4,
+      vy: -45,
+      t: 0.7,
+      big: crit,
+      col: crit ? '#ff3b3b' : DMG_COL[kind] || '#fff',
+      text: amt >= 10 ? String(Math.round(amt)) : amt.toFixed(1),
+    });
+  } else state.flash = Math.min(1, state.flash + 0.5);
   const vamp =
     stat(src, 'omnivamp') +
     (tags.includes('Weapon') ? stat(src, 'lifesteal') : 0);
   if (vamp > 0) src.hp = Math.min(stat(src, 'maxHp'), src.hp + amt * vamp);
-  emit('DamageDealt', { source: src, target: t, amount: amt, tags, crit });
-  if (t === state.player) {
-    state.dmgVignette = 0.5;
-    state.flashT = 0.3;
+  if (o.dir !== undefined && !status) {
+    // knockback: güçlü düşmanlar (kbResist) zor itilir
+    const kb =
+      stat(src, 'knockback', tags) * (1 - Math.min(0.95, stat(t, 'kbResist')));
+    if (kb > 0) {
+      t.kx = (t.kx || 0) + Math.cos(o.dir) * kb;
+      t.ky = (t.ky || 0) + Math.sin(o.dir) * kb;
+    }
   }
-  state.fx.push({
-    x: t.x,
-    y: t.y - t.r - 8,
-    text: Math.round(amt),
-    color: crit ? '#ff0000' : '#ffff00',
-    t: 1.5,
-    team: src.team,
+  emit('DamageDealt', {
+    source: src,
+    target: t,
+    amount: amt,
+    tags,
+    crit,
+    type: kind,
   });
-  t.flashT = 0.4;
+  if (!status && !tags.includes('Combo') && t.hp > 0)
+    applyStatus(src, t, amt, tags);
   if (t.hp <= 0 && !t.dead) {
     t.dead = true;
     emit('Kill', { source: src, target: t });
@@ -48,7 +82,42 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
   return amt;
 }
 
-// skill hasarı = (taban + AD/AP) * hasar çarpanı
+// On-hit efektleri: hepsi stat ile gelir (kart/item/silah upgrade'i, tag ile sadece belirli silaha da verilebilir)
+function applyStatus(src, t, amt, tags) {
+  const ps = stat(src, 'poison', tags); // ZEHİR: 3 sn boyunca hasarın %ps'si kadar DoT
+  if (ps > 0) {
+    const o = t.poison;
+    t.poison = {
+      dps: Math.max((amt * ps) / 3, o ? o.dps : 0),
+      t: 3,
+      src,
+      tick: o ? o.tick : 0.5,
+      acc: o ? o.acc : 0,
+    };
+  }
+  const ch = stat(src, 'chain', tags); // BÜYÜ: yakındaki 2 düşmana zincir şimşek
+  if (ch > 0)
+    for (const e of state.ents
+      .filter(
+        (e) => e.team === t.team && e !== t && e.hp > 0 && dist(e, t) < 170,
+      )
+      .sort((a, b) => dist(a, t) - dist(b, t))
+      .slice(0, 2)) {
+      state.lines.push({ x1: t.x, y1: t.y, x2: e.x, y2: e.y, t: 0.18 });
+      dealDamage(src, e, amt * ch, ['Status'], { type: 'magic' });
+    }
+  const sl = stat(src, 'slow', tags); // NORMAL (ağır darbe): yavaşlatma
+  if (sl > 0) t.slow = { v: Math.min(0.7, sl), t: 1.5 };
+  const vs = stat(src, 'voidShred', tags); // VOID: zırh/MR aşındırır + saf void hasarı
+  if (vs > 0) {
+    t.shred = { v: Math.min(0.6, vs), t: 4 };
+    dealDamage(src, t, amt * vs * 0.5, ['Status'], {
+      trueDmg: true,
+      type: 'void',
+    });
+  }
+}
+
 const power = (c, fx, ab) =>
   (fx.damage +
     stat(c, ab.dmgType === 'magic' ? 'ap' : 'ad') * (fx.ratio ?? 1)) *
@@ -100,24 +169,51 @@ const EFFECTS = {
 export function updateCombat(dt) {
   const p = state.player;
   for (const e of state.ents) {
+    e.hurt = Math.max(0, (e.hurt || 0) - dt);
+    e.barT = Math.max(0, (e.barT || 0) - dt);
+    if (e.slow && (e.slow.t -= dt) <= 0) e.slow = null;
+    if (e.shred && (e.shred.t -= dt) <= 0) e.shred = null;
+    if (e.poison) {
+      // zehir 0.5 sn'de bir tik atar (yeşil sayı)
+      const z = e.poison;
+      z.acc += z.dps * dt;
+      z.tick -= dt;
+      z.t -= dt;
+      if (z.tick <= 0 || z.t <= 0) {
+        if (z.acc > 0)
+          dealDamage(z.src, e, z.acc, ['Status', 'Poison'], {
+            trueDmg: true,
+            type: 'poison',
+          });
+        z.acc = 0;
+        z.tick = 0.5;
+      }
+      if (z.t <= 0) e.poison = null;
+    }
+    if (e.kx || e.ky) {
+      // knockback hızı üstel olarak sönümlenir
+      e.x = Math.min(W, Math.max(0, e.x + e.kx * dt));
+      e.y = Math.min(H, Math.max(0, e.y + e.ky * dt));
+      const f = Math.exp(-9 * dt);
+      e.kx *= f;
+      e.ky *= f;
+      if (Math.hypot(e.kx, e.ky) < 5) e.kx = e.ky = 0;
+    }
     if (e.team === 'e') {
-      // düşman: yavaş dönerek yüzüne baktığı yöne yürür -> arkasına geçilebilir (backstab)
       const d = dist(e, p) || 1,
         want = Math.atan2(p.y - e.y, p.x - e.x);
       const da = ((want - e.face + Math.PI * 3) % (Math.PI * 2)) - Math.PI,
         tr = e.turn * dt;
       e.face += Math.max(-tr, Math.min(tr, da));
       if (!e.keep || d > e.keep) {
-        const s = stat(e, 'speed') * dt;
+        const s = stat(e, 'speed') * (e.slow ? 1 - e.slow.v : 1) * dt;
         e.x += Math.cos(e.face) * s;
         e.y += Math.sin(e.face) * s;
       }
       if (d < e.r + 10) {
         p.hp -= (12 * stat(e, 'damage') * dt * 100) / (100 + stat(p, 'armor'));
-        if (p === state.player) {
-          state.dmgVignette = 0.5;
-          state.flashT = 0.3;
-        }
+        p.hurt = 0.12;
+        state.flash = Math.max(state.flash, 0.3);
       }
     }
     for (const ab of e.abilities) {
@@ -153,12 +249,20 @@ export function updateCombat(dt) {
         }
       }
   }
+  for (const e of state.ents)
+    if (e.hp <= 0 && e !== p)
+      state.deaths.push({ x: e.x, y: e.y, r: e.r, col: e.col, t: 0.4 }); // ezilme efekti
   state.projs = state.projs.filter((x) => x.life > 0);
-  for (const e of state.ents) {
-    if (e.flashT > 0) e.flashT -= dt;
-  }
   state.ents = state.ents.filter((e) => e === p || e.hp > 0);
   state.fx = state.fx.filter((f) => (f.t -= dt) > 0);
+  state.deaths = state.deaths.filter((d) => (d.t -= dt) > 0);
+  state.lines = state.lines.filter((l) => (l.t -= dt) > 0);
+  for (const x of state.texts) {
+    x.t -= dt;
+    x.y += x.vy * dt;
+  }
+  state.texts = state.texts.filter((x) => x.t > 0);
+  state.flash = Math.max(0, state.flash - dt * 2.5);
   p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'regen') * dt);
   if (p.hp <= 0) state.over = true;
 }

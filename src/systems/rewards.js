@@ -1,12 +1,13 @@
 import { state, rnd, dist, toast } from '../core/state.js';
 import { on } from '../core/events.js';
 import { stat } from '../core/stats.js';
-import { addPart } from '../core/entity.js';
+import { rollRarity } from '../core/rarity.js';
 import { ITEMS } from '../data/items.js';
+import { addItem } from './inventory.js';
 
 export const xpNeed = () => 4 + state.level * 3;
 
-// Kill olayına abone: coin, item, xp. Luck: coin değeri ve item şansını artırır.
+// Kill: coin, xp, item. Luck: coin değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
 on('Kill', ({ target: t }) => {
   if (t.team !== 'e') return;
   const luck = stat(state.player, 'luck');
@@ -20,13 +21,16 @@ on('Kill', ({ target: t }) => {
       x: t.x + rnd(-18, 18),
       y: t.y + rnd(-18, 18),
     });
-  if (t.boss || Math.random() < Math.min(0.6, 0.15 + luck * 0.004))
+  if (t.boss || Math.random() < Math.min(0.6, 0.15 + luck * 0.004)) {
+    const r = rollRarity(luck + (t.boss ? 15 : 0)),
+      list = ITEMS.filter((i) => i.rarity === r);
     state.pickups.push({
       type: 'item',
-      item: ITEMS[Math.floor(Math.random() * ITEMS.length)],
+      def: list[Math.floor(Math.random() * list.length)],
       x: t.x,
       y: t.y,
     });
+  }
 });
 
 export function updatePickups(dt) {
@@ -34,6 +38,10 @@ export function updatePickups(dt) {
     m = stat(p, 'magnet');
   state.pickups = state.pickups.filter((k) => {
     const d = dist(k, p);
+    if (k.type === 'item' && state.inventory.indexOf(null) < 0) {
+      if (d < 14 && state.msgT <= 0) toast('Envanter dolu!');
+      return true;
+    } // dolu: alınamaz
     if (d < m) {
       const s = (260 + (m - d)) * dt;
       k.x += ((p.x - k.x) / (d || 1)) * s;
@@ -44,11 +52,6 @@ export function updatePickups(dt) {
       state.coins += k.v;
       return false;
     }
-    const slot = state.inventory.indexOf(null);
-    if (slot < 0) return true;
-    state.inventory[slot] = k.item;
-    addPart(p, k.item.part);
-    toast('Item: ' + k.item.name);
-    return false;
+    return !addItem(k.def);
   });
 }
