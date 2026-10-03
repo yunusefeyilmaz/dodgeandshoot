@@ -21,8 +21,12 @@ export function render() {
   v.y = Math.max(0, Math.min(H - v.h, p.y - v.h / 2));
   g.fillStyle = '#1d2029';
   g.fillRect(0, 0, v.w, v.h);
+  const sh = state.shake * 14;
   g.save();
-  g.translate(-v.x, -v.y);
+  g.translate(
+    -v.x + (Math.random() - 0.5) * sh,
+    -v.y + (Math.random() - 0.5) * sh,
+  );
   g.strokeStyle = '#ffffff0d';
   g.lineWidth = 1;
   g.beginPath();
@@ -62,6 +66,20 @@ export function render() {
     circle(0, 0, d.r);
     g.fill();
     g.restore();
+  }
+  g.globalAlpha = 1;
+  for (const r of state.rings) {
+    g.strokeStyle = r.col;
+    g.lineWidth = 3;
+    g.globalAlpha = r.t / 0.4;
+    circle(r.x, r.y, r.r);
+    g.stroke();
+  }
+  for (const q of state.parts) {
+    g.globalAlpha = Math.max(0, q.t / q.max);
+    g.fillStyle = q.col;
+    circle(q.x, q.y, q.r);
+    g.fill();
   }
   g.globalAlpha = 1;
   for (const k of state.pickups) {
@@ -105,8 +123,13 @@ export function render() {
       g.stroke();
     }
     g.fillStyle = e === p ? '#5cc8ff' : e.col;
+    if (e === p) {
+      g.shadowColor = '#5cc8ff';
+      g.shadowBlur = 18;
+    }
     circle(e.x, e.y, e.r);
     g.fill();
+    g.shadowBlur = 0;
     if (e.hurt > 0) {
       g.globalAlpha = Math.min(0.8, (e.hurt / 0.12) * 0.8);
       g.fillStyle = '#ff2a2a';

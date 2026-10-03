@@ -15,6 +15,10 @@ addEventListener('mousemove', (e) => {
   my = e.clientY;
   if (fn) place();
 });
+export const tipOn = (el, f) => {
+  el.onmouseenter = () => setTip(f);
+  el.onmouseleave = () => setTip(null);
+};
 export function setTip(f) {
   fn = f;
   refreshTip();

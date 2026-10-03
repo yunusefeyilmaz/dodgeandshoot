@@ -3,6 +3,7 @@ import { addPart } from '../core/entity.js';
 import { stat } from '../core/stats.js';
 import { CLASSES, COMBOS, DEFAULT_COMBO } from '../data/classes.js';
 import { dealDamage } from './combat.js';
+import { discover } from '../core/save.js';
 
 // Class ekler; daha önce seçilmiş her class ile çift oluşturup combo part'ı ekler.
 export function addClass(id) {
@@ -30,7 +31,9 @@ export function addClass(id) {
     });
     state.combos.push(c.name);
     toast('COMBO: ' + c.name);
+    discover('combos', [other, id].sort().join('+'), c.name, 'Combo');
   }
   p.classes.push(id);
   addPart(p, CLASSES[id].part);
+  discover('classes', id, CLASSES[id].name, 'Class');
 }

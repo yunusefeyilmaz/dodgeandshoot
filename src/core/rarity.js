@@ -2,8 +2,8 @@
 export const RARITIES = {
   common: { name: 'Sıradan', col: '#9aa3b5', w: 60, sell: 5, tier: 0 },
   rare: { name: 'Nadir', col: '#4aa3ff', w: 28, sell: 15, tier: 1 },
-  epic: { name: 'Epik', col: '#b86bff', w: 10, sell: 40, tier: 2 },
-  legendary: { name: 'Efsanevi', col: '#ffb020', w: 2, sell: 120, tier: 3 },
+  epic: { name: 'Mistik', col: '#b86bff', w: 10, sell: 40, tier: 2 },
+  legendary: { name: 'Destansı', col: '#ffb020', w: 2, sell: 120, tier: 3 },
 };
 export const weightOf = (id, luck) => {
   const r = RARITIES[id || 'common'];

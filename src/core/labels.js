@@ -42,6 +42,34 @@ const PCT = new Set([
   'voidShred',
 ]);
 const MUL = new Set(['attackSpeed', 'damage', 'backstab', 'area']);
+export const DESCS = {
+  ad: 'Fiziksel skillerin taban hasarına eklenir.',
+  ap: 'Büyü skillerinin taban hasarına eklenir.',
+  attackSpeed: 'Silah saldırı hızı çarpanı.',
+  haste: 'Skill bekleme süresini kısaltır (100 haste = yarı süre).',
+  critChance: 'Vuruşun kritik olma şansı.',
+  critDmg: 'Kritik vuruşun hasar çarpanı.',
+  armor: 'Fiziksel hasarı azaltır: 100/(100+zırh).',
+  mr: 'Büyü hasarını azaltır.',
+  armorPen: 'Hedef zırhının yüzdesini yok sayar.',
+  lethality: 'Hedef zırhından sabit miktar düşer.',
+  magicPen: 'Hedef büyü direncinin yüzdesini yok sayar.',
+  magicFlat: 'Hedef büyü direncinden sabit miktar düşer.',
+  maxHp: 'Maksimum can.',
+  regen: 'Saniyede yenilenen can.',
+  lifesteal: 'Silah hasarının yüzdesi kadar can.',
+  omnivamp: 'Tüm hasarın yüzdesi kadar can.',
+  speed: 'Hareket hızı.',
+  magnet: 'Coin ve itemları çekme menzili.',
+  luck: 'Nadir kart/class/item çıkma şansını ve drop oranını artırır.',
+  backstab: 'Düşmanın arkasından vuruş hasar çarpanı.',
+  damage: 'Tüm hasara uygulanan çarpan.',
+  knockback: 'Vuruşta düşmanı iten güç (güçlü düşmanlar direnir).',
+  poison: 'Vuruşun yüzdesi kadar 3 sn zehir hasarı.',
+  chain: 'Vuruşun yüzdesi kadar yakındaki 2 düşmana şimşek.',
+  slow: 'Vurulan düşmanın yavaşlama oranı.',
+  voidShred: "Hedefin zırh/MR'sini aşındırır + void hasarı.",
+};
 export const fmtMod = (m) =>
   m.op === 'mul'
     ? '+%' + Math.round((m.value - 1) * 100)

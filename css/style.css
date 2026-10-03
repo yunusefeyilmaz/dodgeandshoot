@@ -323,3 +323,262 @@ kbd {
   border-color: #e0b040;
   color: #fff;
 }
+#choices {
+  max-width: 96vw;
+}
+.card {
+  width: 210px;
+  min-height: 190px;
+  padding: 14px;
+  border: 2px solid var(--c);
+  border-radius: 10px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--c) 26%, #12141b),
+    #12141b 70%
+  );
+  box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.12s;
+}
+.card:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+.card small {
+  color: var(--c);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+.card b {
+  font-size: 16px;
+}
+.card p {
+  margin: 0;
+  color: #cfd3dc;
+}
+.treewrap {
+  overflow: auto;
+  max-height: 64vh;
+  max-width: 94vw;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: #0b0c10aa;
+  padding: 14px;
+}
+.treebox {
+  position: relative;
+}
+.treebox svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.tn {
+  position: absolute;
+  border: 2px solid #ffffff2a;
+  border-radius: 8px;
+  background: #161922;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.tn small {
+  color: var(--dim);
+  font-size: 11px;
+}
+.tn.can {
+  border-color: #6fd36f;
+  cursor: pointer;
+}
+.tn.can:hover {
+  background: #1f2a1f;
+}
+.tn.own {
+  border-color: #e0b040;
+  background: #2a2618;
+}
+.tn.ghost {
+  opacity: 0.4;
+  border-style: dashed;
+}
+#menu {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: radial-gradient(ellipse at center, #1b2030f2, #0b0c10fa);
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  padding: 30px 16px;
+}
+.mwrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 640px;
+}
+.mwrap.wide {
+  max-width: 1100px;
+}
+.mwrap.center {
+  align-items: center;
+  margin-top: 8vh;
+  text-align: center;
+}
+.mwrap h1 {
+  font-size: 44px;
+  line-height: 1.05;
+  margin: 0 0 6px;
+  letter-spacing: 0.08em;
+}
+.mwrap h2 {
+  margin: 0;
+}
+.sub {
+  color: var(--dim);
+}
+.big {
+  width: 260px;
+  font-size: 18px;
+  text-align: center;
+  padding: 12px;
+}
+.go {
+  align-self: center;
+  border-color: #6fd36f;
+  margin-top: 6px;
+}
+.mhead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mhead .sub {
+  margin-left: auto;
+}
+.mfoot {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.wlist {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.wcard {
+  width: 230px;
+  border: 2px solid #ffffff2a;
+  border-radius: 10px;
+  padding: 10px;
+  background: #12141b;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wcard.sel {
+  border-color: #e0b040;
+  background: #2a2618;
+}
+.wcard.lock {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.wcard .ico {
+  font-size: 28px;
+}
+.wcard small {
+  color: var(--dim);
+}
+.treehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tabs button.on {
+  border-color: #e0b040;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+.tile {
+  border: 2px solid var(--c, #555);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #12141b;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tile.dim {
+  opacity: 0.5;
+  border-style: dashed;
+}
+.tile.lock {
+  --c: #555;
+}
+.tile small {
+  color: var(--dim);
+}
+.sgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 30px;
+}
+.srow {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #ffffff14;
+  padding: 4px 0;
+}
+#pop {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 25;
+}
+.popup {
+  background: #12141bf2;
+  border: 1px solid var(--bd);
+  border-left: 4px solid #4aa3ff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 230px;
+  animation: pin 0.25s;
+  transition:
+    opacity 0.5s,
+    transform 0.5s;
+}
+.popup.out {
+  opacity: 0;
+  transform: translateX(30px);
+}
+@keyframes pin {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+#tip {
+  z-index: 30;
+}

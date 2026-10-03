@@ -1,14 +1,16 @@
 import { state, W, H } from './core/state.js';
 import { make, addPart } from './core/entity.js';
-import { ABILITIES } from './data/abilities.js';
 import { upgradePart } from './systems/upgrades.js';
 import { updatePlayer } from './systems/player.js';
 import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
+import { updateTracking } from './systems/tracking.js';
 import { render } from './systems/render.js';
 import { initHud, updateHud } from './ui/hud.js';
-import { openCards, openWeaponPick } from './ui/cards.js';
+import { openCards, openClassPick } from './ui/cards.js';
+import { openMenu } from './ui/menu.js';
+import './ui/achievements.js';
 
 const player = make({
   team: 'p',
@@ -19,23 +21,26 @@ const player = make({
   hp: 100,
   base: { speed: 170, magnet: 70, critChance: 0.05, knockback: 180 },
 });
-addPart(player, { ability: ABILITIES.bolt });
 addPart(player, upgradePart);
 state.player = player;
 state.ents.push(player);
+state.mode = 'menu';
+state.paused = true; // menüden silah seçilince startRun() oyunu başlatır
 initHud();
-openWeaponPick();
+openMenu();
 
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (!state.paused && !state.over) {
+  if (state.mode === 'run' && !state.paused && !state.over) {
     updateWaves(dt);
     updatePlayer(dt);
     updateCombat(dt);
     updatePickups(dt);
+    updateTracking(dt);
     if (state.xp >= xpNeed()) openCards();
+    else if (state.pendingClass) openClassPick();
   }
   render();
   updateHud();

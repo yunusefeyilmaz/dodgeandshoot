@@ -76,6 +76,33 @@ export const ABILITIES = {
       },
     ],
   },
+  meteor: {
+    id: 'meteor',
+    name: 'Meteor',
+    tags: ['Fire', 'Area'],
+    dmgType: 'magic',
+    cooldown: 5,
+    range: 130,
+    effects: [{ type: 'Nova', damage: 70, radius: 130 }],
+  },
+  blades: {
+    id: 'blades',
+    name: 'Bıçak Halkası',
+    tags: ['Physical', 'Projectile'],
+    dmgType: 'phys',
+    cooldown: 4,
+    effects: [
+      {
+        type: 'Projectile',
+        damage: 12,
+        speed: 300,
+        count: 12,
+        radial: true,
+        color: '#c0c8d8',
+        pierce: 1,
+      },
+    ],
+  },
   quake: {
     id: 'quake',
     name: 'Quake',

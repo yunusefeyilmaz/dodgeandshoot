@@ -4,6 +4,7 @@ import { stat } from '../core/stats.js';
 export const CLASSES = {
   assassin: {
     name: 'Assassin',
+    rarity: 'rare',
     desc: 'Arkadan vuruş +%40 hasar. Her öldürmede +%0.01 kritik şansı (100 kill = +%1).',
     part: {
       mods: [
@@ -20,6 +21,7 @@ export const CLASSES = {
   },
   vampire: {
     name: 'Vampire',
+    rarity: 'rare',
     desc: '%10 omnivamp. Her öldürmede 3 can.',
     part: {
       mods: [{ stat: 'omnivamp', op: 'add', value: 0.1 }],
@@ -33,6 +35,7 @@ export const CLASSES = {
   },
   tank: {
     name: 'Tank',
+    rarity: 'common',
     desc: '+60 can, +12 zırh, +12 büyü direnci. Her 20 öldürmede +1 zırh.',
     part: {
       mods: [
@@ -51,6 +54,7 @@ export const CLASSES = {
   },
   sylas: {
     name: 'Sylas',
+    rarity: 'epic',
     desc: 'Öldürdüğün düşmanın skilini çalarsın. +10 yetenek hızlandırma.',
     part: {
       mods: [{ stat: 'haste', op: 'add', value: 10 }],
@@ -70,6 +74,7 @@ export const CLASSES = {
   },
   gambler: {
     name: 'Gambler',
+    rarity: 'legendary',
     desc: '+5 luck. Her öldürmede +0.05 luck (20 kill = +1). Luck: drop, coin ve nadir kart şansı.',
     part: {
       mods: [
@@ -81,6 +86,36 @@ export const CLASSES = {
             return state.kills * 0.05;
           },
         },
+      ],
+    },
+  },
+  berserker: {
+    name: 'Berserker',
+    rarity: 'common',
+    desc: '+6 AD. Canın azaldıkça hasarın artar (en fazla +%60).',
+    part: {
+      mods: [
+        { stat: 'ad', op: 'add', value: 6 },
+        {
+          stat: 'damage',
+          op: 'mul',
+          get value() {
+            const p = state.player;
+            return 1 + (1 - Math.max(0, p.hp) / stat(p, 'maxHp')) * 0.6;
+          },
+        },
+      ],
+    },
+  },
+  archmage: {
+    name: 'Archmage',
+    rarity: 'epic',
+    desc: '+12 AP, +15 yetenek hızlandırma, vuruşlar %30 zincir şimşek atar.',
+    part: {
+      mods: [
+        { stat: 'ap', op: 'add', value: 12 },
+        { stat: 'haste', op: 'add', value: 15 },
+        { stat: 'chain', op: 'add', value: 0.3 },
       ],
     },
   },

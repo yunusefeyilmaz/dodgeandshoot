@@ -1,14 +1,17 @@
-import { state } from '../core/state.js';
+import { state, toast } from '../core/state.js';
+import { meta } from '../core/save.js';
+import { toggleMute } from '../core/audio.js';
 import { stat } from '../core/stats.js';
-import { LABELS, fmtStat } from '../core/labels.js';
+import { LABELS, DESCS, fmtStat } from '../core/labels.js';
 import { RARITIES } from '../core/rarity.js';
 import { CLASSES } from '../data/classes.js';
 import { startWave } from '../systems/waves.js';
+import { finishRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
 import { openShop } from './shop.js';
 import { picked } from './cards.js';
 import { showOverlay, hideOverlay, overlayKind, btn } from './overlay.js';
-import { setTip, refreshTip, itemTip, partLines } from './tooltip.js';
+import { setTip, tipOn, refreshTip, itemTip, partLines } from './tooltip.js';
 const $ = (id) => document.getElementById(id);
 const panels = { inv: $('invP'), stat: $('statP') };
 const STAT_KEYS = [
@@ -57,12 +60,63 @@ function toggle(p) {
 }
 export function initHud() {
   $('startBtn').onclick = startWave;
+  const D = (t, d) => () => '<b>' + t + '</b><div class="dim">' + d + '</div>';
+  tipOn(
+    $('hpf').parentElement,
+    D('Can', '0 olursa oyun biter. Tur bitince %25 yenilenir.'),
+  );
+  tipOn(
+    $('xpf').parentElement,
+    D('Deneyim', 'Dolunca level atlar ve bir kart seçersin.'),
+  );
+  tipOn(
+    $('coins'),
+    D('Level · Coin', 'Coin ile Mağaza (B) yükseltmeleri alınır.'),
+  );
+  tipOn(
+    $('startBtn'),
+    D(
+      'Turu başlat',
+      'Sıradaki turu başlatır. Otomatik tur açıksa kendisi başlar.',
+    ),
+  );
+  tipOn(
+    $('auto').parentElement,
+    D('Otomatik tur', 'Tur bitince 2 sn sonra yeni tur kendiliğinden başlar.'),
+  );
+  tipOn(
+    document.querySelector('[data-p=inv]'),
+    D('Envanter (I)', 'Itemlar burada. Tıklayıp satabilirsin.'),
+  );
+  tipOn(
+    document.querySelector('[data-p=stat]'),
+    D('Statlar (C)', 'Tüm statlarını ve kartlarını gör.'),
+  );
+  tipOn(
+    document.querySelector('[data-p=shop]'),
+    D('Mağaza (B)', 'Coin ile yetenek ağacından stat al.'),
+  );
+  $('statGrid').onmouseover = (e) => {
+    const k = e.target.dataset && e.target.dataset.k;
+    setTip(
+      k
+        ? () =>
+            '<b>' + LABELS[k] + '</b><div class="dim">' + DESCS[k] + '</div>'
+        : null,
+    );
+  };
+  $('statGrid').onmouseleave = () => setTip(null);
   $('auto').onchange = (e) => (state.wave.auto = e.target.checked);
   document
     .querySelectorAll('[data-p]')
     .forEach((b) => (b.onclick = () => toggle(b.dataset.p)));
   addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
+    if (k === 'm') {
+      toggleMute();
+      toast(meta.settings.mute ? 'Ses kapalı' : 'Ses açık');
+    }
+    if (state.mode !== 'run') return;
     if (k === 'i') toggle('inv');
     else if (k === 'c') toggle('stat');
     else if (k === 'b') toggle('shop');
@@ -208,7 +262,15 @@ export function updateHud() {
   if (frame % 10 === 0 && panels.stat.style.display === 'block') {
     $('statGrid').innerHTML = STAT_KEYS.map(
       (k) =>
-        '<span>' + LABELS[k] + '</span><b>' + fmtStat(k, stat(p, k)) + '</b>',
+        '<span data-k="' +
+        k +
+        '">' +
+        LABELS[k] +
+        '</span><b data-k="' +
+        k +
+        '">' +
+        fmtStat(k, stat(p, k)) +
+        '</b>',
     ).join('');
     $('statExtra').innerHTML =
       'Silah: ' +
@@ -223,10 +285,11 @@ export function updateHud() {
   if (frame % 6 === 0) refreshTip();
   if (state.over && !overShown) {
     overShown = true;
+    finishRun();
     hideOverlay();
     showOverlay(
       'Öldün — Tur ' + w.n,
-      [btn('Yeniden başla', () => location.reload())],
+      [btn('Menüye dön', () => location.reload())],
       'over',
     );
   }

@@ -3,6 +3,7 @@ import { make } from '../core/entity.js';
 import { stat } from '../core/stats.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { ABILITIES } from '../data/abilities.js';
+import { onWaveStart } from './tracking.js';
 
 export const BOSS_EVERY = 5,
   SWARM_EVERY = 3;
@@ -75,11 +76,12 @@ export function startWave() {
   w.timer = 0;
   w.bossPending = isBossWave(w.n);
   w.swarmPending = isSwarmWave(w.n);
-  w.toSpawn = w.bossPending ? 5 : 6 + w.n * 2;
+  w.toSpawn = w.bossPending ? 8 + w.n : 8 + w.n * 3;
   toast(
     (w.bossPending ? 'BOSS: ' + bossFor(w.n).def.name : 'Tur ' + w.n) +
       (w.swarmPending ? ' · SWARM! Her yönden geliyorlar' : ''),
   );
+  onWaveStart(w.n, w.bossPending);
 }
 
 export function updateWaves(dt) {
@@ -93,7 +95,10 @@ export function updateWaves(dt) {
     }
     if (w.swarmPending) {
       // 10-17 düşman AYNI ANDA, oyuncunun etrafında çember şeklinde
-      const c = 10 + Math.min(5, Math.floor(w.n / 6)) + Math.floor(rnd(0, 3));
+      const c = Math.min(
+        70,
+        20 + Math.floor(w.n * 1.5) + Math.floor(rnd(0, 6)),
+      );
       for (let i = 0; i < c; i++)
         spawn(
           ENEMIES.swarmer,
@@ -104,16 +109,22 @@ export function updateWaves(dt) {
       w.swarmPending = false;
     }
     if (w.toSpawn > 0 && w.timer <= 0) {
-      const r = Math.random(),
-        t =
-          w.n >= 5 && r < 0.15
-            ? 'tank'
-            : w.n >= 2 && r < 0.4
-              ? 'spitter'
-              : 'grunt';
-      spawn(ENEMIES[t], 1 + w.n * 0.12);
-      w.toSpawn--;
-      w.timer = Math.max(0.25, 0.9 - w.n * 0.01);
+      // tur ilerledikçe gruplar halinde ve daha sık doğar (tempo düşmesin)
+      for (
+        let i = 0, g = 1 + Math.floor(w.n / 4);
+        i < g && w.toSpawn > 0;
+        i++, w.toSpawn--
+      ) {
+        const r = Math.random(),
+          t =
+            w.n >= 5 && r < 0.15
+              ? 'tank'
+              : w.n >= 2 && r < 0.4
+                ? 'spitter'
+                : 'grunt';
+        spawn(ENEMIES[t], 1 + w.n * 0.12);
+      }
+      w.timer = Math.max(0.15, 0.8 - w.n * 0.015);
     }
     if (
       !w.bossPending &&
@@ -122,7 +133,7 @@ export function updateWaves(dt) {
       state.ents.length === 1
     ) {
       w.phase = 'idle';
-      w.cd = 3;
+      w.cd = 2;
       state.coins += 5 + w.n * 2;
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);

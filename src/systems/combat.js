@@ -2,6 +2,8 @@ import { state, W, H, dist, rnd } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { emit } from '../core/events.js';
 import { foes, nearest } from '../core/entity.js';
+import { burst, shake, updateFx } from './fx.js';
+import { sfx } from '../core/audio.js';
 
 export const DMG_COL = {
   phys: '#ffffff',
@@ -51,7 +53,22 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       col: crit ? '#ff3b3b' : DMG_COL[kind] || '#fff',
       text: amt >= 10 ? String(Math.round(amt)) : amt.toFixed(1),
     });
-  } else state.flash = Math.min(1, state.flash + 0.5);
+    burst(
+      t.x,
+      t.y,
+      DMG_COL[kind] || '#fff',
+      crit ? 8 : 3,
+      crit ? 230 : 120,
+      0.35,
+    );
+    sfx(crit ? 'crit' : 'hit');
+    if (crit) shake(0.18);
+  } else {
+    state.flash = Math.min(1, state.flash + 0.5);
+    shake(0.3);
+    sfx('hurt');
+    burst(t.x, t.y, '#ff3b3b', 6, 130, 0.4);
+  }
   const vamp =
     stat(src, 'omnivamp') +
     (tags.includes('Weapon') ? stat(src, 'lifesteal') : 0);
@@ -77,7 +94,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     applyStatus(src, t, amt, tags);
   if (t.hp <= 0 && !t.dead) {
     t.dead = true;
-    emit('Kill', { source: src, target: t });
+    emit('Kill', { source: src, target: t, tags });
   }
   return amt;
 }
@@ -214,6 +231,8 @@ export function updateCombat(dt) {
         p.hp -= (12 * stat(e, 'damage') * dt * 100) / (100 + stat(p, 'armor'));
         p.hurt = 0.12;
         state.flash = Math.max(state.flash, 0.3);
+        shake(0.12);
+        sfx('hurt');
       }
     }
     for (const ab of e.abilities) {
@@ -236,6 +255,7 @@ export function updateCombat(dt) {
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;
     pr.life -= dt;
+    if (Math.random() < 0.35) burst(pr.x, pr.y, pr.col || '#fff', 1, 10, 0.25);
     for (const e of foes({ team: pr.team }))
       if (!pr.hit.has(e) && dist(pr, e) < e.r + 4) {
         dealDamage(pr.src, e, pr.dmg, pr.tags, {
@@ -250,8 +270,12 @@ export function updateCombat(dt) {
       }
   }
   for (const e of state.ents)
-    if (e.hp <= 0 && e !== p)
-      state.deaths.push({ x: e.x, y: e.y, r: e.r, col: e.col, t: 0.4 }); // ezilme efekti
+    if (e.hp <= 0 && e !== p) {
+      state.deaths.push({ x: e.x, y: e.y, r: e.r, col: e.col, t: 0.4 });
+      burst(e.x, e.y, e.col, e.boss ? 40 : 8, e.boss ? 320 : 160, 0.6);
+      sfx('kill');
+      if (e.boss) shake(0.8);
+    } // ezilme efekti
   state.projs = state.projs.filter((x) => x.life > 0);
   state.ents = state.ents.filter((e) => e === p || e.hp > 0);
   state.fx = state.fx.filter((f) => (f.t -= dt) > 0);
@@ -264,5 +288,6 @@ export function updateCombat(dt) {
   state.texts = state.texts.filter((x) => x.t > 0);
   state.flash = Math.max(0, state.flash - dt * 2.5);
   p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'regen') * dt);
+  updateFx(dt);
   if (p.hp <= 0) state.over = true;
 }

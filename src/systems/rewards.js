@@ -4,6 +4,10 @@ import { stat } from '../core/stats.js';
 import { rollRarity } from '../core/rarity.js';
 import { ITEMS } from '../data/items.js';
 import { addItem } from './inventory.js';
+import { burst, ring } from './fx.js';
+import { sfx } from '../core/audio.js';
+import { meta } from '../core/save.js';
+import { RARITIES } from '../core/rarity.js';
 
 export const xpNeed = () => 4 + state.level * 3;
 
@@ -50,8 +54,18 @@ export function updatePickups(dt) {
     if (d > 14) return true;
     if (k.type === 'coin') {
       state.coins += k.v;
+      meta.stats.coins += k.v;
+      burst(k.x, k.y, '#e0b040', 3, 80, 0.3);
+      sfx('coin');
       return false;
     }
-    return !addItem(k.def);
+    const ok = addItem(k.def);
+    if (ok) {
+      const c = RARITIES[k.def.rarity].col;
+      ring(k.x, k.y, 40, c);
+      burst(k.x, k.y, c, 10, 160, 0.5);
+      sfx('item');
+    }
+    return !ok;
   });
 }

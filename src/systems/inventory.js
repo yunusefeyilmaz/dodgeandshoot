@@ -1,6 +1,7 @@
 import { state, toast } from '../core/state.js';
 import { addPart } from '../core/entity.js';
 import { RARITIES } from '../core/rarity.js';
+import { discover } from '../core/save.js';
 // Item = {def, kills, part}. Part oyuncuya eklenir; satılınca çıkarılır.
 export function addItem(def) {
   const i = state.inventory.indexOf(null);
@@ -10,6 +11,7 @@ export function addItem(def) {
   state.inventory[i] = inst;
   addPart(state.player, inst.part);
   toast('Item: ' + def.name);
+  discover('items', def.id, def.name, 'Item');
   return true;
 }
 export function sellItem(i) {
