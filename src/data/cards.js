@@ -36,72 +36,60 @@ const scythe = (n, r, speed, dmg, size) => ({
 });
 export const CARDS = [
   // Yaygın
+  C('Overcharge I', 'common', 'Tüm hasar +%2', [m('damage', 1.02, 'mul')]),
   C('Keskin', 'common', '+2 AD', [m('ad', 2)]),
   C('Büyücü', 'common', '+2 AP', [m('ap', 2)]),
-  C('Sağlam', 'common', '+15 max can', [m('maxHp', 15)]),
+  C('Sağlam', 'common', '+10 max can', [m('maxHp', 10)]),
   C('Çevik', 'common', '+8 hareket hızı', [m('speed', 8)]),
-  C('Hassas', 'common', '+%2 kritik şansı', [m('critChance', 0.02)]),
+  C('Hassas', 'common', '+%1 kritik şansı', [m('critChance', 0.01)]),
   C('Zırhlı', 'common', '+3 zırh', [m('armor', 3)]),
   C('Zihin', 'common', '+3 yetenek hızlandırma', [m('haste', 3)]),
+  // Yaygın Olmayan
+  C('Fire Mastery', 'uncommon', 'Fire skilleri +%5 hasar artışı', [
+    m('damage', 1.05, 'mul', 'Fire'),
+  ]),
+  C('Overcharge II', 'uncommon', 'Tüm hasar +%5', [m('damage', 1.05, 'mul')]),
+  C('Lucky Charm', 'uncommon', '+2 luck', [m('luck', 2)], { repeat: true }),
+
+  C('Seri El', 'uncommon', 'Silah saldırı hızı +%8', [
+    m('attackSpeed', 1.08, 'mul', 'Weapon'),
+  ]),
+  C('Geniş Alan', 'uncommon', 'Alan skilleri ve kılıç +%10 geniş', [
+    m('area', 1.1, 'mul', 'Area'),
+  ]),
+  C('Efekt Gücü', 'uncommon', 'Zehir/zincir/yavaşlatma/void +%8 güçlü', [
+    m('effPower', 1.08, 'mul'),
+  ]),
+  // Nadir
+  C('Overcharge III', 'rare', 'Tüm hasar +%10', [m('damage', 1.1, 'mul')]),
+  C('Zehirli Uçlar', 'rare', "Vuruşlar zehirler: hasarın %15'i 3 sn DoT", [
+    m('poison', 0.15),
+  ]),
+  C('Ağır Darbe', 'rare', 'Vuruşlar %8 yavaşlatır, +20 geri itme', [
+    m('slow', 0.08),
+    m('knockback', 20),
+  ]),
+  C('Direnç Kırıcı', 'rare', 'Düşmanların efekt dirençlerini %5 deler', [
+    m('resPen', 0.05),
+  ]),
+  C('Kritik Ustası', 'rare', 'Kritik hasarı +%5', [m('critDmg', 0.05)]),
+  // Çok Nadir
+  C('Overcharge IV', 'veryrare', 'Tüm hasar +%20', [m('damage', 1.2, 'mul')]),
+  C('Delici Mermiler', 'veryrare', 'Tüm mermiler +1 düşman deler', [
+    m('pierce', 1, 'add', 'Projectile'),
+  ]),
   S(
     'Fireball',
-    'common',
+    'veryrare',
     'Yeni skill: Fireball (AP ile güçlenir)',
     ABILITIES.fireball,
   ),
   S(
     'Frost Nova',
-    'common',
+    'veryrare',
     'Yeni skill: Frost Nova, yavaşlatır (AP)',
     ABILITIES.nova,
   ),
-  {
-    name: 'Backpack',
-    rarity: 'common',
-    codex: 1,
-    desc: '+2 envanter slotu',
-    max: 4,
-    apply: () => {
-      state.inventory.push(null, null);
-    },
-  },
-  // Yaygın Olmayan
-  C('Fire Mastery', 'uncommon', 'Fire skilleri +%40', [
-    m('damage', 1.4, 'mul', 'Fire'),
-  ]),
-  C('Overcharge', 'uncommon', 'Tüm hasar +%15', [m('damage', 1.15, 'mul')]),
-  C('Lucky Charm', 'uncommon', '+4 luck', [m('luck', 4)], { repeat: true }),
-  C('Delici Mermiler', 'uncommon', 'Tüm mermiler +1 düşman deler', [
-    m('pierce', 1, 'add', 'Projectile'),
-  ]),
-  C('Seri El', 'uncommon', 'Silah saldırı hızı +%15', [
-    m('attackSpeed', 1.15, 'mul', 'Weapon'),
-  ]),
-  C('Geniş Alan', 'uncommon', 'Alan skilleri ve kılıç +%10 geniş', [
-    m('area', 1.1, 'mul', 'Area'),
-  ]),
-  C('Efekt Gücü', 'uncommon', 'Zehir/zincir/yavaşlatma/void +%15 güçlü', [
-    m('effPower', 1.15, 'mul'),
-  ]),
-  // Nadir
-  C('Zehirli Uçlar', 'rare', "Vuruşlar zehirler: hasarın %35'i 3 sn DoT", [
-    m('poison', 0.35),
-  ]),
-  C(
-    'Şimşek Zinciri',
-    'rare',
-    'Vuruşlar yakındaki 2 düşmana %50 büyü hasarı zincirler',
-    [m('chain', 0.5)],
-  ),
-  C('Ağır Darbe', 'rare', 'Vuruşlar %30 yavaşlatır, +120 geri itme', [
-    m('slow', 0.3),
-    m('knockback', 120),
-  ]),
-  C('Direnç Kırıcı', 'rare', 'Düşmanların efekt dirençlerini %15 deler', [
-    m('resPen', 0.15),
-  ]),
-  C('Kritik Ustası', 'rare', 'Kritik hasarı +%30', [m('critDmg', 0.3)]),
-  // Çok Nadir
   C('Ölümcül Zehir', 'veryrare', 'Zehir gücü +%35', [m('poison', 0.35)], {
     requires: 'Zehirli Uçlar',
   }),
@@ -116,6 +104,7 @@ export const CARDS = [
   ),
   C('Kan Susuzluğu', 'veryrare', '%5 omnivamp', [m('omnivamp', 0.05)]),
   // Aşırı Nadir
+  C('Overcharge V', 'ultrarare', 'Tüm hasar +%40', [m('damage', 1.4, 'mul')]),
   C(
     'Void Dokunuşu',
     'ultrarare',
@@ -139,7 +128,23 @@ export const CARDS = [
     'Yeni skill: rastgele alanlara zincirli yıldırım (AP)',
     ABILITIES.thunder,
   ),
+  C(
+    'Şimşek Zinciri',
+    'ultrarare',
+    'Vuruşlar yakındaki 2 düşmana %50 büyü hasarı zincirler',
+    [m('chain', 0.5)],
+  ),
   // Destansı
+  {
+    name: 'Backpack',
+    rarity: 'epic',
+    codex: 1,
+    desc: '+2 envanter slotu',
+    max: 4,
+    apply: () => {
+      state.inventory.push(null, null);
+    },
+  },
   C(
     'Toksik Salgın',
     'epic',

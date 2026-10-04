@@ -3,7 +3,7 @@ const T = [
   ['common', 'Yaygın', '#9aa3b5'],
   ['uncommon', 'Yaygın Olmayan', '#7ed07e'],
   ['rare', 'Nadir', '#4aa3ff'],
-  ['veryrare', 'Çok Nadir', '#37c6c6'],
+  ['veryrare', 'Çok Nadir', '#7f8bfe'],
   ['ultrarare', 'Aşırı Nadir', '#5b6cff'],
   ['epic', 'Destansı', '#b86bff'],
   ['mythic', 'Mitik', '#ff5fd2'],

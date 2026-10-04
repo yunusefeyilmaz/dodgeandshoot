@@ -20,7 +20,7 @@ const player = make({
   y: H / 2,
   r: 11,
   hp: 100,
-  base: { speed: 170, magnet: 70, critChance: 0.05, knockback: 180 },
+  base: { speed: 150, magnet: 70, critChance: 0.01, knockback: 120 },
 });
 addPart(player, upgradePart);
 state.player = player;
