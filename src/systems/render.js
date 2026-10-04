@@ -210,7 +210,7 @@ export function render() {
   for (const e of state.ents) {
     if (e.under) continue;
     if (e.segs) {
-      g.fillStyle = e.col;
+      g.fillStyle = '#8a7430';
       for (let i = e.segs.length - 1; i >= 0; i--) {
         const s = e.segs[i];
         g.globalAlpha = 0.9;
@@ -230,6 +230,7 @@ export function render() {
       );
       g.stroke();
     }
+    g.globalAlpha = e === p && p.invuln > 0 ? 0.45 : 1;
     g.fillStyle = e === p ? '#5cc8ff' : e.col;
     if (e === p) {
       g.shadowColor = '#5cc8ff';
@@ -237,6 +238,7 @@ export function render() {
     }
     body(e);
     g.shadowBlur = 0;
+    g.globalAlpha = 1;
     if (e.icon) {
       g.font = '16px system-ui';
       g.textAlign = 'center';
@@ -251,6 +253,22 @@ export function render() {
       g.globalAlpha = 1;
     } // hasar alınca kızarma
     g.lineWidth = 2; // durum halkaları
+    if (e.segs) {
+      g.fillStyle = '#ffd84f';
+      circle(
+        e.x + Math.cos(e.face) * e.r * 0.45,
+        e.y + Math.sin(e.face) * e.r * 0.45,
+        7,
+      );
+      g.fill();
+    } // parlayan zayıf nokta
+    if (e.exposed > 0) {
+      g.strokeStyle = '#ffd84f';
+      g.lineWidth = 4;
+      circle(e.x, e.y, e.r + 8 + Math.sin(performance.now() / 90) * 3);
+      g.stroke();
+      g.lineWidth = 2;
+    }
     if (e.elite) {
       g.strokeStyle = '#ffd84f';
       g.lineWidth = 3;

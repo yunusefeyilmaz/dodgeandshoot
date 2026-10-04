@@ -34,6 +34,11 @@ export const LABELS = {
   blastPower: 'Patlama hasarı',
   blastRadius: 'Patlama alanı',
   blastCount: 'Ek patlama',
+  dashCharges: 'Dash hakkı',
+  dashCdMul: 'Dash bekleme çarpanı',
+  dashBlast: 'Dash patlaması',
+  dashTrail: 'Dash izi',
+  dashIframe: 'Dash dokunulmazlığı (sn)',
 };
 const PCT = new Set([
   'critChance',
@@ -57,6 +62,7 @@ const MUL = new Set([
   'area',
   'effPower',
   'blastRadius',
+  'dashCdMul',
 ]);
 export const DESCS = {
   ad: 'Fiziksel skillerin taban hasarına eklenir.',
@@ -107,3 +113,8 @@ DESCS.blast = 'Her vuruşun bu ihtimalle patlama yaratması.';
 DESCS.blastPower = 'Patlamanın, vuruş hasarının yüzde kaçını vurduğu.';
 DESCS.blastRadius = 'Patlama alanı çarpanı.';
 DESCS.blastCount = 'Bir patlama tetiklenince oluşan ek patlama sayısı.';
+DESCS.dashCharges = 'Art arda atabileceğin dash sayısı.';
+DESCS.dashCdMul = 'Dash dolum süresi çarpanı (düşük = hızlı).';
+DESCS.dashBlast = 'Dash bittiğinde patlama hasarı çarpanı.';
+DESCS.dashTrail = 'Dash yolunda bırakılan yanan iz gücü.';
+DESCS.dashIframe = 'Dash sırasındaki dokunulmazlık süresi (saniye).';

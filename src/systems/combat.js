@@ -6,7 +6,8 @@ import { burst, shake, updateFx } from './fx.js';
 import { addTele, updateTele } from './telegraph.js';
 import { sfx } from '../core/audio.js';
 import { BAL } from '../data/balance.js';
-import { SCRIPTS } from './bossScripts.js';
+import { SCRIPTS, checkPhase } from './bossScripts.js';
+import { perfectDodge } from './dash.js';
 import { addBuff, updateBuffs } from './buffs.js';
 
 export const DMG_COL = {
@@ -19,8 +20,7 @@ export const DMG_COL = {
 const cw = (v) => Math.min(W, Math.max(0, v)),
   ch = (v) => Math.min(H, Math.max(0, v));
 const reach = (x, y, e, ex) =>
-  (x - e.x) ** 2 + (y - e.y) ** 2 < (ex + e.r) ** 2 ||
-  (e.segs && e.segs.some((g) => Math.hypot(x - g.x, y - g.y) < ex + g.r)); // gövde parçalı bosslar (Hulud)
+  (x - e.x) ** 2 + (y - e.y) ** 2 < (ex + e.r) ** 2; // gövde parçalı bosslar (Hulud)
 const resOf = (x, key, rp) =>
   1 - Math.max(0, Math.min(0.95, ((x.res || {})[key] || 0) - rp)); // efekt direnci (resPen ile düşer)
 
@@ -28,6 +28,10 @@ const resOf = (x, key, rp) =>
 // tags'te 'Status' varsa kritik ve yeni efekt tetiklenmez. o: {dir, type, trueDmg, proc}
 export function dealDamage(src, t, amt, tags = [], o = {}) {
   if (t.hp <= 0 || !Number.isFinite(amt)) return 0;
+  if (t.invuln > 0) {
+    if (!tags.includes('Status') && src !== t) perfectDodge();
+    return 0;
+  } // dash dokunulmazlığı; saldırı değerse mükemmel kaçış
   const status = tags.includes('Status');
   if (
     o.dir !== undefined &&
@@ -48,6 +52,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       (100 +
         Math.max(0, stat(t, m ? 'mr' : 'armor') * shred * (1 - pct) - flat));
   }
+  if (t.exposed > 0) amt *= 1.6; // bitkin boss daha çok hasar alır
   if (t.dr) amt *= 1 - Math.min(0.8, t.dr);
   t.hp -= amt;
   t.hurt = 0.12;
@@ -94,6 +99,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       t.ky = (t.ky || 0) + Math.sin(o.dir) * kb;
     }
   }
+  if (t.script && t.hp > 0) checkPhase(t); // boss fazları
   emit('DamageDealt', {
     source: src,
     target: t,
@@ -621,7 +627,7 @@ function enemyAI(e, p, dt) {
       e.y += Math.sin(e.face) * s;
     }
   }
-  if (d < e.r + 10) {
+  if (d < e.r + 10 && !(p.invuln > 0)) {
     p.hp -=
       (12 * (e.contact || 1) * stat(e, 'damage') * dt * 100) /
       (100 + stat(p, 'armor'));
@@ -739,7 +745,7 @@ export function updateCombat(dt) {
       else enemyAI(e, p, dt);
       if (S && S.tick) S.tick(e, p, dt);
     }
-    if (!(e.lock > 0) && !e.under && !(e.stun > 0))
+    if (!(e.lock > 0) && !e.under && !(e.stun > 0) && !(e.exposed > 0))
       for (const ab of e.abilities) {
         e.cd[ab.id] = Math.max(-dt, (e.cd[ab.id] || 0) - dt);
         const t = nearest(e);
@@ -770,8 +776,25 @@ export function updateCombat(dt) {
   let grid = null,
     bigs = null;
   const tryHit = (pr, e) => {
-    if (e.hp <= 0 || pr.hit.has(e) || !reach(pr.x, pr.y, e, pr.size || 4))
+    if (e.hp <= 0 || pr.hit.has(e)) return false;
+    if (!reach(pr.x, pr.y, e, pr.size || 4)) {
+      if (
+        e.segs &&
+        e.segs.some(
+          (g) =>
+            (pr.x - g.x) ** 2 + (pr.y - g.y) ** 2 < (g.r + (pr.size || 4)) ** 2,
+        )
+      ) {
+        // zırhlı gövde mermiyi emer, hasar yok
+        burst(pr.x, pr.y, '#d8d0b8', 3, 120, 0.25);
+        pr.hit.add(e);
+        if (pr.pierce-- <= 0) {
+          pr.life = 0;
+          return true;
+        }
+      }
       return false;
+    }
     dealDamage(pr.src, e, pr.dmg, pr.tags, {
       dir: Math.atan2(pr.vy, pr.vx),
       type: pr.type,

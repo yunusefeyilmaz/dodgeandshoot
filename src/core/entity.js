@@ -36,6 +36,11 @@ export const BASE = {
   blastPower: 0.8,
   blastRadius: 1,
   blastCount: 0,
+  dashCharges: 1,
+  dashCdMul: 1,
+  dashBlast: 0,
+  dashTrail: 0,
+  dashIframe: 0.22,
 };
 export const make = (o) => ({
   parts: [],

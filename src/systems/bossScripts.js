@@ -1,4 +1,4 @@
-import { state, dist, toast } from '../core/state.js';
+import { state, dist, toast, rnd } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addTele } from './telegraph.js';
 import { burst, shake, ring } from './fx.js';
@@ -6,48 +6,99 @@ import { dealDamage } from './combat.js';
 import { ABILITIES } from '../data/abilities.js';
 // Özel boss davranışları. custom:true => varsayılan AI yerine update() çalışır. tick() her karede ek davranış. onDeath() true dönerse ölüm iptal (yeniden doğuş).
 function dive(e, p) {
-  // Hulud: yer altına girer, oyuncunun olduğu yere uyarılı çıkar
+  // Hulud: yer altına girer; çıkacağı alan(lar) önce gösterilir
   e.wstate = 'under';
   e.under = true;
-  const x = p.x,
-    y = p.y,
-    r = 100,
-    dmg = 40 * stat(e, 'damage');
-  addTele({
-    kind: 'circle',
-    x,
-    y,
-    r,
-    t: 1.5,
-    team: 'e',
-    follow: e,
-    onEnd: () => {
-      e.x = x;
-      e.y = y;
-      e.segs.forEach((g) => {
-        g.x = x;
-        g.y = y;
-      });
-      e.under = false;
-      e.wstate = 'surface';
-      e.wt = 7;
-      if (dist({ x, y }, p) < r + 10)
-        dealDamage(e, p, dmg, ['Area'], { type: 'phys' });
-      state.fx.push({ x, y, r, t: 0.3 });
-      burst(x, y, e.col, 30, 300, 0.7);
-      shake(0.6);
-    },
-  });
+  const r = 100,
+    dmg = 40 * stat(e, 'damage'),
+    ph = e.phaseIdx || 0,
+    spots = [{ x: p.x, y: p.y }];
+  if (ph >= 1) spots.push({ x: p.x + rnd(-280, 280), y: p.y + rnd(-280, 280) }); // faz 2: ikinci patlama alanı
+  spots.forEach((sp, i) =>
+    addTele({
+      kind: 'circle',
+      x: sp.x,
+      y: sp.y,
+      r,
+      t: 1.5,
+      team: 'e',
+      follow: e,
+      onEnd: () => {
+        if (dist(sp, state.player) < r + 10)
+          dealDamage(e, state.player, dmg, ['Area'], { type: 'phys' });
+        state.fx.push({ x: sp.x, y: sp.y, r, t: 0.3 });
+        burst(sp.x, sp.y, e.col, 30, 300, 0.7);
+        shake(0.6);
+        if (i) return; // asıl çıkış ilk alan
+        e.x = sp.x;
+        e.y = sp.y;
+        e.segs.forEach((g) => {
+          g.x = sp.x;
+          g.y = sp.y;
+        });
+        e.under = false;
+        e.wstate = 'surface';
+        e.wt = ph >= 1 ? 5 : 7;
+        e.exposed = ph >= 2 ? 2.5 : 3.5;
+        toast('Hulud bitkin düştü! Başını vur! (hasar ×1.6)'); // BİTKİN penceresi: hareket yok, hasar x1.6
+        if (ph >= 2)
+          for (let k = 0; k < 4; k++)
+            state.spawnAt &&
+              state.spawnAt(
+                'swarmer',
+                sp.x + rnd(-60, 60),
+                sp.y + rnd(-60, 60),
+              );
+      },
+    }),
+  );
+}
+// Faz sistemi (tüm bosslar için ortak): script.phases = [{at: can oranı, text, enter(e)}]
+export function checkPhase(e) {
+  const S = SCRIPTS[e.script],
+    ph = S && S.phases && S.phases[e.phaseIdx || 0];
+  if (!ph || e.hp / e.hpMax > ph.at) return;
+  e.phaseIdx = (e.phaseIdx || 0) + 1;
+  e.phase = e.phaseIdx + 1;
+  toast(ph.text);
+  ring(e.x, e.y, 220, e.col);
+  burst(e.x, e.y, e.col, 40, 380, 0.8);
+  shake(0.8);
+  ph.enter(e);
 }
 export const SCRIPTS = {
   worm: {
     custom: true,
+    // Gövde mermiyi emer (hasar vermez); sadece parlayan BAŞ hasar alır. Yer altından çıkınca BİTKİN kalır.
+    phases: [
+      {
+        at: 0.66,
+        text: 'Hulud öfkelendi! Daha hızlı ve iki yerden çıkıyor!',
+        enter(e) {
+          e.parts.push({ mods: [{ stat: 'speed', op: 'mul', value: 1.25 }] });
+          e.wt = 0;
+        },
+      },
+      {
+        at: 0.33,
+        text: 'Hulud çıldırdı! Yolu asitle doluyor, yavrular çıkıyor!',
+        enter(e) {
+          e.acid = true;
+          e.wt = 0;
+        },
+      },
+    ],
     init(e) {
       e.segs = Array.from({ length: 16 }, () => ({ x: e.x, y: e.y, r: 17 }));
       e.wstate = 'surface';
       e.wt = 7;
+      e.exposed = 0;
     },
     update(e, p, dt) {
+      if (e.exposed > 0) {
+        e.exposed -= dt;
+        return;
+      } // bitkin: kıpırdamaz, zararsız, ağır hasar alır
       if (e.wstate !== 'surface') return;
       const want = Math.atan2(p.y - e.y, p.x - e.x),
         da = ((want - e.face + Math.PI * 3) % (Math.PI * 2)) - Math.PI,
@@ -70,7 +121,22 @@ export const SCRIPTS = {
         py = g.y;
         if (dist(g, p) < g.r + 10) touch = true;
       }
-      if (touch) {
+      if (e.acid && (e.acidT = (e.acidT || 0) - dt) <= 0) {
+        e.acidT = 0.25;
+        for (const g of [e, ...e.segs.filter((_, i) => i % 4 === 0)])
+          state.zones.push({
+            x: g.x,
+            y: g.y,
+            r: 22,
+            t: 3,
+            team: 'e',
+            src: e,
+            dps: 14 * stat(e, 'damage'),
+            col: '#7bd94a',
+            tick: 0,
+          });
+      }
+      if (touch && !(p.invuln > 0)) {
         p.hp -=
           (12 * (e.contact || 1) * stat(e, 'damage') * dt * 100) /
           (100 + stat(p, 'armor'));

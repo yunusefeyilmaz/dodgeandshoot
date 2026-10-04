@@ -106,4 +106,16 @@ export const ACHIEVEMENTS = [
         0,
       ) >= 5,
   },
+  {
+    id: 'd10',
+    name: 'Kaçış Ustası',
+    desc: '10 mükemmel kaçış',
+    test: (m) => (m.stats.dodges || 0) >= 10,
+  },
+  {
+    id: 'd100',
+    name: 'Gölge',
+    desc: '100 mükemmel kaçış',
+    test: (m) => (m.stats.dodges || 0) >= 100,
+  },
 ];

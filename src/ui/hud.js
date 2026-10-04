@@ -8,6 +8,7 @@ import { CLASSES } from '../data/classes.js';
 import { PETS } from '../data/pets.js';
 import { startWave } from '../systems/waves.js';
 import { xpNeed } from '../systems/rewards.js';
+import { dashState, dashRecharge } from '../systems/dash.js';
 import { finishRun, abandonRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
 import { releaseClass } from '../systems/classes.js';
@@ -74,6 +75,9 @@ const STAT_KEYS = [
   'blastPower',
   'blastRadius',
   'blastCount',
+  'dashCharges',
+  'dashCdMul',
+  'dashIframe',
 ];
 let pipSig = '',
   sel = -1,
@@ -553,6 +557,29 @@ function updateTarget() {
   syncIcons($('te'), statusItems(t));
 }
 
+// Dash ikonu (skill barının başında): dolum taraması + kalan hak
+const dashItem = (p) => {
+  const d = dashState(p),
+    mx = Math.round(stat(p, 'dashCharges')),
+    rt = dashRecharge(p);
+  return {
+    id: 'dash',
+    glyph: '💨',
+    col: '#5cc8ff',
+    frac: d.charges < mx ? Math.max(0, d.t) / rt : 0,
+    text: d.charges + '/' + mx,
+    tip: () =>
+      '<b>Dash</b> <small>Shift</small><div class="dim">Kısa mesafe atılır ve ~' +
+      stat(p, 'dashIframe').toFixed(2) +
+      ' sn dokunulmaz olursun.</div><div>Dolum: <b>' +
+      rt.toFixed(1) +
+      ' sn</b> · Hak: <b>' +
+      d.charges +
+      '/' +
+      mx +
+      '</b></div><div class="dim">Bir saldırı değmeden hemen önce dash atarsan <b>MÜKEMMEL KAÇIŞ</b>: zaman yavaşlar + saldırı hızı buff\'ı.</div>',
+  };
+};
 export function updateHud() {
   const p = state.player,
     w = state.wave,
@@ -610,7 +637,9 @@ export function updateHud() {
         bs.reduce((a, b) => a + b.hpMax, 0) +
       '%';
     bb.lastChild.textContent =
-      bs[0].bossName || bs.map((b) => b.name).join(' · ');
+      (bs[0].bossName || bs.map((b) => b.name).join(' · ')) +
+      (bs[0].phase > 1 ? ' · Faz ' + bs[0].phase : '') +
+      (bs[0].exposed > 0 ? ' · BİTKİN! ×1.6' : '');
   }
   const t = $('toast');
   t.textContent = state.msg;
@@ -637,9 +666,9 @@ export function updateHud() {
     ...statusItems(p),
   ]);
   // skill barı (ekranın alt ortası): ikon + dönen cooldown taraması
-  syncIcons(
-    $('skills'),
-    p.abilities.map((ab) => {
+  syncIcons($('skills'), [
+    dashItem(p),
+    ...p.abilities.map((ab) => {
       const cd = Math.max(0, p.cd[ab.id] || 0),
         mx = p.cdMax[ab.id] || ab.cooldown,
         as = ab.tags.includes('Weapon') ? stat(p, 'attackSpeed', ab.tags) : 1;
@@ -652,7 +681,7 @@ export function updateHud() {
         tip: () => abTip(ab, p),
       };
     }),
-  );
+  ]);
   // sol alt: classlar, combolar, petler (hover'da açıklama)
   syncIcons($('clsRow'), [
     ...p.classes.map((id) => {

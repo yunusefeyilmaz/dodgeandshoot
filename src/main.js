@@ -3,6 +3,7 @@ import { make, addPart } from './core/entity.js';
 import { upgradePart } from './systems/upgrades.js';
 import { updatePlayer } from './systems/player.js';
 import { updatePets } from './systems/pets.js';
+import { updateDash } from './systems/dash.js';
 import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
@@ -35,12 +36,15 @@ const STEP = 1 / 60;
 let last = null,
   acc = 0;
 function step() {
-  updateWaves(STEP);
-  updatePlayer(STEP);
-  updatePets(STEP);
-  updateCombat(STEP);
-  updatePickups(STEP);
-  updateTracking(STEP);
+  const dt = STEP * (state.slowT > 0 ? 0.35 : 1);
+  state.slowT = Math.max(0, (state.slowT || 0) - STEP); // mükemmel kaçışta zaman yavaşlar
+  updateWaves(dt);
+  updatePlayer(dt);
+  updateDash(dt);
+  updatePets(dt);
+  updateCombat(dt);
+  updatePickups(dt);
+  updateTracking(dt);
   if (state.xp >= xpNeed()) openCards();
   else if (state.pendingClass) openClassPick();
 }

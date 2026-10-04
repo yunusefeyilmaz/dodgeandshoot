@@ -357,3 +357,38 @@ UP('Meteor', 'ab_meteor', 'epic', 'area');
 UP('Bıçak Halkası', 'ab_blades', 'epic', 'proj');
 UP('Meteor Yağmuru', 'ab_rainp', 'mythic', 'rain');
 UP('Dönen Tırpanlar', 'Orbit', 'ultrarare', 'orbit');
+
+// --- DASH kartları (Shift ile dash; dokunulmaz kaçış)
+CARDS.push(
+  C('Çift Dash', 'rare', '+1 dash hakkı', [m('dashCharges', 1)], { max: 2 }),
+  C(
+    'Tazelik',
+    'uncommon',
+    'Dash dolumu %15 hızlanır',
+    [m('dashCdMul', 0.85, 'mul')],
+    { max: 3 },
+  ),
+  C(
+    'Gölge Adımı',
+    'rare',
+    'Dash dokunulmazlığı +0.1 sn',
+    [m('dashIframe', 0.1)],
+    { max: 2 },
+  ),
+  C('Patlayan Dash', 'epic', 'Dash bittiği yerde patlama çıkar', [
+    m('dashBlast', 1),
+  ]),
+  C(
+    'Patlayan Dash: Hasar',
+    'epic',
+    'Dash patlaması +%50',
+    [m('dashBlast', 0.5)],
+    { requires: 'Patlayan Dash', repeat: true, max: 3 },
+  ),
+  C('Ateş İzi', 'epic', 'Dash yolunda yanan iz bırakır', [m('dashTrail', 1)]),
+  C('Ateş İzi: Hasar', 'epic', 'İz hasarı +%60', [m('dashTrail', 0.6)], {
+    requires: 'Ateş İzi',
+    repeat: true,
+    max: 3,
+  }),
+);

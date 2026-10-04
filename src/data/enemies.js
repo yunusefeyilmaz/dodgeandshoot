@@ -312,6 +312,7 @@ export const BOSSES = [
     r: 30,
     contact: 2.5,
     keep: 0,
+    drop: 'wormtooth',
   }),
   B('Kan Rahibi', '#ff4f6a', 1000, 55, 20, ['ring', 'summon'], {
     orbit: [{ n: 3, r: 95, speed: 2.4, dmg: 18, size: 12 }],

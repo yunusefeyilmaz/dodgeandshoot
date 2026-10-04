@@ -55,6 +55,7 @@ const S = {
     tone(60, 0.6, 'square', 0.08);
   },
   click: () => tone(600, 0.04, 'square', 0.05),
+  dash: () => tone(280, 0.14, 'sawtooth', 0.06, 500),
   ach: () =>
     [660, 880, 1100].forEach((f, i) =>
       tone(f, 0.12, 'sine', 0.09, 0, i * 0.08),

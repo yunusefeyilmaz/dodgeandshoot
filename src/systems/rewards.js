@@ -19,6 +19,13 @@ on('Kill', ({ target: t }) => {
   const luck = stat(state.player, 'luck');
   state.kills++;
   state.xp += t.xp;
+  if (t.dropId)
+    state.pickups.push({
+      type: 'item',
+      def: ITEMS.find((i) => i.id === t.dropId),
+      x: t.x + 20,
+      y: t.y,
+    }); // bosa özel ödül
   const k = t.boss ? 8 : t.mini ? 4 : 1;
   for (let i = 0; i < k; i++)
     state.pickups.push({
@@ -38,7 +45,7 @@ on('Kill', ({ target: t }) => {
         (t.elite ? 4 : 1); // item şansı düşük; boss garantili
   if (Math.random() < chance) {
     const L = luck + (t.boss ? 5 : t.mini ? 3 : t.elite ? 2 : 0),
-      ws = ITEMS.map((i) => weightOf(i.rarity, L));
+      ws = ITEMS.map((i) => (i.unique ? 0 : weightOf(i.rarity, L)));
     let x = Math.random() * ws.reduce((a, b) => a + b, 0);
     const idx = ws.findIndex((w) => (x -= w) <= 0);
     state.pickups.push({

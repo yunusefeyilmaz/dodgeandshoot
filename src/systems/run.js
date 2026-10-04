@@ -1,4 +1,4 @@
-import { state } from '../core/state.js';
+import { state, toast } from '../core/state.js';
 import { addPart } from '../core/entity.js';
 import { WEAPONS } from '../data/weapons.js';
 import { meta, discover, save } from '../core/save.js';
@@ -12,6 +12,7 @@ export function startRun(id) {
   discover('weapons', id, w.name, 'Silah');
   meta.stats.runs++;
   save(true);
+  toast('Shift: DASH — saldırı değmeden hemen önce dash at!');
   state.mode = 'run';
   state.paused = false;
   document.getElementById('menu').style.display = 'none';

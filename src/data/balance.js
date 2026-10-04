@@ -28,7 +28,7 @@ export const BAL = {
 };
 // Stat üst sınırları: hiçbir kart/item/upgrade yığını bunları aşamaz
 export const CAPS = {
-  critChance: 1,
+  critChance: 0.8,
   critDmg: 4,
   armorPen: 0.6,
   magicPen: 0.6,
@@ -53,4 +53,8 @@ export const CAPS = {
   resPen: 0.8,
   haste: 400,
   area: 2.2,
+  dashCharges: 4,
+  dashIframe: 0.6,
+  dashBlast: 4,
+  dashTrail: 3,
 };

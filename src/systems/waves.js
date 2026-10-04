@@ -96,6 +96,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   e.contact = def.contact;
   e.res = { ...(def.res || {}) };
   e.mini = !!def.mini;
+  e.dropId = def.drop;
   e.deathBlast = def.deathBlast;
   e.dr = Math.min(0.8, (def.dr || 0) + (elite ? 0.1 : 0));
   e.dodge = def.dodge;

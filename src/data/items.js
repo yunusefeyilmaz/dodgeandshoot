@@ -152,3 +152,19 @@ export const ITEMS = [
     })),
   );
 });
+ITEMS.push(
+  I(
+    'wormtooth',
+    'Solucan Dişi',
+    'legendary',
+    "Hulud'dan düşer. Vuruşlar %20 ihtimalle patlar, mermiler +2 deler.",
+    () => ({
+      mods: [
+        mod('blast', 0.2),
+        mod('blastCount', 1),
+        mod('pierce', 2, 'add', 'Projectile'),
+      ],
+    }),
+  ),
+);
+ITEMS[ITEMS.length - 1].unique = true; // rastgele düşmez, sadece boss ödülü
