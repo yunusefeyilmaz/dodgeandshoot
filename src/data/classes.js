@@ -21,7 +21,7 @@ export const CLASSES = {
   },
   vampire: {
     name: 'Vampire',
-    rarity: 'rare',
+    rarity: 'uncommon',
     desc: '%10 omnivamp. Her öldürmede 3 can.',
     part: {
       mods: [{ stat: 'omnivamp', op: 'add', value: 0.1 }],
@@ -54,7 +54,7 @@ export const CLASSES = {
   },
   sylas: {
     name: 'Sylas',
-    rarity: 'epic',
+    rarity: 'ultrarare',
     desc: 'Öldürdüğün düşmanın skilini çalarsın. +10 yetenek hızlandırma.',
     part: {
       mods: [{ stat: 'haste', op: 'add', value: 10 }],
@@ -74,7 +74,7 @@ export const CLASSES = {
   },
   gambler: {
     name: 'Gambler',
-    rarity: 'legendary',
+    rarity: 'mythic',
     desc: '+5 luck. Her öldürmede +0.05 luck (20 kill = +1). Luck: drop, coin ve nadir kart şansı.',
     part: {
       mods: [
@@ -135,3 +135,53 @@ export const COMBOS = {
   'gambler+sylas': { name: 'Wild Copy', bonus: 0.2 },
 };
 export const DEFAULT_COMBO = { name: 'Synergy', bonus: 0.12 };
+
+// Silah + class sinerjileri: o silahla o classı birlikte kullanırsan ekstra bonus
+export const SYNERGIES = {
+  'sword:assassin': {
+    name: 'Gölge Bıçak',
+    desc: 'Kılıçla arkadan vuruş +%25 daha güçlü.',
+    mods: [{ stat: 'backstab', op: 'mul', value: 1.25, tag: 'Sword' }],
+  },
+  'sword:tank': {
+    name: 'Kalkan Darbesi',
+    desc: 'Kılıç +150 geri itme, +8 zırh.',
+    mods: [
+      { stat: 'knockback', op: 'add', value: 150, tag: 'Sword' },
+      { stat: 'armor', op: 'add', value: 8 },
+    ],
+  },
+  'sword:berserker': {
+    name: 'Kan Çılgınlığı',
+    desc: 'Kılıç hızı +%20.',
+    mods: [{ stat: 'attackSpeed', op: 'mul', value: 1.2, tag: 'Sword' }],
+  },
+  'sword:vampire': {
+    name: 'Kan İçen Kılıç',
+    desc: 'Kılıç lifesteal +%8.',
+    mods: [{ stat: 'lifesteal', op: 'add', value: 0.08, tag: 'Sword' }],
+  },
+  'bow:assassin': {
+    name: 'Keskin Nişancı',
+    desc: 'Ok kritik hasarı +%40.',
+    mods: [{ stat: 'critDmg', op: 'add', value: 0.4, tag: 'Bow' }],
+  },
+  'bow:archmage': {
+    name: 'Arcane Ok',
+    desc: 'Oklar %35 zincir şimşek atar.',
+    mods: [{ stat: 'chain', op: 'add', value: 0.35, tag: 'Bow' }],
+  },
+  'bow:gambler': {
+    name: 'Şanslı Atış',
+    desc: 'Ok kritik şansı +%10, +3 luck.',
+    mods: [
+      { stat: 'critChance', op: 'add', value: 0.1, tag: 'Bow' },
+      { stat: 'luck', op: 'add', value: 3 },
+    ],
+  },
+  'bow:berserker': {
+    name: 'Çılgın Okçu',
+    desc: 'Yaya +1 ok.',
+    mods: [{ stat: 'multishot', op: 'add', value: 1, tag: 'Bow' }],
+  },
+};

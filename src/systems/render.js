@@ -14,6 +14,33 @@ const circle = (x, y, r) => {
   g.beginPath();
   g.arc(x, y, r, 0, 7);
 };
+const body = (e) => {
+  // düşman şekilleri
+  const r = e.r,
+    s = e.shape,
+    f = e.face || 0;
+  g.beginPath();
+  if (s === 'square') g.rect(e.x - r, e.y - r, r * 2, r * 2);
+  else if (s === 'tri') {
+    g.moveTo(e.x + Math.cos(f) * r * 1.3, e.y + Math.sin(f) * r * 1.3);
+    g.lineTo(
+      e.x + Math.cos(f + 2.5) * r * 1.2,
+      e.y + Math.sin(f + 2.5) * r * 1.2,
+    );
+    g.lineTo(
+      e.x + Math.cos(f - 2.5) * r * 1.2,
+      e.y + Math.sin(f - 2.5) * r * 1.2,
+    );
+    g.closePath();
+  } else if (s === 'diamond') {
+    g.moveTo(e.x, e.y - r * 1.2);
+    g.lineTo(e.x + r * 1.2, e.y);
+    g.lineTo(e.x, e.y + r * 1.2);
+    g.lineTo(e.x - r * 1.2, e.y);
+    g.closePath();
+  } else g.arc(e.x, e.y, r, 0, 7);
+  g.fill();
+};
 
 export function render() {
   const p = state.player;
@@ -96,9 +123,77 @@ export function render() {
     }
   }
   for (const pr of state.projs) {
-    g.fillStyle = pr.col || '#fff';
-    circle(pr.x, pr.y, 4);
+    if (pr.shape === 'crescent') {
+      g.save();
+      g.translate(pr.x, pr.y);
+      g.rotate(Math.atan2(pr.vy, pr.vx));
+      g.strokeStyle = pr.col;
+      g.lineWidth = 5;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.arc(-pr.size * 0.6, 0, pr.size * 1.6, -1.1, 1.1);
+      g.stroke();
+      g.lineCap = 'butt';
+      g.restore();
+    } else {
+      g.fillStyle = pr.col || '#fff';
+      circle(pr.x, pr.y, pr.size || 4);
+      g.fill();
+    }
+  }
+  const spin = performance.now() / 180;
+  for (const z of state.zones) {
+    // yanan iz, hortum
+    g.globalAlpha = Math.min(0.45, z.t / 2);
+    g.fillStyle = z.col;
+    circle(z.x, z.y, z.r);
     g.fill();
+    if (z.tornado) {
+      g.globalAlpha = 0.8;
+      g.strokeStyle = '#fff';
+      g.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        g.beginPath();
+        g.arc(z.x, z.y, z.r * (0.4 + i * 0.25), spin + i, spin + i + 2.2);
+        g.stroke();
+      }
+    }
+  }
+  g.globalAlpha = 1;
+  for (const t of state.teles) {
+    if (t.quiet) continue; // uyarı alanları: kırmızı = düşman saldırısı, mavi = senin
+    const k = 1 - t.t / t.max,
+      col = t.team === 'e' ? '255,60,40' : '90,200,255';
+    if (t.kind === 'circle') {
+      g.fillStyle = `rgba(${col},${0.08 + 0.12 * k})`;
+      circle(t.x, t.y, t.r);
+      g.fill();
+      g.fillStyle = `rgba(${col},${0.25 + 0.3 * k})`;
+      circle(t.x, t.y, t.r * k);
+      g.fill();
+      g.strokeStyle = `rgba(${col},.85)`;
+      g.lineWidth = 2;
+      circle(t.x, t.y, t.r);
+      g.stroke();
+    } else {
+      g.lineCap = 'round';
+      g.strokeStyle = `rgba(${col},${0.12 + 0.25 * k})`;
+      g.lineWidth = t.w;
+      g.beginPath();
+      g.moveTo(t.x1, t.y1);
+      g.lineTo(t.x2, t.y2);
+      g.stroke();
+      g.strokeStyle = `rgba(${col},.85)`;
+      g.lineWidth = 2;
+      g.stroke();
+      g.lineCap = 'butt';
+    }
+  }
+  if (state.target && state.target.hp > 0 && !state.target.under) {
+    g.strokeStyle = '#ffd84f';
+    g.lineWidth = 2;
+    circle(state.target.x, state.target.y, state.target.r + 8);
+    g.stroke();
   }
   for (const l of state.lines) {
     g.strokeStyle = '#8fd0ff';
@@ -111,6 +206,17 @@ export function render() {
     g.globalAlpha = 1;
   }
   for (const e of state.ents) {
+    if (e.under) continue;
+    if (e.segs) {
+      g.fillStyle = e.col;
+      for (let i = e.segs.length - 1; i >= 0; i--) {
+        const s = e.segs[i];
+        g.globalAlpha = 0.9;
+        circle(s.x, s.y, s.r * (1 - i / 40));
+        g.fill();
+      }
+      g.globalAlpha = 1;
+    }
     if (e.face !== undefined) {
       g.strokeStyle = '#fff8';
       g.lineWidth = 2;
@@ -127,9 +233,14 @@ export function render() {
       g.shadowColor = '#5cc8ff';
       g.shadowBlur = 18;
     }
-    circle(e.x, e.y, e.r);
-    g.fill();
+    body(e);
     g.shadowBlur = 0;
+    if (e.icon) {
+      g.font = '16px system-ui';
+      g.textAlign = 'center';
+      g.fillText(e.icon, e.x, e.y + 6);
+      g.textAlign = 'left';
+    }
     if (e.hurt > 0) {
       g.globalAlpha = Math.min(0.8, (e.hurt / 0.12) * 0.8);
       g.fillStyle = '#ff2a2a';
@@ -138,6 +249,13 @@ export function render() {
       g.globalAlpha = 1;
     } // hasar alınca kızarma
     g.lineWidth = 2; // durum halkaları
+    if (e.elite) {
+      g.strokeStyle = '#ffd84f';
+      g.lineWidth = 3;
+      circle(e.x, e.y, e.r + 4);
+      g.stroke();
+      g.lineWidth = 2;
+    }
     if (e.poison) {
       g.strokeStyle = '#6be04a';
       circle(e.x, e.y, e.r + 3);
@@ -153,12 +271,12 @@ export function render() {
       circle(e.x, e.y, e.r + 9);
       g.stroke();
     }
-    if (e !== p && !e.boss && e.barT > 0) {
+    if (e !== p && !e.boss && (e.barT > 0 || e.mini)) {
       // can barı: hasar alınca görünür, 2.5 sn sonra kaybolur
       const w = e.r * 2 + 8,
         x = e.x - w / 2,
         y = e.y - e.r - 12;
-      g.globalAlpha = Math.min(1, e.barT * 2);
+      g.globalAlpha = e.mini ? 1 : Math.min(1, e.barT * 2);
       g.fillStyle = '#000b';
       g.fillRect(x, y, w, 5);
       g.fillStyle = '#e05a5a';
@@ -166,6 +284,36 @@ export function render() {
       g.globalAlpha = 1;
     }
   }
+  for (const e of state.ents)
+    for (const o of e.orbits)
+      for (const b of o.pos) {
+        // dönen tırpanlar
+        g.save();
+        g.translate(b.x, b.y);
+        g.rotate(b.a * 3);
+        g.fillStyle = g.shadowColor =
+          o.col || (e.team === 'e' ? '#ff5a5a' : '#c0e8ff');
+        g.shadowBlur = 8;
+        g.beginPath();
+        g.moveTo(o.size, 0);
+        g.lineTo(0, o.size * 0.45);
+        g.lineTo(-o.size, 0);
+        g.lineTo(0, -o.size * 0.45);
+        g.closePath();
+        g.fill();
+        g.restore();
+      }
+  g.shadowBlur = 0;
+  g.textAlign = 'center';
+  g.font = 'bold 13px system-ui';
+  g.lineWidth = 3;
+  g.strokeStyle = '#000b';
+  for (const e of state.ents)
+    if ((e.boss || e.mini) && !e.under) {
+      g.fillStyle = '#fff';
+      g.strokeText(e.name, e.x, e.y - e.r - 14);
+      g.fillText(e.name, e.x, e.y - e.r - 14);
+    } // boss isimleri
   g.textAlign = 'center';
   g.lineJoin = 'round';
   g.lineWidth = 3;

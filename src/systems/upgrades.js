@@ -1,6 +1,7 @@
 import { state } from '../core/state.js';
 import { UPGRADES } from '../data/upgrades.js';
 import { WEAPONS } from '../data/weapons.js';
+import { rebuildPets } from './pets.js';
 // Tüm upgrade'ler (genel + seçili silah) oyuncuda TEK part: seviyelere göre modifier'lar yeniden kurulur
 export const upgradePart = { mods: [] };
 export const weaponUpgrades = () =>
@@ -10,6 +11,7 @@ export const costOf = (u) =>
   Math.ceil(u.base * Math.pow(u.grow, levelOf(u.id)));
 export const isMax = (u) => u.max && levelOf(u.id) >= u.max;
 function rebuild() {
+  rebuildPets();
   upgradePart.mods = UPGRADES.concat(weaponUpgrades())
     .filter((u) => levelOf(u.id))
     .map((u) => ({

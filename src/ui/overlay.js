@@ -23,3 +23,16 @@ export const btn = (html, onclick, disabled, col) => {
   if (col) b.style.borderColor = col;
   return b;
 };
+export function confirmBox(title, yes) {
+  showOverlay(
+    title,
+    [
+      btn('Evet', () => {
+        hideOverlay();
+        yes();
+      }),
+      btn('Hayır', hideOverlay),
+    ],
+    'confirm',
+  );
+}

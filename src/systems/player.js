@@ -4,8 +4,9 @@ const keys = {};
 addEventListener('keydown', (e) => (keys[e.key.toLowerCase()] = 1));
 addEventListener('keyup', (e) => (keys[e.key.toLowerCase()] = 0));
 export function updatePlayer(dt) {
-  const p = state.player,
-    s = stat(p, 'speed') * dt;
+  const p = state.player;
+  if (p.stun > 0) return; // sersemlemişken hareket edemez
+  const s = stat(p, 'speed') * (p.slow ? 1 - p.slow.v : 1) * dt;
   const dx =
     (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
   const dy =

@@ -22,7 +22,14 @@ const def = () => ({
   weaponKills: {},
   weaponStreak: {},
   cardKills: {},
-  found: { cards: {}, classes: {}, combos: {}, items: {}, weapons: {} },
+  found: {
+    cards: {},
+    classes: {},
+    combos: {},
+    items: {},
+    weapons: {},
+    pets: {},
+  },
   ach: {},
   settings: { mute: false, vol: 0.5 },
 });

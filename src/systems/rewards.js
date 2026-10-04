@@ -1,7 +1,8 @@
 import { state, rnd, dist, toast } from '../core/state.js';
 import { on } from '../core/events.js';
 import { stat } from '../core/stats.js';
-import { rollRarity } from '../core/rarity.js';
+import { weightOf } from '../core/rarity.js';
+import { BAL } from '../data/balance.js';
 import { ITEMS } from '../data/items.js';
 import { addItem } from './inventory.js';
 import { burst, ring } from './fx.js';
@@ -17,7 +18,7 @@ on('Kill', ({ target: t }) => {
   const luck = stat(state.player, 'luck');
   state.kills++;
   state.xp += t.xp;
-  const k = t.boss ? 8 : 1;
+  const k = t.boss ? 8 : t.mini ? 4 : 1;
   for (let i = 0; i < k; i++)
     state.pickups.push({
       type: 'coin',
@@ -25,12 +26,20 @@ on('Kill', ({ target: t }) => {
       x: t.x + rnd(-18, 18),
       y: t.y + rnd(-18, 18),
     });
-  if (t.boss || Math.random() < Math.min(0.6, 0.15 + luck * 0.004)) {
-    const r = rollRarity(luck + (t.boss ? 15 : 0)),
-      list = ITEMS.filter((i) => i.rarity === r);
+  const chance = t.boss
+    ? 1
+    : t.mini
+      ? 0.45
+      : Math.min(BAL.itemDropMax, BAL.itemDropBase + luck * BAL.itemDropLuck) *
+        (t.elite ? 4 : 1); // item şansı düşük; boss garantili
+  if (Math.random() < chance) {
+    const L = luck + (t.boss ? 15 : t.mini ? 8 : t.elite ? 6 : 0),
+      ws = ITEMS.map((i) => weightOf(i.rarity, L));
+    let x = Math.random() * ws.reduce((a, b) => a + b, 0);
+    const idx = ws.findIndex((w) => (x -= w) <= 0);
     state.pickups.push({
       type: 'item',
-      def: list[Math.floor(Math.random() * list.length)],
+      def: ITEMS[idx < 0 ? 0 : idx],
       x: t.x,
       y: t.y,
     });
@@ -42,6 +51,8 @@ export function updatePickups(dt) {
     m = stat(p, 'magnet');
   state.pickups = state.pickups.filter((k) => {
     const d = dist(k, p);
+    k.age = (k.age || 0) + dt;
+    if (k.type === 'item' && k.age > BAL.itemLife) return false; // yerdeki item zamanla kaybolur
     if (k.type === 'item' && state.inventory.indexOf(null) < 0) {
       if (d < 14 && state.msgT <= 0) toast('Envanter dolu!');
       return true;

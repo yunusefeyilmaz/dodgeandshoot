@@ -5,6 +5,7 @@ import { sfx } from '../core/audio.js';
 import { WEAPONS } from '../data/weapons.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { burst, shake } from './fx.js';
+import { addBuff } from './buffs.js';
 
 on('DamageDealt', (d) => {
   if (d.source === state.player) meta.stats.damage += d.amount;
@@ -16,6 +17,16 @@ on('Kill', ({ target: t, tags = [] }) => {
   state.streak++;
   state.streakT = 3; // streak: kill'ler arası max 3 sn
   if (state.streak > s.bestStreak) s.bestStreak = state.streak;
+  if (state.streak % 10 === 0)
+    addBuff(state.player, {
+      id: 'streak',
+      name: 'Seri Katil',
+      desc: '+%15 saldırı hızı',
+      col: '#e0b040',
+      glyph: '🔥',
+      dur: 6,
+      mods: [{ stat: 'attackSpeed', op: 'mul', value: 1.15 }],
+    });
   const w = state.weapon;
   if (w && state.streak > (meta.weaponStreak[w] || 0))
     meta.weaponStreak[w] = state.streak;
@@ -23,19 +34,29 @@ on('Kill', ({ target: t, tags = [] }) => {
     const id = tag.toLowerCase();
     if (WEAPONS[id]) meta.weaponKills[id] = (meta.weaponKills[id] || 0) + 1;
   }
-  for (const c of state.picked)
+  for (const c of state.picked) {
     meta.cardKills[c] = (meta.cardKills[c] || 0) + 1;
+    state.cardKills[c] = (state.cardKills[c] || 0) + 1;
+  }
   if (state.kills + 1 > s.mostKills) s.mostKills = state.kills + 1;
-  if (t.boss) bossDown(t);
+  if (
+    t.boss &&
+    !(
+      t.group &&
+      state.ents.some((x) => x.group === t.group && x !== t && x.hp > 0)
+    )
+  )
+    bossDown(t);
   save();
 });
 
 function bossDown(t) {
   const no = state.wave.n / 5;
-  meta.stats.bossKills[t.name] = (meta.stats.bossKills[t.name] || 0) + 1;
-  if (!meta.bossesDefeated.includes(t.name)) {
-    meta.bossesDefeated.push(t.name);
-    hooks.popup('Boss Point +1', t.name + ' ilk kez yenildi', '#e0b040');
+  const bn = t.bossName || t.name;
+  meta.stats.bossKills[bn] = (meta.stats.bossKills[bn] || 0) + 1;
+  if (!meta.bossesDefeated.includes(bn)) {
+    meta.bossesDefeated.push(bn);
+    hooks.popup('Boss Point +1', bn + ' ilk kez yenildi', '#e0b040');
   }
   if (no > meta.bestBoss) meta.bestBoss = no;
   for (const [id, w] of Object.entries(WEAPONS))
@@ -76,4 +97,8 @@ export function updateTracking(dt) {
         save(true);
       }
   }
+}
+
+export function abandonRun() {
+  save(true);
 }

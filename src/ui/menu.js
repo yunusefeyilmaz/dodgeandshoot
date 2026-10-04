@@ -3,8 +3,9 @@ import { RARITIES } from '../core/rarity.js';
 import { sfx, toggleMute } from '../core/audio.js';
 import { WEAPONS } from '../data/weapons.js';
 import { CARDS } from '../data/cards.js';
-import { CLASSES, COMBOS } from '../data/classes.js';
+import { CLASSES, COMBOS, SYNERGIES } from '../data/classes.js';
 import { ITEMS } from '../data/items.js';
+import { PETS } from '../data/pets.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { BOSSES } from '../data/enemies.js';
 import {
@@ -40,7 +41,7 @@ export function openMenu() {
 }
 
 function mainScreen() {
-  M.innerHTML = `<div class="mwrap center"><h1>MODÜLER<br>KART OYUNU</h1><div class="sub">Boss Point: <b>${points()}</b></div>
+  M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Point: <b>${points()}</b></div>
     <button class="big" id="mPlay">Oyna</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button>
     <div class="mfoot"><button id="mMute"></button><button id="mWipe">Kaydı sil</button></div></div>`;
   const mute = () =>
@@ -167,8 +168,25 @@ function entries() {
             d: 'İki class birlikteyken her vuruşa ekstra combo hasarı.',
           });
         }
+      for (const [k, sy] of Object.entries(SYNERGIES)) {
+        const [w, c] = k.split(':');
+        o.push({
+          f: !!meta.found.combos['w:' + k],
+          t: sy.name,
+          s: WEAPONS[w].name + ' + ' + CLASSES[c].name,
+          col: '#4aa3ff',
+          d: sy.desc,
+        });
+      }
       return o;
     })(),
+    pets: Object.entries(PETS).map(([id, d]) => ({
+      f: !!meta.found.pets[id],
+      t: d.icon + ' ' + d.name,
+      s: rc(d.rarity).name,
+      col: rc(d.rarity).col,
+      d: d.desc,
+    })),
     items: ITEMS.map((i) => ({
       f: !!meta.found.items[i.id],
       t: i.name,
@@ -185,6 +203,7 @@ function achScreen() {
       ['cards', 'Kartlar'],
       ['classes', 'Classlar'],
       ['combos', 'Combolar'],
+      ['pets', 'Petler'],
       ['items', 'Itemlar'],
     ],
     E = entries(),
@@ -216,7 +235,7 @@ function achScreen() {
 
 function statScreen() {
   const s = meta.stats,
-    bn = (i) => BOSSES[i % 10].name;
+    bn = (i) => BOSSES[i % BOSSES.length].name;
   const rows = [
     ['Toplam kill', s.kills],
     ['En iyi tur', s.bestWave],

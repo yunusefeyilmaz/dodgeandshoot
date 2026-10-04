@@ -1,7 +1,9 @@
 import { state } from '../core/state.js';
 import { ABILITIES } from './abilities.js';
+import { PETS } from './pets.js';
+import { addPet } from '../systems/pets.js';
 const m = (stat, value, op = 'add', tag) => ({ stat, op, value, tag });
-// requires: o kart bu oyunda alınmadan çıkmaz (zehir zinciri vb.) · repeat: tekrar çıkabilir (sıradanlar)
+// requires: o kart bu oyunda alınmadan çıkmaz · repeat: tekrar çıkabilir (sıradanlar) · cond: ek koşul · codex: başarılar sekmesinde listelenir
 const C = (name, rarity, desc, mods, o = {}) => ({
   name,
   rarity,
@@ -19,8 +21,21 @@ const S = (name, rarity, desc, ability) => ({
   kind: 'Skill',
   part: { ability },
 });
+const scythe = (n, r, speed, dmg, size) => ({
+  orbit: {
+    n,
+    r,
+    speed,
+    dmg,
+    size,
+    tags: ['Orbit'],
+    pos: [],
+    hit: new Map(),
+    a: 0,
+  },
+});
 export const CARDS = [
-  // Sıradan: küçük statlar
+  // Yaygın
   C('Keskin', 'common', '+2 AD', [m('ad', 2)]),
   C('Büyücü', 'common', '+2 AP', [m('ap', 2)]),
   C('Sağlam', 'common', '+15 max can', [m('maxHp', 15)]),
@@ -34,7 +49,12 @@ export const CARDS = [
     'Yeni skill: Fireball (AP ile güçlenir)',
     ABILITIES.fireball,
   ),
-  S('Frost Nova', 'common', 'Yeni skill: Frost Nova (AP)', ABILITIES.nova),
+  S(
+    'Frost Nova',
+    'common',
+    'Yeni skill: Frost Nova, yavaşlatır (AP)',
+    ABILITIES.nova,
+  ),
   {
     name: 'Backpack',
     rarity: 'common',
@@ -45,12 +65,25 @@ export const CARDS = [
       state.inventory.push(null, null);
     },
   },
-  // Nadir
-  C('Fire Mastery', 'rare', 'Fire skilleri +%40', [
+  // Yaygın Olmayan
+  C('Fire Mastery', 'uncommon', 'Fire skilleri +%40', [
     m('damage', 1.4, 'mul', 'Fire'),
   ]),
-  C('Overcharge', 'rare', 'Tüm hasar +%15', [m('damage', 1.15, 'mul')]),
-  C('Lucky Charm', 'rare', '+4 luck', [m('luck', 4)], { repeat: true }),
+  C('Overcharge', 'uncommon', 'Tüm hasar +%15', [m('damage', 1.15, 'mul')]),
+  C('Lucky Charm', 'uncommon', '+4 luck', [m('luck', 4)], { repeat: true }),
+  C('Delici Mermiler', 'uncommon', 'Tüm mermiler +1 düşman deler', [
+    m('pierce', 1, 'add', 'Projectile'),
+  ]),
+  C('Seri El', 'uncommon', 'Silah saldırı hızı +%15', [
+    m('attackSpeed', 1.15, 'mul', 'Weapon'),
+  ]),
+  C('Geniş Alan', 'uncommon', 'Alan skilleri ve kılıç +%10 geniş', [
+    m('area', 1.1, 'mul', 'Area'),
+  ]),
+  C('Efekt Gücü', 'uncommon', 'Zehir/zincir/yavaşlatma/void +%15 güçlü', [
+    m('effPower', 1.15, 'mul'),
+  ]),
+  // Nadir
   C('Zehirli Uçlar', 'rare', "Vuruşlar zehirler: hasarın %35'i 3 sn DoT", [
     m('poison', 0.35),
   ]),
@@ -64,28 +97,49 @@ export const CARDS = [
     m('slow', 0.3),
     m('knockback', 120),
   ]),
-  C('Delici Mermiler', 'rare', 'Tüm mermiler +1 düşman deler', [
-    m('pierce', 1, 'add', 'Projectile'),
+  C('Direnç Kırıcı', 'rare', 'Düşmanların efekt dirençlerini %15 deler', [
+    m('resPen', 0.15),
   ]),
-  C('Geniş Alan', 'rare', 'Alan skilleri ve kılıç +%20 geniş', [
-    m('area', 1.2, 'mul', 'Area'),
-  ]),
-  C('Seri El', 'rare', 'Silah saldırı hızı +%15', [
-    m('attackSpeed', 1.15, 'mul', 'Weapon'),
-  ]),
-  C('Ölümcül Zehir', 'rare', 'Zehir gücü +%35', [m('poison', 0.35)], {
+  C('Kritik Ustası', 'rare', 'Kritik hasarı +%30', [m('critDmg', 0.3)]),
+  // Çok Nadir
+  C('Ölümcül Zehir', 'veryrare', 'Zehir gücü +%35', [m('poison', 0.35)], {
     requires: 'Zehirli Uçlar',
   }),
-  C('Fırtına', 'rare', 'Zincir hasarı +%40', [m('chain', 0.4)], {
+  C('Fırtına', 'veryrare', 'Zincir hasarı +%40', [m('chain', 0.4)], {
     requires: 'Şimşek Zinciri',
   }),
-  // Mistik
+  S(
+    'Zehir Dikeni',
+    'veryrare',
+    'Yeni skill: zehirleyen diken (AP)',
+    ABILITIES.venom,
+  ),
+  C('Kan Susuzluğu', 'veryrare', '%5 omnivamp', [m('omnivamp', 0.05)]),
+  // Aşırı Nadir
   C(
     'Void Dokunuşu',
-    'epic',
+    'ultrarare',
     "Hedefin zırh/MR'sini %30 aşındırır + void hasarı",
     [m('voidShred', 0.3)],
   ),
+  C('Çift Atış', 'ultrarare', 'Tüm mermi skillerine +1 mermi', [
+    m('multishot', 1, 'add', 'Projectile'),
+  ]),
+  {
+    name: 'Dönen Tırpanlar',
+    rarity: 'ultrarare',
+    codex: 1,
+    kind: 'Skill',
+    desc: 'Etrafında dönen 3 tırpan, değdiği düşmanlara hasar verir',
+    part: scythe(3, 85, 2.6, 14, 11),
+  },
+  S(
+    'Gök Gürültüsü',
+    'ultrarare',
+    'Yeni skill: rastgele alanlara zincirli yıldırım (AP)',
+    ABILITIES.thunder,
+  ),
+  // Destansı
   C(
     'Toksik Salgın',
     'epic',
@@ -107,9 +161,15 @@ export const CARDS = [
     [m('voidShred', 0.3), m('lethality', 10)],
     { requires: 'Void Dokunuşu' },
   ),
-  C('Çift Atış', 'epic', 'Tüm mermi skillerine +1 mermi', [
-    m('multishot', 1, 'add', 'Projectile'),
-  ]),
+  {
+    name: 'Tırpan Ustalığı',
+    rarity: 'epic',
+    codex: 1,
+    kind: 'Skill',
+    desc: 'İkinci bir dış halka: 4 büyük tırpan ters yönde döner',
+    requires: 'Dönen Tırpanlar',
+    part: scythe(4, 135, -2.2, 22, 13),
+  },
   S('Meteor', 'epic', 'Yeni skill: Meteor (büyük alan, AP)', ABILITIES.meteor),
   S(
     'Bıçak Halkası',
@@ -125,8 +185,14 @@ export const CARDS = [
     max: 2,
     apply: () => state.classSlots++,
   },
-  // Destansı
-  C('Kaos Fırtınası', 'legendary', 'Zincir +%50, +1 mermi, hasar +%20', [
+  // Mitik / Efsanevi
+  S(
+    'Meteor Yağmuru',
+    'mythic',
+    'Yeni skill: rastgele alanlara meteor yağdırır (AP)',
+    ABILITIES.rainp,
+  ),
+  C('Kaos Fırtınası', 'mythic', 'Zincir +%50, +1 mermi, hasar +%20', [
     m('chain', 0.5),
     m('multishot', 1, 'add', 'Projectile'),
     m('damage', 1.2, 'mul'),
@@ -140,4 +206,159 @@ export const CARDS = [
     m('luck', 12),
     m('damage', 1.25, 'mul'),
   ]),
+  // Petler (sadece kartlardan; en düşük nadirlik Efsanevi) ve pet slotu/yeteneği
+  ...Object.entries(PETS).map(([id, d]) => ({
+    name: d.name,
+    rarity: d.rarity,
+    kind: 'Pet',
+    desc: d.desc,
+    repeat: true,
+    cond: () =>
+      state.pets.length < state.petSlots &&
+      !state.pets.some((x) => x.petId === id),
+    apply: () => addPet(id),
+  })),
+  {
+    name: 'Pet Slotu',
+    rarity: 'celestial',
+    codex: 1,
+    desc: '+1 pet slotu',
+    max: 2,
+    apply: () => state.petSlots++,
+  },
+  {
+    name: 'Pet Yeteneği',
+    rarity: 'exalted',
+    codex: 1,
+    desc: 'Petlerin +1 skill slotu olur (rastgele bir skilline sahip olurlar)',
+    max: 2,
+    cond: () => state.pets.length > 0,
+    apply: () => state.petSkillSlots++,
+  },
 ];
+// Kadim ve üstü kademeler: her kademe için güçlü bir kart
+[
+  ['ancient', 'Kadim Güç'],
+  ['divine', 'İlahi Kalkan'],
+  ['celestial', 'Göksel Hız'],
+  ['exalted', 'Yüceltilmiş Zeka'],
+  ['immortal', 'Ölümsüz Beden'],
+  ['eternal', 'Ebedi Alev'],
+  ['transcendent', 'Aşkın Bilinç'],
+  ['cosmic', 'Kozmik Güç'],
+  ['void', 'Boşluk Hasadı'],
+  ['infinite', 'Sonsuz Döngü'],
+  ['omnipotent', 'Mutlak Güç'],
+  ['secret', 'Gizli Güç'],
+].forEach(([r, n], i) => {
+  const k = i + 1;
+  CARDS.push(
+    C(n, r, `Hasar +%${10 + k * 8}, +${30 * k} can, +${2 * k} luck`, [
+      m('damage', 1 + 0.1 + k * 0.08, 'mul'),
+      m('maxHp', 30 * k),
+      m('luck', 2 * k),
+    ]),
+  );
+});
+
+// --- PATLAMA (exploit): vuruşlar ihtimalle patlar. Yükseltmeleri de kartlardan gelir (ihtimal, hasar, alan, adet)
+CARDS.push(
+  C(
+    'Patlayıcı Vuruş',
+    'rare',
+    "Vuruşların %15 ihtimalle patlar: hasarın %80'i alan hasarı",
+    [m('blast', 0.15)],
+  ),
+  C(
+    'Patlama: İhtimal',
+    'veryrare',
+    'Patlama ihtimali +%10',
+    [m('blast', 0.1)],
+    { requires: 'Patlayıcı Vuruş', repeat: true },
+  ),
+  C(
+    'Patlama: Hasar',
+    'veryrare',
+    'Patlama hasarı +%40',
+    [m('blastPower', 0.4)],
+    { requires: 'Patlayıcı Vuruş', repeat: true },
+  ),
+  C(
+    'Patlama: Alan',
+    'veryrare',
+    'Patlama alanı +%25',
+    [m('blastRadius', 1.25, 'mul')],
+    { requires: 'Patlayıcı Vuruş', repeat: true },
+  ),
+  C(
+    'Patlama: Adet',
+    'ultrarare',
+    'Her patlamada +1 ek patlama',
+    [m('blastCount', 1)],
+    { requires: 'Patlayıcı Vuruş', repeat: true },
+  ),
+  C(
+    'Zincirleme Patlama',
+    'epic',
+    'Patlama ihtimali +%15, +1 patlama, hasar +%30',
+    [m('blast', 0.15), m('blastCount', 1), m('blastPower', 0.3)],
+    { requires: 'Patlama: Adet' },
+  ),
+);
+// --- Her skill kartının yükseltmeleri (o skill alınmadan çıkmaz): hasar, hız, adet/alan
+const UP = (n, tag, rarity, kind) => {
+  CARDS.push(
+    C(
+      n + ': Hasar',
+      rarity,
+      'Bu skillin hasarı +%25',
+      [m('damage', 1.25, 'mul', tag)],
+      { requires: n, repeat: true },
+    ),
+  );
+  if (kind !== 'orbit')
+    CARDS.push(
+      C(
+        n + ': Hız',
+        rarity,
+        'Bu skillin bekleme süresi kısalır (+25 haste)',
+        [m('haste', 25, 'add', tag)],
+        { requires: n, repeat: true },
+      ),
+    );
+  if (kind === 'proj')
+    CARDS.push(
+      C(
+        n + ': Adet',
+        rarity,
+        '+1 mermi ve +1 delme',
+        [m('multishot', 1, 'add', tag), m('pierce', 1, 'add', tag)],
+        { requires: n, repeat: true },
+      ),
+    );
+  else if (kind === 'rain')
+    CARDS.push(
+      C(
+        n + ': Adet',
+        rarity,
+        '+2 yağmur vuruşu',
+        [m('multishot', 2, 'add', tag)],
+        { requires: n, repeat: true },
+      ),
+    );
+  else
+    CARDS.push(
+      C(n + ': Alan', rarity, 'Alan +%15', [m('area', 1.15, 'mul', tag)], {
+        requires: n,
+        repeat: true,
+      }),
+    );
+};
+UP('Fireball', 'ab_fireball', 'uncommon', 'proj');
+UP('Frost Nova', 'ab_nova', 'uncommon', 'area');
+UP('Zehir Dikeni', 'ab_venom', 'veryrare', 'proj');
+UP('Gök Gürültüsü', 'ab_thunder', 'ultrarare', 'rain');
+UP('Meteor', 'ab_meteor', 'epic', 'area');
+UP('Bıçak Halkası', 'ab_blades', 'epic', 'proj');
+UP('Meteor Yağmuru', 'ab_rainp', 'mythic', 'rain');
+UP('Dönen Tırpanlar', 'Orbit', 'ultrarare', 'orbit');

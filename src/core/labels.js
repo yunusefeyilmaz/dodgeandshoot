@@ -28,6 +28,12 @@ export const LABELS = {
   slow: 'Yavaşlatma',
   voidShred: 'Void aşındırma',
   knockback: 'Geri itme',
+  effPower: 'Efekt gücü',
+  resPen: 'Direnç delme',
+  blast: 'Patlama ihtimali',
+  blastPower: 'Patlama hasarı',
+  blastRadius: 'Patlama alanı',
+  blastCount: 'Ek patlama',
 };
 const PCT = new Set([
   'critChance',
@@ -40,8 +46,18 @@ const PCT = new Set([
   'chain',
   'slow',
   'voidShred',
+  'resPen',
+  'blast',
+  'blastPower',
 ]);
-const MUL = new Set(['attackSpeed', 'damage', 'backstab', 'area']);
+const MUL = new Set([
+  'attackSpeed',
+  'damage',
+  'backstab',
+  'area',
+  'effPower',
+  'blastRadius',
+]);
 export const DESCS = {
   ad: 'Fiziksel skillerin taban hasarına eklenir.',
   ap: 'Büyü skillerinin taban hasarına eklenir.',
@@ -83,3 +99,11 @@ export const fmtStat = (s, v) =>
     : MUL.has(s)
       ? '×' + v.toFixed(2)
       : String(+v.toFixed(1));
+
+DESCS.effPower = 'Zehir, zincir, yavaşlatma ve void efektlerinin gücü.';
+DESCS.resPen =
+  'Düşmanların efekt dirençlerinden düşer (zehir/yavaşlatma/void/zincir).';
+DESCS.blast = 'Her vuruşun bu ihtimalle patlama yaratması.';
+DESCS.blastPower = 'Patlamanın, vuruş hasarının yüzde kaçını vurduğu.';
+DESCS.blastRadius = 'Patlama alanı çarpanı.';
+DESCS.blastCount = 'Bir patlama tetiklenince oluşan ek patlama sayısı.';

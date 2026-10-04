@@ -11,6 +11,7 @@ export const U = (id, name, stat, op, value, base, grow, max, o = {}) => ({
   tag: o.tag,
   rarity: o.rarity,
   parent: o.parent,
+  pet: o.pet,
   desc:
     op === 'add'
       ? '+' + (o.pct ? Math.round(value * 100) + '%' : value) + ' ' + name

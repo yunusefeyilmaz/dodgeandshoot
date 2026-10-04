@@ -2,7 +2,7 @@
 <html lang="tr">
   <head>
     <meta charset="utf-8" />
-    <title>Modüler Kart Oyunu</title>
+    <title>Dodge and Shoot</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -13,6 +13,13 @@
         <div class="bar hp"><i id="hpf"></i><span id="hpt"></span></div>
         <div class="bar xp"><i id="xpf"></i></div>
         <div id="coins"></div>
+        <div id="buffs" class="irow"></div>
+        <div id="tgt">
+          <b id="tn"></b>
+          <div class="bar"><i id="tf"></i><span id="tt"></span></div>
+          <div id="ts"></div>
+          <div id="te" class="irow"></div>
+        </div>
       </div>
       <div id="tc">
         <div id="wave"></div>
@@ -24,20 +31,48 @@
       <div id="tr">
         <button data-p="inv">Envanter <kbd>I</kbd></button>
         <button data-p="stat">Statlar <kbd>C</kbd></button>
+        <button data-p="cls">Classlar <kbd>K</kbd></button>
+        <button data-p="pet">Petler <kbd>P</kbd></button>
         <button data-p="shop">Mağaza <kbd>B</kbd></button>
+        <button data-p="menu">Menü <kbd>Esc</kbd></button>
       </div>
-      <div id="bl"></div>
+      <div id="side">
+        <div class="panel" id="invP">
+          <h4>Envanter</h4>
+          <div id="invGrid"></div>
+          <div id="invSel"></div>
+        </div>
+        <div class="panel" id="statP">
+          <h4>Statlar</h4>
+          <div id="statGrid"></div>
+          <div id="statExtra">
+            <div class="sub2">Silah</div>
+            <div id="stW" class="irow"></div>
+            <div class="sub2">Skiller</div>
+            <div id="stS" class="irow"></div>
+            <div class="sub2">Kartlar</div>
+            <div id="stC" class="irow"></div>
+          </div>
+        </div>
+        <div class="panel" id="clsP">
+          <h4>Classlar</h4>
+          <div id="clsGrid" class="slots"></div>
+          <div id="clsSel"></div>
+          <h4 style="margin-top: 10px">Aktif combolar</h4>
+          <div id="clsCombos"></div>
+        </div>
+        <div class="panel" id="petP">
+          <h4>Petler</h4>
+          <div id="petGrid" class="slots"></div>
+          <div id="petSel"></div>
+        </div>
+      </div>
+      <div id="skills" class="irow"></div>
+      <div id="bl">
+        <div id="clsRow" class="irow"></div>
+        <div id="petRow" class="irow"></div>
+      </div>
       <div id="toast"></div>
-      <div class="panel" id="invP">
-        <h4>Envanter</h4>
-        <div id="invGrid"></div>
-        <div id="invSel"></div>
-      </div>
-      <div class="panel" id="statP">
-        <h4>Statlar</h4>
-        <div id="statGrid"></div>
-        <div id="statExtra"></div>
-      </div>
       <div id="ov">
         <div id="ovt"></div>
         <div id="choices"></div>

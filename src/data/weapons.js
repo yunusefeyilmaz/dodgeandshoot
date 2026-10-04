@@ -21,7 +21,7 @@ export const WEAPONS = {
       U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.12, 10, 1.35, undefined, {
         tag: 'Sword',
       }),
-      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.12, 15, 1.4, 12, {
+      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.05, 15, 1.4, 12, {
         tag: 'Sword',
         rarity: 'rare',
         parent: 'sw_dmg',
@@ -54,8 +54,8 @@ export const WEAPONS = {
       N('s_spd', 'Hızlı El', 'Kılıç hızı +%15', 1, 's_dmg', [
         m('attackSpeed', 1.15, 'mul', 'Sword'),
       ]),
-      N('s_area', 'Geniş Salvo', 'Kılıç alanı +%20', 1, 's_dmg', [
-        m('area', 1.2, 'mul', 'Sword'),
+      N('s_area', 'Geniş Salvo', 'Kılıç alanı +%6', 1, 's_dmg', [
+        m('area', 1.06, 'mul', 'Sword'),
       ]),
       N('s_kb', 'Ağır Darbe', 'Kılıç geri itme +100', 1, 's_spd', [
         m('knockback', 100, 'add', 'Sword'),
@@ -79,14 +79,10 @@ export const WEAPONS = {
         's_pen',
         [m('poison', 0.4, 'add', 'Sword')],
       ),
-      N(
-        's_ult',
-        'Kılıç Ustası',
-        'Kılıç hasarı +%30, alanı +%20',
-        4,
-        's_chain',
-        [m('damage', 1.3, 'mul', 'Sword'), m('area', 1.2, 'mul', 'Sword')],
-      ),
+      N('s_ult', 'Kılıç Ustası', 'Kılıç hasarı +%30, alanı +%8', 4, 's_chain', [
+        m('damage', 1.3, 'mul', 'Sword'),
+        m('area', 1.08, 'mul', 'Sword'),
+      ]),
     ],
   },
   bow: {

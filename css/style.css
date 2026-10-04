@@ -582,3 +582,163 @@ kbd {
 #tip {
   z-index: 30;
 }
+
+/* --- v5: yan paneller, ikonlar, hedef kartı */
+#side {
+  position: absolute;
+  right: 14px;
+  top: 56px;
+  width: 272px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100% - 140px);
+  overflow: auto;
+  pointer-events: none;
+}
+#side .panel {
+  position: static;
+  pointer-events: auto;
+}
+.slots {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+#tr {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60vw;
+}
+.irow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.ico {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border: 2px solid #fff4;
+  border-radius: 5px;
+  background: #10131aee;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  overflow: hidden;
+  cursor: default;
+}
+.ico i {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    transparent calc((1 - var(--f, 0)) * 1turn),
+    #000b 0
+  );
+}
+.ico b {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 10px;
+  text-shadow: 0 0 3px #000;
+}
+.ico .g {
+  position: relative;
+  z-index: 1;
+}
+#buffs {
+  margin-top: 2px;
+  min-height: 0;
+}
+#tgt {
+  display: none;
+  margin-top: 8px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  pointer-events: auto;
+}
+#tgt .bar {
+  margin: 4px 0;
+}
+#tgt .bar i {
+  background: #e05a5a;
+}
+#ts {
+  color: var(--dim);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+#skills {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  gap: 6px;
+}
+#skills .ico {
+  width: 46px;
+  height: 46px;
+  font-size: 22px;
+}
+#bl {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+#bl .ico {
+  cursor: help;
+  pointer-events: auto;
+}
+.cslot {
+  aspect-ratio: 1;
+  border: 2px dashed #ffffff2a;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 10px;
+  padding: 2px;
+  cursor: pointer;
+  line-height: 1.1;
+}
+.cslot.on {
+  border-style: solid;
+  background: #0006;
+}
+.cslot.sel {
+  background: #ffffff22;
+}
+.cslot .gl {
+  font-size: 20px;
+  display: block;
+}
+#clsCombos div {
+  padding: 3px 0;
+  border-bottom: 1px solid #ffffff14;
+}
+#clsCombos small {
+  color: var(--dim);
+  display: block;
+}
+#side .panel {
+  width: auto !important;
+  max-height: none;
+}
+.sub2 {
+  color: var(--dim);
+  font-size: 11px;
+  margin: 6px 0 3px;
+}
+.sg {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 10px;
+  margin-bottom: 4px;
+}
+.sg b {
+  text-align: right;
+}

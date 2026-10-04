@@ -6,5 +6,10 @@ export function stat(e, name, tags = []) {
     for (const m of p.mods || [])
       if (m.stat === name && (!m.tag || tags.includes(m.tag)))
         m.op === 'add' ? (add += m.value) : (mul *= m.value);
-  return (e.base[name] + add) * mul;
+  const v = (e.base[name] + add) * mul;
+  return Number.isFinite(v)
+    ? v
+    : Number.isFinite(e.base[name])
+      ? e.base[name]
+      : 0; // NaN koruması
 }

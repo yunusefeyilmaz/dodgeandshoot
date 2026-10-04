@@ -2,6 +2,7 @@ import { state, W, H } from './core/state.js';
 import { make, addPart } from './core/entity.js';
 import { upgradePart } from './systems/upgrades.js';
 import { updatePlayer } from './systems/player.js';
+import { updatePets } from './systems/pets.js';
 import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
@@ -36,6 +37,7 @@ function loop(now) {
   if (state.mode === 'run' && !state.paused && !state.over) {
     updateWaves(dt);
     updatePlayer(dt);
+    updatePets(dt);
     updateCombat(dt);
     updatePickups(dt);
     updateTracking(dt);

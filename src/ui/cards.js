@@ -83,6 +83,7 @@ export function openCards() {
     const n = state.picked.filter((x) => x === c.name).length;
     if (c.max ? n >= c.max : n && !c.repeat) continue;
     if (c.requires && !state.picked.includes(c.requires)) continue;
+    if (c.cond && !c.cond()) continue;
     pool.push({ ...c, apply: c.apply || (() => addPart(p, c.part)) });
   }
   for (const u of weaponUpgrades())

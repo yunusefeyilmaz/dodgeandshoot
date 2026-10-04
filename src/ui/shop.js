@@ -10,10 +10,11 @@ import {
 import { sfx } from '../core/audio.js';
 import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { renderTree } from './tree.js';
+import { petNodes } from '../systems/pets.js';
 // Oyun içi coin mağazası: ağaç şeklinde
 export function openShop() {
   const el = document.createElement('div'),
-    nodes = weaponUpgrades().concat(UPGRADES);
+    nodes = weaponUpgrades().concat(UPGRADES, petNodes());
   el.className = 'treewrap';
   const draw = () => {
     document.getElementById('ovt').textContent =
