@@ -15,7 +15,7 @@ export function burst(x, y, col, n = 6, sp = 140, life = 0.5) {
       r: rnd(1.5, 3.5),
     });
   }
-  if (state.parts.length > 400) state.parts.splice(0, state.parts.length - 400);
+  if (state.parts.length > 260) state.parts.splice(0, state.parts.length - 260);
 }
 export const ring = (x, y, r, col = '#fff') =>
   state.rings.push({ x, y, r: 0, max: r, col, t: 0.4 });

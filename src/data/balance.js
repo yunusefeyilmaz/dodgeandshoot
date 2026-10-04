@@ -1,23 +1,56 @@
-// Tüm denge ayarları tek yerde. Oynayıp buradan oynayın.
+// Tüm denge ayarları tek yerde.
 export const BAL = {
-  itemDropBase: 0.0035,
+  itemDropBase: 0.035,
   itemDropLuck: 0.0008,
-  itemDropMax: 0.012,
-  itemLife: 10, // item düşme şansı (düşman başına), yerde kalma süresi (sn)
-  enemyHp: 1.8,
-  enemyHpPerWave: 0.2,
-  enemyDmgPerWave: 0.08, // normal düşman can çarpanı ve tur başına artış
-  bossHp: 7,
-  bossHpPerWave: 0.08,
-  bossDmg: 1.6, // boss can çarpanı (data/enemies.js'teki taban canla çarpılır)
+  itemDropMax: 0.12,
+  itemLife: 60, // item şansı (düşman başına), yerde kalma süresi
+  enemyHp: 2.2,
+  enemyHpPerWave: 0.24,
+  enemyHpQuad: 0.004,
+  enemyDmgPerWave: 0.09, // normal düşman can: taban * (1 + n*a + n²*b)
+  bossHp: 8,
+  bossHpPerWave: 0.1,
+  bossHpQuad: 0.004,
+  bossDmg: 1.6,
+  miniHp: 6,
   waveBase: 12,
   wavePerWave: 4,
-  groupEvery: 5,
-  spawnBase: 0.5,
+  groupEvery: 3,
+  spawnBase: 0.7,
   spawnDecay: 0.012,
-  spawnMin: 0.12, // normal tur: düşman sayısı ve doğma hızı
-  miniHp: 6,
-  swarmBase: 40,
+  spawnMin: 0.12,
+  swarmBase: 30,
   swarmPerWave: 2,
-  swarmMax: 90, // swarm boyutu
+  swarmMax: 90,
+  coinMul: 0.55,
+  shopCostMul: 1.6, // coin kazancı ve mağaza fiyatı çarpanı
+  minCd: { weapon: 0.16, skill: 0.3 }, // en kısa bekleme (atış hızı/haste ne kadar artsa da)
+};
+// Stat üst sınırları: hiçbir kart/item/upgrade yığını bunları aşamaz
+export const CAPS = {
+  critChance: 1,
+  critDmg: 4,
+  armorPen: 0.6,
+  magicPen: 0.6,
+  lifesteal: 0.25,
+  omnivamp: 0.25,
+  attackSpeed: 3,
+  speed: 380,
+  magnet: 450,
+  poison: 1.5,
+  chain: 1.2,
+  slow: 0.75,
+  voidShred: 0.6,
+  knockback: 700,
+  blast: 0.8,
+  blastPower: 2.5,
+  blastCount: 5,
+  multishot: 6,
+  pierce: 8,
+  regen: 12,
+  backstab: 3,
+  effPower: 3,
+  resPen: 0.8,
+  haste: 400,
+  area: 2.2,
 };

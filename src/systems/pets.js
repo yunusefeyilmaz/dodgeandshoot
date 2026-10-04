@@ -65,8 +65,8 @@ export function addPet(id) {
   });
   addPart(ent, {
     mods: [
-      g('ad', 0.6),
-      g('ap', 0.6),
+      g('ad', 0.35),
+      g('ap', 0.35),
       g('critChance'),
       {
         stat: 'critDmg',
@@ -79,7 +79,7 @@ export function addPet(id) {
         stat: 'damage',
         op: 'mul',
         get value() {
-          return stat(p, 'damage');
+          return 1 + (stat(p, 'damage') - 1) * 0.5;
         },
       },
     ],

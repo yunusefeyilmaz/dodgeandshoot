@@ -181,7 +181,10 @@ export function abTip(ab, o) {
     '</b> <small>' +
     (ab.dmgType === 'magic' ? 'Büyü' : 'Fiziksel') +
     '</small><div>Bekleme: <b>' +
-    ((ab.cooldown * 100) / (100 + stat(o, 'haste', ab.tags)) / as).toFixed(2) +
+    Math.max(
+      ab.tags.includes('Weapon') ? 0.16 : 0.3,
+      (ab.cooldown * 100) / (100 + stat(o, 'haste', ab.tags)) / Math.min(3, as),
+    ).toFixed(2) +
     ' sn</b></div><div class="dim">' +
     abDesc(ab, o) +
     '</div><div style="margin-top:4px">Toplam hasar: <b>' +

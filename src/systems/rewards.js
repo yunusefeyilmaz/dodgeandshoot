@@ -10,7 +10,8 @@ import { sfx } from '../core/audio.js';
 import { meta } from '../core/save.js';
 import { RARITIES } from '../core/rarity.js';
 
-export const xpNeed = () => 4 + state.level * 3;
+export const xpNeed = () =>
+  Math.round(8 + 4 * state.level + 0.35 * state.level * state.level); // level atlama giderek yavaşlar
 
 // Kill: coin, xp, item. Luck: coin değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
 on('Kill', ({ target: t }) => {
@@ -22,7 +23,10 @@ on('Kill', ({ target: t }) => {
   for (let i = 0; i < k; i++)
     state.pickups.push({
       type: 'coin',
-      v: Math.max(1, Math.round((t.coin / k) * (1 + luck * 0.01))),
+      v: Math.max(
+        1,
+        Math.round((t.coin / k) * BAL.coinMul * (1 + luck * 0.01)),
+      ),
       x: t.x + rnd(-18, 18),
       y: t.y + rnd(-18, 18),
     });
@@ -33,7 +37,7 @@ on('Kill', ({ target: t }) => {
       : Math.min(BAL.itemDropMax, BAL.itemDropBase + luck * BAL.itemDropLuck) *
         (t.elite ? 4 : 1); // item şansı düşük; boss garantili
   if (Math.random() < chance) {
-    const L = luck + (t.boss ? 15 : t.mini ? 8 : t.elite ? 6 : 0),
+    const L = luck + (t.boss ? 5 : t.mini ? 3 : t.elite ? 2 : 0),
       ws = ITEMS.map((i) => weightOf(i.rarity, L));
     let x = Math.random() * ws.reduce((a, b) => a + b, 0);
     const idx = ws.findIndex((w) => (x -= w) <= 0);

@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { BAL } from '../data/balance.js';
 import { UPGRADES } from '../data/upgrades.js';
 import { WEAPONS } from '../data/weapons.js';
 import { rebuildPets } from './pets.js';
@@ -8,7 +9,7 @@ export const weaponUpgrades = () =>
   state.weapon ? WEAPONS[state.weapon].upgrades : [];
 export const levelOf = (id) => state.upgradeLevels[id] || 0;
 export const costOf = (u) =>
-  Math.ceil(u.base * Math.pow(u.grow, levelOf(u.id)));
+  Math.ceil(u.base * BAL.shopCostMul * Math.pow(u.grow, levelOf(u.id)));
 export const isMax = (u) => u.max && levelOf(u.id) >= u.max;
 function rebuild() {
   rebuildPets();

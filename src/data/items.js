@@ -127,35 +127,26 @@ export const ITEMS = [
 [
   ['ancient', 'Kadim Pençe', 'Kadim Rune'],
   ['divine', 'İlahi Asa', 'İlahi Kalkan'],
-  ['celestial', 'Göksel Yay', 'Göksel Pelerin'],
-  ['exalted', 'Yüceltilmiş Taç', 'Yüceltilmiş Zırh'],
-  ['immortal', 'Ölümsüz Kılıç', 'Ölümsüz Kalp'],
-  ['eternal', 'Ebedi Alev', 'Ebedi Mühür'],
-  ['transcendent', 'Aşkın Göz', 'Aşkın Cüppe'],
   ['cosmic', 'Kozmik Küre', 'Kozmik Zırh'],
-  ['void', 'Boşluk Kesen', 'Boşluk Kalbi'],
-  ['infinite', 'Sonsuz Halka', 'Sonsuz Çember'],
-  ['omnipotent', 'Mutlak Güç', 'Mutlak Egemenlik'],
-  ['secret', 'Gizli Kalıntı', 'Gizli Mühür'],
 ].forEach(([r, a, b], i) => {
   const k = i + 1;
   ITEMS.push(
     I('h' + k + 'a', a, r, '', () => ({
       mods: [
-        mod('ad', 10 + 6 * k),
-        mod('ap', 10 + 6 * k),
-        mod('damage', 1 + 0.05 * k, 'mul'),
-        mod('critChance', 0.02 * k),
+        mod('ad', 8 + 6 * k),
+        mod('ap', 8 + 6 * k),
+        mod('damage', 1 + 0.04 * k, 'mul'),
+        mod('critChance', 0.015 * k),
       ],
     })),
   );
   ITEMS.push(
     I('h' + k + 'b', b, r, '', () => ({
       mods: [
-        mod('maxHp', 60 + 40 * k),
-        mod('armor', 10 + 5 * k),
-        mod('mr', 10 + 5 * k),
-        mod('regen', 0.5 * k),
+        mod('maxHp', 50 + 35 * k),
+        mod('armor', 8 + 6 * k),
+        mod('mr', 8 + 6 * k),
+        mod('regen', 0.4 * k),
         mod('luck', 2 * k),
       ],
     })),

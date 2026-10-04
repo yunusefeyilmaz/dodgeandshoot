@@ -1,41 +1,48 @@
-// 20 nadirlik kademesi. Luck yüksek kademelerin ağırlığını artırır.
+// 9 nadirlik kademesi. Üst kademeler düşük luck'ta HİÇ gelmez (minLuck); luck arttıkça ağırlıkları yavaşça artar.
+//          id          ad                 renk       ağırlık  minLuck
 const T = [
-  ['common', 'Yaygın', '#9aa3b5'],
-  ['uncommon', 'Yaygın Olmayan', '#7ed07e'],
-  ['rare', 'Nadir', '#4aa3ff'],
-  ['veryrare', 'Çok Nadir', '#7f8bfe'],
-  ['ultrarare', 'Aşırı Nadir', '#5b6cff'],
-  ['epic', 'Destansı', '#b86bff'],
-  ['mythic', 'Mitik', '#ff5fd2'],
-  ['legendary', 'Efsanevi', '#ffb020'],
-  ['ancient', 'Kadim', '#c08a4a'],
-  ['divine', 'İlahi', '#fff0a0'],
-  ['celestial', 'Göksel', '#8fe8ff'],
-  ['exalted', 'Yüceltilmiş', '#ffd0f0'],
-  ['immortal', 'Ölümsüz', '#ff6a5a'],
-  ['eternal', 'Ebedi', '#7affb0'],
-  ['transcendent', 'Aşkın', '#d0a8ff'],
-  ['cosmic', 'Kozmik', '#6f5bff'],
-  ['void', 'Boşluk', '#9a3be2'],
-  ['infinite', 'Sonsuz', '#ffffff'],
-  ['omnipotent', 'Her Şeye Gücü Yeten', '#ff2a6d'],
-  ['secret', 'Gizli', '#ff00ff'],
+  ['common', 'Yaygın', '#9aa3b5', 100, 0],
+  ['uncommon', 'Yaygın Olmayan', '#7ed07e', 45, 0],
+  ['rare', 'Nadir', '#4aa3ff', 18, 0],
+  ['epic', 'Destansı', '#b86bff', 6, 0],
+  ['mythic', 'Mitik', '#ff5fd2', 2, 3],
+  ['legendary', 'Efsanevi', '#ffb020', 0.6, 6],
+  ['ancient', 'Kadim', '#c08a4a', 0.15, 14],
+  ['divine', 'İlahi', '#fff0a0', 0.03, 28],
+  ['cosmic', 'Kozmik', '#6f5bff', 0.005, 45],
 ];
 export const RARITIES = {};
 T.forEach(
-  ([id, name, col], i) =>
+  ([id, name, col, w, minLuck], i) =>
     (RARITIES[id] = {
+      id,
       name,
       col,
       tier: i,
-      w: 100 * Math.pow(0.62, i),
-      sell: Math.round(5 * Math.pow(1.55, i)),
+      w,
+      minLuck,
+      sell: Math.round(5 * Math.pow(1.7, i)),
     }),
 );
 export const TIERS = T.map((t) => t[0]);
+// Eski kademe adları yeni kademelere eşlenir (veri dosyaları bozulmadan çalışır)
+const ALIAS = {
+  veryrare: 'rare',
+  ultrarare: 'epic',
+  celestial: 'divine',
+  exalted: 'divine',
+  immortal: 'divine',
+  eternal: 'cosmic',
+  transcendent: 'cosmic',
+  void: 'cosmic',
+  infinite: 'cosmic',
+  omnipotent: 'cosmic',
+  secret: 'cosmic',
+};
+for (const k in ALIAS) RARITIES[k] = RARITIES[ALIAS[k]];
 export const weightOf = (id, luck) => {
   const r = RARITIES[id || 'common'];
-  return r.w * (1 + luck * 0.04 * r.tier);
+  return luck < r.minLuck ? 0 : r.w * (1 + luck * 0.05 * r.tier);
 };
 export function rollRarity(luck, ids = TIERS) {
   let x = Math.random() * ids.reduce((s, i) => s + weightOf(i, luck), 0);

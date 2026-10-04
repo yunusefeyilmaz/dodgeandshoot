@@ -7,6 +7,7 @@ import { RARITIES } from '../core/rarity.js';
 import { CLASSES } from '../data/classes.js';
 import { PETS } from '../data/pets.js';
 import { startWave } from '../systems/waves.js';
+import { xpNeed } from '../systems/rewards.js';
 import { finishRun, abandonRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
 import { releaseClass } from '../systems/classes.js';
@@ -559,7 +560,7 @@ export function updateHud() {
   frame++;
   $('hpf').style.width = (100 * Math.max(0, p.hp)) / mh + '%';
   $('hpt').textContent = Math.ceil(Math.max(0, p.hp)) + ' / ' + Math.ceil(mh);
-  $('xpf').style.width = (100 * state.xp) / (4 + state.level * 3) + '%';
+  $('xpf').style.width = (100 * state.xp) / xpNeed() + '%';
   $('coins').textContent = 'Lv ' + state.level + ' · ' + state.coins + ' coin';
   const left =
     state.ents.filter((e) => e.team === 'e').length +

@@ -54,9 +54,14 @@ export function addPart(e, p) {
     e.abilities.push(p.ability);
   if (p.orbit) e.orbits.push({ ...p.orbit, pos: [], hit: new Map(), a: 0 });
 }
+// updateCombat içinde kare başına bir kez hesaplanan önbellek (her mermi/skill için dizi kopyalamak takılma yapıyordu)
 export const foes = (c) =>
-  state.ents.filter(
-    (e) => e.team !== c.team && e.hp > 0 && !e.isPet && !e.under,
-  );
+  state.fc
+    ? c.team === 'p'
+      ? state.fc.enemies
+      : state.fc.friends
+    : state.ents.filter(
+        (e) => e.team !== c.team && e.hp > 0 && !e.isPet && !e.under,
+      );
 export const nearest = (c) =>
   foes(c).reduce((b, e) => (!b || dist(c, e) < dist(c, b) ? e : b), null);

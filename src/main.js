@@ -20,7 +20,7 @@ const player = make({
   y: H / 2,
   r: 11,
   hp: 100,
-  base: { speed: 150, magnet: 70, critChance: 0.01, knockback: 120 },
+  base: { speed: 170, magnet: 70, critChance: 0.05, knockback: 180 },
 });
 addPart(player, upgradePart);
 state.player = player;
@@ -30,20 +30,36 @@ state.paused = true; // menüden silah seçilince startRun() oyunu başlatır
 initHud();
 openMenu();
 
-let last = performance.now();
+// SABİT ZAMAN ADIMI: oyun her zaman 1/60 sn'lik adımlarla ilerler (kare hızı düşse bile yavaş çekim olmaz, cooldown'lar şaşmaz)
+const STEP = 1 / 60;
+let last = null,
+  acc = 0;
+function step() {
+  updateWaves(STEP);
+  updatePlayer(STEP);
+  updatePets(STEP);
+  updateCombat(STEP);
+  updatePickups(STEP);
+  updateTracking(STEP);
+  if (state.xp >= xpNeed()) openCards();
+  else if (state.pendingClass) openClassPick();
+}
 function loop(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  if (state.mode === 'run' && !state.paused && !state.over) {
-    updateWaves(dt);
-    updatePlayer(dt);
-    updatePets(dt);
-    updateCombat(dt);
-    updatePickups(dt);
-    updateTracking(dt);
-    if (state.xp >= xpNeed()) openCards();
-    else if (state.pendingClass) openClassPick();
+  if (last === null) last = now; // ilk kare: zaman tabanı ne olursa olsun güvenli
+  acc += Math.max(0, Math.min(0.25, (now - last) / 1000));
+  last = now; // negatif/çok büyük süreler (sekme dönüşü) yok sayılır
+  for (let n = 0; acc >= STEP && n < 5; n++) {
+    // bir karede en fazla 5 adım (ağır sahnede sarmal olmasın)
+    acc -= STEP;
+    if (state.mode === 'run' && !state.paused && !state.over) {
+      step();
+      if (state.paused) {
+        acc = 0;
+        break;
+      }
+    }
   }
+  if (acc > STEP * 5) acc = 0;
   render();
   updateHud();
   requestAnimationFrame(loop);

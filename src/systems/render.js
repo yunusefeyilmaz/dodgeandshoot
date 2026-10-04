@@ -116,10 +116,12 @@ export function render() {
       g.fill();
     } else {
       const c = RARITIES[k.def.rarity].col;
-      g.fillStyle = g.shadowColor = c;
-      g.shadowBlur = 14;
+      g.globalAlpha = 0.25;
+      g.fillStyle = c;
+      circle(k.x, k.y, 12);
+      g.fill();
+      g.globalAlpha = 1;
       g.fillRect(k.x - 6, k.y - 6, 12, 12);
-      g.shadowBlur = 0;
     }
   }
   for (const pr of state.projs) {
@@ -291,9 +293,7 @@ export function render() {
         g.save();
         g.translate(b.x, b.y);
         g.rotate(b.a * 3);
-        g.fillStyle = g.shadowColor =
-          o.col || (e.team === 'e' ? '#ff5a5a' : '#c0e8ff');
-        g.shadowBlur = 8;
+        g.fillStyle = o.col || (e.team === 'e' ? '#ff5a5a' : '#c0e8ff');
         g.beginPath();
         g.moveTo(o.size, 0);
         g.lineTo(0, o.size * 0.45);

@@ -5,6 +5,7 @@ import { foes, nearest } from '../core/entity.js';
 import { burst, shake, updateFx } from './fx.js';
 import { addTele, updateTele } from './telegraph.js';
 import { sfx } from '../core/audio.js';
+import { BAL } from '../data/balance.js';
 import { SCRIPTS } from './bossScripts.js';
 import { addBuff, updateBuffs } from './buffs.js';
 
@@ -18,7 +19,7 @@ export const DMG_COL = {
 const cw = (v) => Math.min(W, Math.max(0, v)),
   ch = (v) => Math.min(H, Math.max(0, v));
 const reach = (x, y, e, ex) =>
-  Math.hypot(x - e.x, y - e.y) < ex + e.r ||
+  (x - e.x) ** 2 + (y - e.y) ** 2 < (ex + e.r) ** 2 ||
   (e.segs && e.segs.some((g) => Math.hypot(x - g.x, y - g.y) < ex + g.r)); // gövde parçalı bosslar (Hulud)
 const resOf = (x, key, rp) =>
   1 - Math.max(0, Math.min(0.95, ((x.res || {})[key] || 0) - rp)); // efekt direnci (resPen ile düşer)
@@ -55,7 +56,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     (state.abStats[o.ab] ??= { dmg: 0, kills: 0 }).dmg += amt; // skill başına toplam hasar
   const kind = o.type || (o.trueDmg ? 'true' : 'phys');
   if (t.team === 'e') {
-    if (state.texts.length > 90) state.texts.shift();
+    if (state.texts.length > 60) state.texts.shift();
     state.texts.push({
       x: t.x + rnd(-8, 8),
       y: t.y - t.r - 4,
@@ -690,6 +691,10 @@ function deathBlast(e) {
   });
 }
 export function updateCombat(dt) {
+  state.fc = {
+    enemies: state.ents.filter((e) => e.team === 'e' && e.hp > 0 && !e.under),
+    friends: state.ents.filter((e) => e.team === 'p' && e.hp > 0 && !e.isPet),
+  };
   const p = state.player;
   for (const e of state.ents) {
     e.hurt = Math.max(0, (e.hurt || 0) - dt);
@@ -736,7 +741,7 @@ export function updateCombat(dt) {
     }
     if (!(e.lock > 0) && !e.under && !(e.stun > 0))
       for (const ab of e.abilities) {
-        e.cd[ab.id] = (e.cd[ab.id] || 0) - dt;
+        e.cd[ab.id] = Math.max(-dt, (e.cd[ab.id] || 0) - dt);
         const t = nearest(e);
         if (
           e.cd[ab.id] <= 0 &&
@@ -747,34 +752,75 @@ export function updateCombat(dt) {
           const as = ab.tags.includes('Weapon')
             ? stat(e, 'attackSpeed', ab.tags)
             : 1;
-          e.cd[ab.id] =
-            (ab.cooldown * 100) / (100 + stat(e, 'haste', ab.tags)) / as;
-          e.cdMax[ab.id] = e.cd[ab.id];
+          const cdv = Math.max(
+            ab.tags.includes('Weapon') ? BAL.minCd.weapon : BAL.minCd.skill,
+            (ab.cooldown * 100) /
+              (100 + stat(e, 'haste', ab.tags)) /
+              Math.min(3, as),
+          );
+          e.cd[ab.id] += cdv;
+          e.cdMax[ab.id] = cdv;
           if (ab.suicide) e.hp = 0;
           if (e.lock > 0) break;
         }
       }
     if (e.orbits.length) updateOrbits(e, dt);
   }
+  // Mermi çarpışması: düşmanlar 64px'lik ızgaraya konur, mermi sadece komşu hücrelere bakar (300 mermi x 250 düşman taraması yerine)
+  let grid = null,
+    bigs = null;
+  const tryHit = (pr, e) => {
+    if (e.hp <= 0 || pr.hit.has(e) || !reach(pr.x, pr.y, e, pr.size || 4))
+      return false;
+    dealDamage(pr.src, e, pr.dmg, pr.tags, {
+      dir: Math.atan2(pr.vy, pr.vx),
+      type: pr.type,
+      proc: pr.proc,
+      ab: pr.ab,
+    });
+    pr.hit.add(e);
+    if (pr.pierce-- <= 0) {
+      pr.life = 0;
+      return true;
+    }
+    return false;
+  };
   for (const pr of state.projs) {
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;
     pr.life -= dt;
-    if (Math.random() < 0.35) burst(pr.x, pr.y, pr.col || '#fff', 1, 10, 0.25);
-    for (const e of foes({ team: pr.team }))
-      if (!pr.hit.has(e) && reach(pr.x, pr.y, e, pr.size || 4)) {
-        dealDamage(pr.src, e, pr.dmg, pr.tags, {
-          dir: Math.atan2(pr.vy, pr.vx),
-          type: pr.type,
-          proc: pr.proc,
-          ab: pr.ab,
-        });
-        pr.hit.add(e);
-        if (pr.pierce-- <= 0) {
-          pr.life = 0;
-          break;
+    if (Math.random() < 0.12) burst(pr.x, pr.y, pr.col || '#fff', 1, 10, 0.25);
+    if (pr.team !== 'p') {
+      for (const e of foes({ team: pr.team })) if (tryHit(pr, e)) break;
+      continue;
+    }
+    if (!grid) {
+      grid = new Map();
+      bigs = [];
+      for (const e of state.fc.enemies) {
+        if (e.segs || e.r > 24) bigs.push(e);
+        else {
+          const k = ((e.x / 64) | 0) * 4096 + ((e.y / 64) | 0);
+          let L = grid.get(k);
+          if (!L) grid.set(k, (L = []));
+          L.push(e);
         }
       }
+    }
+    const cx = (pr.x / 64) | 0,
+      cy = (pr.y / 64) | 0;
+    let done = false;
+    for (let ix = cx - 1; ix <= cx + 1 && !done; ix++)
+      for (let iy = cy - 1; iy <= cy + 1 && !done; iy++) {
+        const L = grid.get(ix * 4096 + iy);
+        if (L)
+          for (const e of L)
+            if (tryHit(pr, e)) {
+              done = true;
+              break;
+            }
+      }
+    if (!done) for (const e of bigs) if (tryHit(pr, e)) break;
   }
   for (const e of state.ents)
     if (e.hp <= 0 && e !== p) {
@@ -799,5 +845,6 @@ export function updateCombat(dt) {
   updateZones(dt);
   updateTele(dt);
   updateFx(dt);
+  state.fc = null;
   if (p.hp <= 0) state.over = true;
 }

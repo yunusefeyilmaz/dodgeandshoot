@@ -60,9 +60,9 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   const hp =
     def.hp *
     (boss
-      ? BAL.bossHp * (1 + n * BAL.bossHpPerWave)
+      ? BAL.bossHp * (1 + n * BAL.bossHpPerWave + n * n * BAL.bossHpQuad)
       : BAL.enemyHp *
-        (1 + n * BAL.enemyHpPerWave) *
+        (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
         (def.mini ? BAL.miniHp : 1)) *
     power *
     (elite ? 3 : 1);
