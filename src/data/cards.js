@@ -392,3 +392,84 @@ CARDS.push(
     max: 3,
   }),
 );
+
+CARDS.push(
+  {
+    name: 'Kader Çarkı',
+    rarity: 'rare',
+    codex: 1,
+    desc: '+2 kart yenileme hakkı',
+    max: 3,
+    apply: () => {
+      state.rerolls += 2;
+    },
+  },
+  {
+    name: 'Kara Liste',
+    rarity: 'rare',
+    codex: 1,
+    desc: '+1 kart yasaklama hakkı',
+    max: 3,
+    apply: () => {
+      state.banishes += 1;
+    },
+  },
+);
+// --- EVRİMLER: iki kart birlikte alınınca gizli üçüncü kart açılır (sonraki seçimde hazır olarak teklif edilir)
+const EVO = (name, rarity, desc, needs, mods) =>
+  CARDS.push({
+    ...C(name, rarity, desc, mods),
+    needs,
+    evo: true,
+    kind: 'Evrim',
+    repeat: false,
+  });
+EVO(
+  'Salgın Fırtınası',
+  'mythic',
+  'Zehir +%30, zincir +%30, efekt gücü +%15',
+  ['Zehirli Uçlar', 'Şimşek Zinciri'],
+  [m('poison', 0.3), m('chain', 0.3), m('effPower', 1.15, 'mul')],
+);
+EVO(
+  'Patlayan Oklar',
+  'mythic',
+  'Mermiler: patlama +%15, +1 ek patlama',
+  ['Patlayıcı Vuruş', 'Delici Mermiler'],
+  [
+    m('blast', 0.15, 'add', 'Projectile'),
+    m('blastCount', 1, 'add', 'Projectile'),
+  ],
+);
+EVO(
+  'Buzul Çağı',
+  'epic',
+  'Frost Nova: yavaşlatma +%30, alan +%25, haste +20',
+  ['Frost Nova', 'Ağır Darbe'],
+  [
+    m('slow', 0.3, 'add', 'ab_nova'),
+    m('area', 1.25, 'mul', 'ab_nova'),
+    m('haste', 20, 'add', 'ab_nova'),
+  ],
+);
+EVO(
+  'Gölge Dansı',
+  'mythic',
+  '+1 dash hakkı, +0.1 sn dokunulmazlık, ateş izi',
+  ['Çift Dash', 'Gölge Adımı'],
+  [m('dashCharges', 1), m('dashIframe', 0.1), m('dashTrail', 1)],
+);
+EVO(
+  'Void Fırtınası',
+  'mythic',
+  'Zincir +%40, void aşındırma +%20',
+  ['Void Dokunuşu', 'Fırtına'],
+  [m('chain', 0.4), m('voidShred', 0.2)],
+);
+EVO(
+  'Altın Zehir',
+  'epic',
+  'Zehir +%30, +4 luck',
+  ['Zehirli Uçlar', 'Lucky Charm'],
+  [m('poison', 0.3), m('luck', 4)],
+);

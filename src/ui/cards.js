@@ -1,4 +1,4 @@
-import { state } from '../core/state.js';
+import { state, toast } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
 import { RARITIES, weightOf } from '../core/rarity.js';
@@ -10,7 +10,7 @@ import { addClass } from '../systems/classes.js';
 import { weaponUpgrades, freeLevel, isMax } from '../systems/upgrades.js';
 import { xpNeed } from '../systems/rewards.js';
 import { burst, ring } from '../systems/fx.js';
-import { showOverlay, hideOverlay } from './overlay.js';
+import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { setTip } from './tooltip.js';
 export const picked = state.picked;
 
@@ -69,25 +69,22 @@ function pickWeighted(pool, n, luck) {
   return out;
 }
 
-export function openCards() {
+export function buildPool() {
+  // bu an seçilebilir kartlar (yasaklılar, koşullar, evrim şartları dahil)
   const p = state.player,
-    luck = stat(p, 'luck');
-  state.xp -= xpNeed();
-  state.level++;
-  ring(p.x, p.y, 140, '#e0b040');
-  burst(p.x, p.y, '#e0b040', 28, 280, 0.8);
-  sfx('level');
-  const pool = [];
+    pool = [];
   for (const c of CARDS) {
     if (c.part?.ability && p.abilities.includes(c.part.ability)) continue;
     const n = state.picked.filter((x) => x === c.name).length;
     if (c.max ? n >= c.max : n && !c.repeat) continue;
     if (c.requires && !state.picked.includes(c.requires)) continue;
+    if (c.needs && !c.needs.every((x) => state.picked.includes(x))) continue; // EVRİM: iki kartın ikisi de gerekir
     if (c.cond && !c.cond()) continue;
+    if (state.banned.includes(c.name)) continue;
     pool.push({ ...c, apply: c.apply || (() => addPart(p, c.part)) });
   }
   for (const u of weaponUpgrades())
-    if (!isMax(u) && (!u.parent || true))
+    if (!isMax(u))
       pool.push({
         name: 'Silah: ' + u.name,
         desc: u.desc,
@@ -95,16 +92,73 @@ export function openCards() {
         kind: 'Silah',
         apply: () => freeLevel(u),
       });
-  showOverlay(
-    'Level ' + state.level + ' — bir kart seç',
-    pickWeighted(pool, 3, luck).map((c) =>
-      cardEl(c, () => {
-        c.apply();
-        state.picked.push(c.name);
-        if (c.codex) discover('cards', c.name, c.name, 'Kart');
-        hideOverlay();
-      }),
+  return pool;
+}
+export function openCards() {
+  const p = state.player;
+  state.xp -= xpNeed();
+  state.level++;
+  ring(p.x, p.y, 140, '#e0b040');
+  burst(p.x, p.y, '#e0b040', 28, 280, 0.8);
+  sfx('level');
+  showCards();
+}
+function showCards(ban) {
+  // ban: yasaklama modu (seçtiğin kart bir daha çıkmaz)
+  const luck = stat(state.player, 'luck'),
+    pool = buildPool(),
+    evo = pool.find((c) => c.evo);
+  const picks = evo
+    ? [
+        evo,
+        ...pickWeighted(
+          pool.filter((c) => c !== evo),
+          2,
+          luck,
+        ),
+      ]
+    : pickWeighted(pool, 3, luck); // hazır evrim her zaman teklif edilir
+  const nodes = picks.map((c) =>
+    cardEl(c, () => {
+      if (ban) {
+        state.banned.push(c.name);
+        state.banishes--;
+        toast('Yasaklandı: ' + c.name);
+        return showCards();
+      }
+      c.apply();
+      state.picked.push(c.name);
+      if (c.codex) discover('cards', c.name, c.name, 'Kart');
+      if (c.evo) {
+        toast('EVRİM! ' + c.name);
+        ring(state.player.x, state.player.y, 200, '#ff5fd2');
+        burst(state.player.x, state.player.y, '#ff5fd2', 40, 360, 0.9);
+      }
+      hideOverlay();
+    }),
+  );
+  nodes.push(
+    btn(
+      '🔄 Yenile (' + state.rerolls + ')',
+      () => {
+        state.rerolls--;
+        showCards();
+      },
+      state.rerolls < 1 || !!ban,
     ),
+  );
+  nodes.push(
+    btn(
+      ban ? 'İptal' : '🚫 Yasakla (' + state.banishes + ')',
+      () => showCards(!ban),
+      !ban && state.banishes < 1,
+    ),
+  );
+  showOverlay(
+    ban
+      ? 'Hangi kartı bir daha görmek istemiyorsun?'
+      : 'Level ' + state.level + ' — bir kart seç',
+    nodes,
     'cards',
   );
 }
