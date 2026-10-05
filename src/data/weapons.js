@@ -18,10 +18,10 @@ export const WEAPONS = {
     ability: ABILITIES.sword,
     unlock: null,
     upgrades: [
-      U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.08, 10, 1.35, undefined, {
+      U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.1, 10, 1.35, undefined, {
         tag: 'Sword',
       }),
-      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.1, 15, 1.4, 12, {
+      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.12, 15, 1.4, 12, {
         tag: 'Sword',
         rarity: 'rare',
         parent: 'sw_dmg',
