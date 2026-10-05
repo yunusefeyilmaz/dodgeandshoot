@@ -738,6 +738,10 @@ export function updateCombat(dt) {
       e.stun -= dt;
       if (e.team === 'e') continue;
     }
+    if (e.dormant) {
+      if (dist(e, p) < 420 || e.hp < e.hpMax) e.dormant = false;
+      else continue;
+    } // elit kampı: oyuncu yaklaşana kadar uyur
     const S = e.script && SCRIPTS[e.script];
     if (e.dodge) tryDodge(e, dt);
     if (e.team === 'e') {

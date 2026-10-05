@@ -3,6 +3,7 @@ import { addPart } from '../core/entity.js';
 import { WEAPONS } from '../data/weapons.js';
 import { meta, discover, save } from '../core/save.js';
 import { treeMods } from './meta.js';
+import { initPois } from './pois.js';
 // Menüden silah seçilince koşu başlar: silah skilli + kalıcı ağaç bonusları oyuncuya eklenir
 export function startRun(id) {
   const w = WEAPONS[id];
@@ -12,6 +13,7 @@ export function startRun(id) {
   discover('weapons', id, w.name, 'Silah');
   meta.stats.runs++;
   save(true);
+  initPois();
   toast('Shift: DASH — saldırı değmeden hemen önce dash at!');
   state.mode = 'run';
   state.paused = false;

@@ -186,7 +186,7 @@ export function initHud() {
     } else if (k === 'escape') {
       if (anyOpen())
         Object.values(panels).forEach((p) => (p.style.display = 'none'));
-      else if (overlayKind() === 'shop' || overlayKind() === 'confirm')
+      else if (['shop', 'confirm', 'poi'].includes(overlayKind()))
         hideOverlay();
       else if (!overlayKind()) leaveRun();
     }
@@ -664,6 +664,21 @@ export function updateHud() {
         ' sn kaldı</div>',
     })),
     ...statusItems(p),
+    ...(state.curse && state.curse.waves > 0
+      ? [
+          {
+            id: 'curse',
+            glyph: '😈',
+            col: '#e05a5a',
+            frac: 0,
+            text: state.curse.waves,
+            tip: () =>
+              '<b style="color:#e05a5a">Lanet</b><div class="dim">Düşman canı +%25. ' +
+              state.curse.waves +
+              ' tur kaldı. (Karşılığında kalıcı hasar bonusu aldın)</div>',
+          },
+        ]
+      : []),
   ]);
   // skill barı (ekranın alt ortası): ikon + dönen cooldown taraması
   syncIcons($('skills'), [

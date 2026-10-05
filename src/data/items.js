@@ -168,3 +168,29 @@ ITEMS.push(
   ),
 );
 ITEMS[ITEMS.length - 1].unique = true; // rastgele düşmez, sadece boss ödülü
+
+// LANETLİ itemlar: çok güçlü ama bedeli var. Sadece lanetli sandıktan gelir.
+const cursed = (id, name, rarity, desc, mods) => {
+  const it = I(id, name, rarity, '☠ LANETLİ: ' + desc, () => ({ mods }));
+  it.unique = true;
+  it.cursed = true;
+  ITEMS.push(it);
+};
+cursed('bloodcrown', 'Kan Tacı', 'epic', 'Hasar +%30 ama max can -%25.', [
+  mod('damage', 1.3, 'mul'),
+  mod('maxHp', 0.75, 'mul'),
+]);
+cursed(
+  'glassorb',
+  'Cam Küre',
+  'mythic',
+  '+40 AP ama zırh ve büyü direnci -15.',
+  [mod('ap', 40), mod('armor', -15), mod('mr', -15)],
+);
+cursed(
+  'madheart',
+  'Çılgın Kalp',
+  'epic',
+  'Saldırı hızı +%25, hız +25 ama max can -30.',
+  [mod('attackSpeed', 1.25, 'mul'), mod('speed', 25), mod('maxHp', -30)],
+);

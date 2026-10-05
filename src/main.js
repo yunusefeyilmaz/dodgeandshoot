@@ -4,6 +4,7 @@ import { upgradePart } from './systems/upgrades.js';
 import { updatePlayer } from './systems/player.js';
 import { updatePets } from './systems/pets.js';
 import { updateDash } from './systems/dash.js';
+import { updatePois } from './systems/pois.js';
 import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
@@ -41,6 +42,7 @@ function step() {
   updateWaves(dt);
   updatePlayer(dt);
   updateDash(dt);
+  updatePois(dt);
   updatePets(dt);
   updateCombat(dt);
   updatePickups(dt);

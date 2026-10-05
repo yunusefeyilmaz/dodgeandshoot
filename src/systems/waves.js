@@ -6,6 +6,7 @@ import { ENEMIES, BOSSES, SPAWN_TABLE, MINIBOSSES } from '../data/enemies.js';
 import { ABILITIES } from '../data/abilities.js';
 import { BAL } from '../data/balance.js';
 import { onWaveStart } from './tracking.js';
+import { onWaveEnd } from './pois.js';
 
 export const BOSS_EVERY = 5,
   SWARM_EVERY = 3;
@@ -65,7 +66,8 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
         (def.mini ? BAL.miniHp : 1)) *
     power *
-    (elite ? 3 : 1);
+    (elite ? 3 : 1) *
+    (state.curse && state.curse.waves > 0 ? 1.25 : 1);
   const e = make({
     team: 'e',
     x: sp.x,
@@ -127,12 +129,19 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   }
   if (S && S.init) S.init(e);
   state.ents.push(e);
+  return e;
 }
-state.spawnAt = (id, x, y) =>
-  spawn(ENEMIES[id], 1, undefined, {
-    x: Math.min(W - 20, Math.max(20, x)),
-    y: Math.min(H - 20, Math.max(20, y)),
-  });
+state.spawnAt = (id, x, y, elite) =>
+  spawn(
+    ENEMIES[id],
+    1,
+    undefined,
+    {
+      x: Math.min(W - 20, Math.max(20, x)),
+      y: Math.min(H - 20, Math.max(20, y)),
+    },
+    !!elite,
+  );
 
 export function startWave() {
   const w = state.wave;
@@ -217,11 +226,12 @@ export function updateWaves(dt) {
       !w.swarmPending &&
       !w.miniPending &&
       w.toSpawn <= 0 &&
-      !state.ents.some((e) => e.team === 'e')
+      !state.ents.some((e) => e.team === 'e' && !e.dormant)
     ) {
       w.phase = 'idle';
       w.cd = 2;
       state.coins += 5 + w.n * 2;
+      onWaveEnd(w.n);
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
       toast('Tur ' + w.n + ' bitti! Bonus coin');

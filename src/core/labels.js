@@ -94,8 +94,8 @@ export const DESCS = {
 };
 export const fmtMod = (m) =>
   m.op === 'mul'
-    ? '+%' + Math.round((m.value - 1) * 100)
-    : '+' +
+    ? (m.value >= 1 ? '+%' : '-%') + Math.abs(Math.round((m.value - 1) * 100))
+    : (m.value < 0 ? '' : '+') +
       (PCT.has(m.stat)
         ? +(m.value * 100).toFixed(2) + '%'
         : +m.value.toFixed(2));

@@ -21,7 +21,7 @@ export const WEAPONS = {
       U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.08, 10, 1.35, undefined, {
         tag: 'Sword',
       }),
-      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.05, 15, 1.4, 12, {
+      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.1, 15, 1.4, 12, {
         tag: 'Sword',
         rarity: 'rare',
         parent: 'sw_dmg',

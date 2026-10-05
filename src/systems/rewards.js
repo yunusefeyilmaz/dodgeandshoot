@@ -91,3 +91,13 @@ export function updatePickups(dt) {
     return !ok;
   });
 }
+
+// Item seçimi (sandık/tüccar için): luck + bonus, en az minTier. unique/lanetli itemlar rastgele gelmez.
+export function rollItem(bonus = 0, minTier = 0) {
+  const luck = stat(state.player, 'luck') + bonus,
+    pool = ITEMS.filter((i) => !i.unique && RARITIES[i.rarity].tier >= minTier),
+    ws = pool.map((i) => weightOf(i.rarity, luck));
+  let x = Math.random() * ws.reduce((a, b) => a + b, 0);
+  const idx = ws.findIndex((w) => (x -= w) <= 0);
+  return pool[idx < 0 ? 0 : idx];
+}

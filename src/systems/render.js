@@ -124,6 +124,34 @@ export function render() {
       g.fillRect(k.x - 6, k.y - 6, 12, 12);
     }
   }
+  for (const q of state.pois) {
+    // haritadaki olaylar
+    g.globalAlpha = 0.25;
+    g.fillStyle = q.col;
+    circle(q.x, q.y, 34 * (1 + Math.sin(performance.now() / 300 + q.x) * 0.08));
+    g.fill();
+    g.globalAlpha = 1;
+    g.font = '26px system-ui';
+    g.textAlign = 'center';
+    g.fillStyle = '#fff';
+    g.fillText(q.glyph, q.x, q.y + 9);
+    if (q.type === 'camp') {
+      g.strokeStyle = q.col;
+      g.lineWidth = 2;
+      circle(q.x, q.y, 120);
+      g.stroke();
+    }
+  }
+  if (state.prompt) {
+    g.font = 'bold 14px system-ui';
+    g.textAlign = 'center';
+    g.lineWidth = 4;
+    g.strokeStyle = '#000';
+    g.strokeText(state.prompt.text, state.prompt.x, state.prompt.y - 44);
+    g.fillStyle = '#ffd84f';
+    g.fillText(state.prompt.text, state.prompt.x, state.prompt.y - 44);
+  }
+  g.textAlign = 'left';
   for (const pr of state.projs) {
     if (pr.shape === 'crescent') {
       g.save();
@@ -403,6 +431,26 @@ export function render() {
       ax - Math.cos(ang) * 50,
       ay - Math.sin(ang) * 40 + 4,
     );
+  }
+  for (const q of state.pois) {
+    // ekran dışı olaylar için kenar işaretleri
+    const sx = q.x - v.x,
+      sy = q.y - v.y;
+    if (sx > 24 && sx < v.w - 24 && sy > 24 && sy < v.h - 24) continue;
+    const ax = Math.min(v.w - 30, Math.max(30, sx)),
+      ay = Math.min(v.h - 30, Math.max(30, sy));
+    g.globalAlpha = 0.75;
+    g.fillStyle = '#000b';
+    circle(ax, ay, 15);
+    g.fill();
+    g.strokeStyle = q.col;
+    g.lineWidth = 2;
+    g.stroke();
+    g.font = '16px system-ui';
+    g.textAlign = 'center';
+    g.fillStyle = '#fff';
+    g.fillText(q.glyph, ax, ay + 6);
+    g.globalAlpha = 1;
   }
   g.textAlign = 'left';
 }
