@@ -76,6 +76,18 @@ function bossDown(t) {
 export function onWaveStart(n, boss) {
   const s = meta.stats;
   if (n > s.bestWave) s.bestWave = n;
+  if (
+    state.heat === (meta.maxHeat || 0) &&
+    n >= 15 &&
+    (meta.maxHeat || 0) < 5
+  ) {
+    meta.maxHeat = (meta.maxHeat || 0) + 1;
+    hooks.popup(
+      'Yeni zorluk açıldı: Heat ' + meta.maxHeat,
+      '15. tura ulaştın',
+      '#ff8a3d',
+    );
+  }
   if (boss) s.bossReached = Math.max(s.bossReached, n / 5);
   sfx(boss ? 'boss' : 'wave');
   save();

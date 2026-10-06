@@ -73,7 +73,7 @@ function weaponScreen() {
       })
       .join('')}</div>
     <div class="treehead"><b>${WEAPONS[selW].name} yetenek ağacı</b><button id="mReset">Puanları sıfırla</button></div>
-    <div id="mtree" class="treewrap"></div><button class="big go" id="mGo">Başla</button></div>`;
+    <div id="mtree" class="treewrap"></div><div class="treehead"><b>Zorluk (Heat): <span id="heatV"></span></b><span><button id="heatM">−</button> <button id="heatP">+</button></span></div><button class="big go" id="mGo">Başla</button></div>`;
   $('mBack').onclick = () => go(mainScreen);
   M.querySelectorAll('.wcard').forEach((c) => {
     const id = c.dataset.w,
@@ -114,6 +114,41 @@ function weaponScreen() {
   hov(
     $('mReset'),
     "Harcanan tüm Boss Point'leri geri alır, ağacı yeniden kurabilirsin",
+  );
+  const maxH = meta.maxHeat || 0;
+  meta.settings.heat = Math.min(meta.settings.heat || 0, maxH);
+  const showH = () => {
+    const h = meta.settings.heat;
+    $('heatV').textContent = h
+      ? h +
+        ' (düşman +%' +
+        15 * h +
+        ' can, +%' +
+        10 * h +
+        ' hasar · coin/xp +%' +
+        15 * h +
+        (h >= 3 ? ' · 2 mutatör' : '') +
+        ')'
+      : 'normal';
+    $('heatV').title =
+      'Açık: Heat ' +
+      maxH +
+      ". Sonrakini açmak için en yüksek açık Heat'te 15. tura ulaş";
+  };
+  $('heatM').onclick = () => {
+    meta.settings.heat = Math.max(0, meta.settings.heat - 1);
+    showH();
+  };
+  $('heatP').onclick = () => {
+    meta.settings.heat = Math.min(maxH, meta.settings.heat + 1);
+    showH();
+  };
+  showH();
+  hov(
+    $('heatP'),
+    'Zorluğu artır (açık: Heat ' +
+      maxH +
+      "). Sonrakini açmak için en yüksek açık Heat'te 15. tura ulaş",
   );
   $('mGo').onclick = () => {
     setTip(null);

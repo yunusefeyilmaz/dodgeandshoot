@@ -10,6 +10,7 @@ import { rollItem } from './rewards.js';
 import { addItem } from './inventory.js';
 import { burst, ring, shake } from './fx.js';
 import { openAltar, openMerchant } from '../ui/poi.js';
+import { startTrial } from './objectives.js';
 // HARİTA OLAYLARI: gezip bulunur, E ile etkileşilir. Tur bitince yeni olaylar doğar; 2 tur içinde kullanılmazsa kaybolur.
 const pickPool = (minTier) => {
   const p = state.player;
@@ -217,6 +218,19 @@ export const TYPES = {
       state.pickups.push({ type: 'item', def, x: q.x, y: q.y });
       ring(q.x, q.y, 80, q.col);
       toast('Lanetli eşya: ' + def.name);
+    },
+  },
+  portal: {
+    glyph: '🌀',
+    name: 'Risk Portalı',
+    col: '#5b6cff',
+    w: 8,
+    min: 4,
+    make: () => {},
+    label: () => 'Risk portalına gir (20 sn hayatta kal, ödül!)',
+    use: (q) => {
+      q.done = true;
+      startTrial();
     },
   },
   camp: {

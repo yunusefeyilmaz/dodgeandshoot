@@ -82,6 +82,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     sfx(crit ? 'crit' : 'hit');
     if (crit) shake(0.18);
   } else {
+    state.hitsTaken++;
     state.flash = Math.min(1, state.flash + 0.5);
     shake(0.3);
     sfx('hurt');
@@ -598,6 +599,10 @@ function tryDodge(e, dt) {
     }
 }
 function enemyAI(e, p, dt) {
+  if (e.exposed > 0) {
+    e.exposed -= dt;
+    return;
+  } // bitkin boss: kıpırdamaz
   const d = dist(e, p) || 1;
   if (e.dashV) {
     const v = e.dashV;
@@ -631,6 +636,7 @@ function enemyAI(e, p, dt) {
     p.hp -=
       (12 * (e.contact || 1) * stat(e, 'damage') * dt * 100) /
       (100 + stat(p, 'armor'));
+    state.hitsTaken++;
     p.hurt = 0.12;
     state.flash = Math.max(state.flash, 0.3);
     shake(0.12);
@@ -856,6 +862,10 @@ export function updateCombat(dt) {
       sfx('kill');
       if (e.boss) shake(0.8);
       if (e.deathBlast) deathBlast(e);
+      else if (state.mut.explode && e.team === 'e' && !e.boss) {
+        e.deathBlast = { radius: 70, damage: 18 };
+        deathBlast(e);
+      }
     }
   state.projs = state.projs.filter((x) => x.life > 0);
   state.ents = state.ents.filter((e) => e === p || e.hp > 0);

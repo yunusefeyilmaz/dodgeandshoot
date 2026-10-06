@@ -742,3 +742,9 @@ kbd {
 .sg b {
   text-align: right;
 }
+#obj {
+  font-size: 12px;
+  color: #ffd84f;
+  text-shadow: 0 1px 3px #000;
+  min-height: 14px;
+}

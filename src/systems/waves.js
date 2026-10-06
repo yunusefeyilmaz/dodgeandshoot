@@ -7,6 +7,7 @@ import { ABILITIES } from '../data/abilities.js';
 import { BAL } from '../data/balance.js';
 import { onWaveStart } from './tracking.js';
 import { onWaveEnd } from './pois.js';
+import { startObjective, endObjective } from './objectives.js';
 
 export const BOSS_EVERY = 5,
   SWARM_EVERY = 3;
@@ -67,7 +68,9 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (def.mini ? BAL.miniHp : 1)) *
     power *
     (elite ? 3 : 1) *
-    (state.curse && state.curse.waves > 0 ? 1.25 : 1);
+    (state.curse && state.curse.waves > 0 ? 1.25 : 1) *
+    state.mut.enemyHp *
+    (1 + 0.15 * state.heat);
   const e = make({
     team: 'e',
     x: sp.x,
@@ -78,13 +81,14 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
     xp: def.xp * (elite ? 3 : 1),
     coin: Math.ceil(def.coin * (1 + n * 0.1) * power * (elite ? 3 : 1)),
     base: {
-      speed: def.speed * (elite ? 1.1 : 1),
+      speed: def.speed * (elite ? 1.1 : 1) * state.mut.enemySpeed,
       armor: (def.armor || 0) * (1 + n * 0.03) * power * (elite ? 1.5 : 1),
       mr: (def.armor || 0) * 0.5 * (1 + n * 0.03) * power,
       kbResist: def.kbResist || 0,
       ...stats,
       damage:
         (1 + n * BAL.enemyDmgPerWave) *
+        (1 + 0.1 * state.heat) *
         power *
         (boss ? BAL.bossDmg : 1) *
         (elite ? 1.5 : 1),
@@ -118,8 +122,9 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
     }),
   );
   (def.parts || []).forEach((pt) => addPart(e, pt));
-  e.script = def.script;
-  const S = def.script && SCRIPTS[def.script];
+  const sk = def.script || (boss ? 'generic' : undefined);
+  e.script = sk;
+  const S = sk && SCRIPTS[sk];
   e.custom = !!(S && S.custom);
   if (boss) e.bossName = def.name; // kayıt adı sabit kalır (Itsugo yeniden doğunca görünen ad değişir)
   if (extra) {
@@ -159,14 +164,16 @@ export function startWave() {
         ? 2
         : 1
       : 0; // boss olmayan turlarda mini boss
-  w.toSpawn = w.bossPending
-    ? 10 + w.n * 2
-    : BAL.waveBase + w.n * BAL.wavePerWave;
+  w.toSpawn = Math.round(
+    (w.bossPending ? 10 + w.n * 2 : BAL.waveBase + w.n * BAL.wavePerWave) *
+      (w.bossPending ? 1 : state.mut.crowd),
+  );
   toast(
     (w.bossPending ? 'BOSS: ' + bossFor(w.n).def.name : 'Tur ' + w.n) +
       (w.swarmPending ? ' · SWARM! Her yönden geliyorlar' : ''),
   );
   onWaveStart(w.n, w.bossPending);
+  startObjective(w.n);
 }
 
 export function updateWaves(dt) {
@@ -232,6 +239,7 @@ export function updateWaves(dt) {
       w.cd = 2;
       state.coins += 5 + w.n * 2;
       onWaveEnd(w.n);
+      endObjective();
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
       toast('Tur ' + w.n + ' bitti! Bonus coin');

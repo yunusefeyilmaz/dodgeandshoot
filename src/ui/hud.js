@@ -8,6 +8,7 @@ import { CLASSES } from '../data/classes.js';
 import { PETS } from '../data/pets.js';
 import { startWave } from '../systems/waves.js';
 import { xpNeed } from '../systems/rewards.js';
+import { objectiveText } from '../systems/objectives.js';
 import { dashState, dashRecharge } from '../systems/dash.js';
 import { finishRun, abandonRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
@@ -641,6 +642,7 @@ export function updateHud() {
       (bs[0].phase > 1 ? ' · Faz ' + bs[0].phase : '') +
       (bs[0].exposed > 0 ? ' · BİTKİN! ×1.6' : '');
   }
+  $('obj').textContent = objectiveText();
   const t = $('toast');
   t.textContent = state.msg;
   t.style.opacity = state.msgT > 0 ? 1 : 0;
@@ -699,6 +701,20 @@ export function updateHud() {
   ]);
   // sol alt: classlar, combolar, petler (hover'da açıklama)
   syncIcons($('clsRow'), [
+    ...state.mutators.map((mu) => ({
+      id: 'm_' + mu.id,
+      glyph: '🎲',
+      col: '#ff8a3d',
+      frac: 0,
+      text: '',
+      tip: () =>
+        '<b style="color:#ff8a3d">Mutatör: ' +
+        mu.name +
+        '</b><div class="dim">' +
+        mu.desc +
+        '</div>' +
+        (state.heat ? '<div>Heat ' + state.heat + '</div>' : ''),
+    })),
     ...p.classes.map((id) => {
       const c = CLASSES[id];
       return {

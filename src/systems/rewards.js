@@ -18,7 +18,7 @@ on('Kill', ({ target: t }) => {
   if (t.team !== 'e') return;
   const luck = stat(state.player, 'luck');
   state.kills++;
-  state.xp += t.xp;
+  state.xp += t.xp * (1 + 0.15 * state.heat);
   if (t.dropId)
     state.pickups.push({
       type: 'item',
@@ -32,7 +32,13 @@ on('Kill', ({ target: t }) => {
       type: 'coin',
       v: Math.max(
         1,
-        Math.round((t.coin / k) * BAL.coinMul * (1 + luck * 0.01)),
+        Math.round(
+          (t.coin / k) *
+            BAL.coinMul *
+            state.mut.coinMul *
+            (1 + 0.15 * state.heat) *
+            (1 + luck * 0.01),
+        ),
       ),
       x: t.x + rnd(-18, 18),
       y: t.y + rnd(-18, 18),
@@ -42,7 +48,8 @@ on('Kill', ({ target: t }) => {
     : t.mini
       ? 0.45
       : Math.min(BAL.itemDropMax, BAL.itemDropBase + luck * BAL.itemDropLuck) *
-        (t.elite ? 4 : 1); // item şansı düşük; boss garantili
+        (t.elite ? 4 : 1) *
+        state.mut.itemMul; // item şansı düşük; boss garantili
   if (Math.random() < chance) {
     const L = luck + (t.boss ? 5 : t.mini ? 3 : t.elite ? 2 : 0),
       ws = ITEMS.map((i) => (i.unique ? 0 : weightOf(i.rarity, L)));

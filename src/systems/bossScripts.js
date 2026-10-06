@@ -60,7 +60,7 @@ export function checkPhase(e) {
   if (!ph || e.hp / e.hpMax > ph.at) return;
   e.phaseIdx = (e.phaseIdx || 0) + 1;
   e.phase = e.phaseIdx + 1;
-  toast(ph.text);
+  toast(typeof ph.text === 'function' ? ph.text(e) : ph.text);
   ring(e.x, e.y, 220, e.col);
   burst(e.x, e.y, e.col, 40, 380, 0.8);
   shake(0.8);
@@ -223,3 +223,40 @@ export const SCRIPTS = {
     },
   },
 };
+
+// ORTAK BOSS ŞABLONU (özel scripti olmayan tüm bosslar): %66 ve %33 canda fazlar; her faz geçişinde boss BİTKİN düşer (hasar x1.6, hareket/skill yok)
+SCRIPTS.generic = {
+  phases: [
+    {
+      at: 0.66,
+      text: (e) => e.name + ' öfkelendi! Bitkin düştü, şimdi vur!',
+      enter(e) {
+        e.parts.push({
+          mods: [
+            { stat: 'speed', op: 'mul', value: 1.15 },
+            { stat: 'haste', op: 'add', value: 20 },
+          ],
+        });
+        e.exposed = 2.5;
+      },
+    },
+    {
+      at: 0.33,
+      text: (e) => e.name + ' çıldırdı! Yavrular çağrıldı!',
+      enter(e) {
+        e.parts.push({
+          mods: [
+            { stat: 'speed', op: 'mul', value: 1.15 },
+            { stat: 'haste', op: 'add', value: 30 },
+            { stat: 'damage', op: 'mul', value: 1.2 },
+          ],
+        });
+        e.exposed = 2;
+        for (let i = 0; i < 4; i++)
+          state.spawnAt &&
+            state.spawnAt('swarmer', e.x + rnd(-60, 60), e.y + rnd(-60, 60));
+      },
+    },
+  ],
+};
+SCRIPTS.nel.phases = SCRIPTS.itsugo.phases = SCRIPTS.generic.phases;

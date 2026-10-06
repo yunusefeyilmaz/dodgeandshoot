@@ -124,6 +124,28 @@ export function render() {
       g.fillRect(k.x - 6, k.y - 6, 12, 12);
     }
   }
+  const ob = state.obj;
+  if (ob && ob.type === 'zone' && !ob.done && !ob.failed) {
+    g.strokeStyle = '#5cc8ff';
+    g.fillStyle = '#5cc8ff22';
+    g.lineWidth = 3;
+    circle(ob.x, ob.y, ob.r);
+    g.fill();
+    g.stroke();
+    g.fillStyle = '#5cc8ff55';
+    circle(ob.x, ob.y, ob.r * Math.min(1, ob.t / ob.need));
+    g.fill();
+  }
+  if (ob && ob.type === 'hunt' && !ob.done && ob.target.hp > 0) {
+    g.strokeStyle = '#ffd84f';
+    g.lineWidth = 3;
+    circle(
+      ob.target.x,
+      ob.target.y,
+      ob.target.r + 12 + Math.sin(performance.now() / 120) * 3,
+    );
+    g.stroke();
+  }
   for (const q of state.pois) {
     // haritadaki olaylar
     g.globalAlpha = 0.25;
@@ -355,7 +377,7 @@ export function render() {
   g.lineWidth = 3;
   g.strokeStyle = '#000b';
   for (const e of state.ents)
-    if ((e.boss || e.mini) && !e.under) {
+    if ((e.boss || e.mini || e.objTarget) && !e.under) {
       g.fillStyle = '#fff';
       g.strokeText(e.name, e.x, e.y - e.r - 14);
       g.fillText(e.name, e.x, e.y - e.r - 14);
@@ -432,8 +454,16 @@ export function render() {
       ay - Math.sin(ang) * 40 + 4,
     );
   }
-  for (const q of state.pois) {
-    // ekran dışı olaylar için kenar işaretleri
+  for (const q of [
+    ...state.pois,
+    ...(ob && ob.type === 'zone' && !ob.done && !ob.failed
+      ? [{ x: ob.x, y: ob.y, col: '#5cc8ff', glyph: '🎯' }]
+      : []),
+    ...(ob && ob.type === 'hunt' && !ob.done && ob.target.hp > 0
+      ? [{ x: ob.target.x, y: ob.target.y, col: '#ffd84f', glyph: '🎯' }]
+      : []),
+  ]) {
+    // ekran dışı olaylar + hedefler için kenar işaretleri
     const sx = q.x - v.x,
       sy = q.y - v.y;
     if (sx > 24 && sx < v.w - 24 && sy > 24 && sy < v.h - 24) continue;
