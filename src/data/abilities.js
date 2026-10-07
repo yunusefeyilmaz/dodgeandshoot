@@ -14,9 +14,9 @@ export const ABILITIES = {
     name: 'Kılıç',
     tags: ['Weapon', 'Sword', 'Area'],
     dmgType: 'phys',
-    cooldown: 0.6,
-    range: 52,
-    effects: [{ type: 'Nova', damage: 22, radius: 40 }],
+    cooldown: 0.5,
+    range: 70,
+    effects: [{ type: 'Nova', damage: 28, radius: 70 }],
   },
   // --- oyuncu skilleri
   fireball: {
@@ -122,14 +122,14 @@ export const ABILITIES = {
     name: 'Dark Spit',
     tags: ['Dark', 'Projectile'],
     dmgType: 'magic',
-    cooldown: 2.6,
+    cooldown: 3.0,
     effects: [
       {
         type: 'Projectile',
         damage: 8,
-        speed: 200,
+        speed: 150,
         color: '#c46bff',
-        proc: { poison: 0.6 },
+        proc: { poison: 0.1 },
       },
     ],
   },

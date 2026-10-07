@@ -91,7 +91,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + 0.1 * state.heat) *
         power *
         (boss ? BAL.bossDmg : 1) *
-        (elite ? 1.5 : 1),
+        (elite ? 1.05 : 1),
     },
   });
   e.hpMax = e.hp = hp;
