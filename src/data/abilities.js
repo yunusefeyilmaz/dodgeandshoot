@@ -9,6 +9,22 @@ export const ABILITIES = {
     cooldown: 0.7,
     effects: [{ type: 'Projectile', damage: 14, speed: 420, color: '#d8c08a' }],
   },
+  staff: {
+    id: 'staff',
+    name: 'Asa',
+    tags: ['Weapon', 'Staff', 'Projectile'],
+    dmgType: 'magic',
+    cooldown: 0.9,
+    effects: [
+      {
+        type: 'Projectile',
+        damage: 20,
+        speed: 360,
+        ratio: 1.2,
+        color: '#c9a8ff',
+      },
+    ],
+  },
   sword: {
     id: 'sword',
     name: 'Kılıç',
@@ -21,7 +37,7 @@ export const ABILITIES = {
   // --- oyuncu skilleri
   fireball: {
     id: 'fireball',
-    name: 'Fireball',
+    name: 'Ateş Topu',
     tags: ['Fire', 'Projectile'],
     dmgType: 'magic',
     cooldown: 1.6,
@@ -29,7 +45,7 @@ export const ABILITIES = {
   },
   nova: {
     id: 'nova',
-    name: 'Frost Nova',
+    name: 'Buz Patlaması',
     tags: ['Ice', 'Area'],
     dmgType: 'magic',
     cooldown: 3,
@@ -119,7 +135,7 @@ export const ABILITIES = {
   // --- düşman / boss skilleri
   spit: {
     id: 'spit',
-    name: 'Dark Spit',
+    name: 'Karanlık Tükürük',
     tags: ['Dark', 'Projectile'],
     dmgType: 'magic',
     cooldown: 3.0,
@@ -135,7 +151,7 @@ export const ABILITIES = {
   },
   fan: {
     id: 'fan',
-    name: 'Shadow Fan',
+    name: 'Gölge Yelpazesi',
     tags: ['Dark', 'Projectile'],
     dmgType: 'magic',
     cooldown: 2.2,
@@ -152,7 +168,7 @@ export const ABILITIES = {
   },
   ring: {
     id: 'ring',
-    name: 'Blood Ring',
+    name: 'Kan Halkası',
     tags: ['Blood', 'Projectile'],
     dmgType: 'phys',
     cooldown: 3,
@@ -169,7 +185,7 @@ export const ABILITIES = {
   },
   quake: {
     id: 'quake',
-    name: 'Quake',
+    name: 'Deprem',
     tags: ['Earth', 'Area'],
     dmgType: 'phys',
     cooldown: 3.5,

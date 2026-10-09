@@ -9,6 +9,11 @@ export const inputDir = () => [
 ];
 export function updatePlayer(dt) {
   const p = state.player;
+  if (!Number.isFinite(p.x + p.y)) {
+    p.x = W / 2;
+    p.y = H / 2;
+  }
+  if (!Number.isFinite(p.hp)) p.hp = stat(p, 'maxHp'); // NaN güvenlik ağı (siyah ekran olmasın)
   if (p.stun > 0 || p.dashV) return; // sersemlemişken / dash atarken normal hareket yok
   const s = stat(p, 'speed') * (p.slow ? 1 - p.slow.v : 1) * dt,
     [dx, dy] = inputDir(),

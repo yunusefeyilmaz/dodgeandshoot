@@ -10,9 +10,9 @@ import { onWaveEnd } from './pois.js';
 import { startObjective, endObjective } from './objectives.js';
 
 export const BOSS_EVERY = 5,
-  SWARM_EVERY = 3;
+  SÜRÜ_EVERY = 3;
 export const isBossWave = (n) => n % BOSS_EVERY === 0;
-export const isSwarmWave = (n) => n % SWARM_EVERY === 0;
+export const isSwarmWave = (n) => n % SÜRÜ_EVERY === 0;
 export function bossFor(n) {
   const i = n / BOSS_EVERY - 1;
   return {
@@ -91,7 +91,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + 0.1 * state.heat) *
         power *
         (boss ? BAL.bossDmg : 1) *
-        (elite ? 1.05 : 1),
+        (elite ? 1.5 : 1),
     },
   });
   e.hpMax = e.hp = hp;
@@ -170,7 +170,7 @@ export function startWave() {
   );
   toast(
     (w.bossPending ? 'BOSS: ' + bossFor(w.n).def.name : 'Tur ' + w.n) +
-      (w.swarmPending ? ' · SWARM! Her yönden geliyorlar' : ''),
+      (w.swarmPending ? ' · SÜRÜ! Her yönden geliyorlar' : ''),
   );
   onWaveStart(w.n, w.bossPending);
   startObjective(w.n);
@@ -242,7 +242,7 @@ export function updateWaves(dt) {
       endObjective();
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
-      toast('Tur ' + w.n + ' bitti! Bonus coin');
+      toast('Tur ' + w.n + ' bitti! Bonus altın');
     }
   } else if (w.auto && !state.over && (w.cd -= dt) <= 0) startWave();
 }

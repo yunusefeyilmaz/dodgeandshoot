@@ -748,3 +748,164 @@ kbd {
   text-shadow: 0 1px 3px #000;
   min-height: 14px;
 }
+@keyframes pl {
+  50% {
+    box-shadow: 0 0 12px 3px #e0b040;
+    border-color: #e0b040;
+  }
+}
+button.pulse {
+  animation: pl 1s infinite;
+}
+#obj {
+  display: none;
+  min-width: 340px;
+  max-width: 92vw;
+  background: #0d1016e8;
+  border: 2px solid #ffd84f;
+  border-radius: 10px;
+  padding: 6px 14px 8px;
+  text-align: center;
+  box-shadow: 0 0 16px #ffd84f44;
+  color: #fff;
+  text-shadow: none;
+  font-size: 13px;
+}
+#obj .ol {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #ffd84f;
+}
+#obj .ot {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 1px 0;
+}
+#obj .od {
+  font-size: 12px;
+  color: #cfd3dc;
+}
+#obj .ob {
+  height: 7px;
+  background: #0009;
+  border-radius: 4px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+#obj .ob i {
+  display: block;
+  height: 100%;
+  background: #ffd84f;
+  transition: width 0.2s;
+}
+#obj.done {
+  border-color: #6fd36f;
+  box-shadow: 0 0 16px #6fd36f66;
+}
+#obj.done .ol {
+  color: #6fd36f;
+}
+#obj.done .ob i {
+  background: #6fd36f;
+}
+#obj.fail {
+  border-color: #e05a5a;
+  opacity: 0.75;
+}
+#obj.fail .ol {
+  color: #e05a5a;
+}
+#obj.fail .ob i {
+  background: #e05a5a;
+}
+#obj.new {
+  animation: objnew 1s infinite alternate;
+}
+@keyframes objnew {
+  to {
+    transform: scale(1.06);
+    box-shadow: 0 0 26px #ffd84f;
+  }
+}
+/* sandık çarkı */
+.wheel {
+  position: relative;
+  width: min(640px, 92vw);
+  height: 112px;
+  overflow: hidden;
+  border: 2px solid #ffffff44;
+  border-radius: 10px;
+  background: #0009;
+}
+.wstrip {
+  display: flex;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+.wt {
+  width: 112px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid #ffffff22;
+  background: linear-gradient(#0000, color-mix(in srgb, var(--c) 38%, #0000));
+  text-align: center;
+  font-size: 10px;
+}
+.wt span {
+  font-size: 26px;
+}
+.wmark {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #ffd84f;
+  z-index: 2;
+  transform: translateX(-50%);
+  box-shadow: 0 0 12px #ffd84f;
+}
+.wres {
+  position: relative;
+  min-width: 300px;
+  padding: 12px 18px;
+  border: 2px solid #ffffff22;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 16px;
+  background: #0009;
+}
+.wres.on {
+  border-color: var(--c);
+  box-shadow: 0 0 28px var(--c);
+}
+.wres.t5,
+.wres.t6,
+.wres.t7,
+.wres.t8 {
+  animation: glow 0.8s infinite alternate;
+}
+@keyframes glow {
+  to {
+    box-shadow: 0 0 60px 8px var(--c);
+  }
+}
+.spark {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: spk 1.1s ease-out forwards;
+}
+@keyframes spk {
+  to {
+    transform: translate(var(--x), var(--y)) scale(0.3);
+    opacity: 0;
+  }
+}

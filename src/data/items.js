@@ -6,7 +6,7 @@ const dyn = (s, f) => ({
   get value() {
     return f();
   },
-}); // kill'e bağlı dinamik
+}); // öldürmeye bağlı dinamik
 const track = (i) => ({ on: 'Kill', run: () => i.kills++ });
 const I = (id, name, rarity, desc, build, tracks) => ({
   id,

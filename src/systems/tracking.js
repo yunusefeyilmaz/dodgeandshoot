@@ -15,7 +15,7 @@ on('Kill', ({ target: t, tags = [] }) => {
   const s = meta.stats;
   s.kills++;
   state.streak++;
-  state.streakT = 3; // streak: kill'ler arası max 3 sn
+  state.streakT = 3; // streak: öldürme'ler arası max 3 sn
   if (state.streak > s.bestStreak) s.bestStreak = state.streak;
   if (state.streak % 10 === 0)
     addBuff(state.player, {
@@ -53,10 +53,11 @@ on('Kill', ({ target: t, tags = [] }) => {
 function bossDown(t) {
   const no = state.wave.n / 5;
   const bn = t.bossName || t.name;
+  state.bossKillsRun = (state.bossKillsRun || 0) + 1;
   meta.stats.bossKills[bn] = (meta.stats.bossKills[bn] || 0) + 1;
   if (!meta.bossesDefeated.includes(bn)) {
     meta.bossesDefeated.push(bn);
-    hooks.popup('Boss Point +1', bn + ' ilk kez yenildi', '#e0b040');
+    hooks.popup('Boss Puanı +1', bn + ' ilk kez yenildi', '#e0b040');
   }
   if (no > meta.bestBoss) meta.bestBoss = no;
   for (const [id, w] of Object.entries(WEAPONS))
@@ -68,7 +69,7 @@ function bossDown(t) {
       meta.unlockedWeapons.push(id);
       hooks.popup('Yeni silah açıldı: ' + w.name, w.unlock.text, '#4aa3ff');
     }
-  if (no % 2 === 0) state.pendingClass = true; // her 2 bossta bir class seçimi
+  if (no % 2 === 0) state.pendingClass = true; // her 2 bossta bir sınıf seçimi
   burst(t.x, t.y, t.col, 50, 380, 0.9);
   shake(0.8);
   save(true);
@@ -83,7 +84,7 @@ export function onWaveStart(n, boss) {
   ) {
     meta.maxHeat = (meta.maxHeat || 0) + 1;
     hooks.popup(
-      'Yeni zorluk açıldı: Heat ' + meta.maxHeat,
+      'Yeni zorluk açıldı: Zorluk ' + meta.maxHeat,
       '15. tura ulaştın',
       '#ff8a3d',
     );

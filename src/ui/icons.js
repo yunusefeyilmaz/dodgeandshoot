@@ -35,6 +35,7 @@ export function syncIcons(box, items) {
 const GL = {
   Sword: '⚔️',
   Bow: '🏹',
+  Staff: '🪄',
   Bomb: '💣',
   Fire: '🔥',
   Ice: '❄️',
@@ -171,7 +172,7 @@ export function abDesc(ab, o) {
       .join('')
   );
 }
-// Skill ipucu: etkin bekleme süresi, gerçek hasar, toplam hasar ve kill
+// Skill ipucu: etkin bekleme süresi, gerçek hasar, toplam hasar ve öldürme
 export function abTip(ab, o) {
   const s = state.abStats[ab.id] || { dmg: 0, kills: 0 },
     as = ab.tags.includes('Weapon') ? stat(o, 'attackSpeed', ab.tags) : 1;
@@ -189,12 +190,12 @@ export function abTip(ab, o) {
     abDesc(ab, o) +
     '</div><div style="margin-top:4px">Toplam hasar: <b>' +
     Math.round(s.dmg).toLocaleString('tr') +
-    '</b> · Kill: <b>' +
+    '</b> · Öldürme: <b>' +
     s.kills +
     '</b></div>'
   );
 }
-// Kart ipucu: ne yapıyor, şu anki etkisi, bu oyundaki kill/hasar
+// Kart ipucu: ne yapıyor, şu anki etkisi, bu oyundaki öldürme/hasar
 export function cardTip(name) {
   const c = CARDS.find((x) => x.name === name),
     cnt = state.picked.filter((x) => x === name).length;
@@ -202,7 +203,7 @@ export function cardTip(name) {
     return (
       '<b>' +
       name +
-      '</b><div class="dim">Silah geliştirmesi</div><div>Bu oyunda kill: <b>' +
+      '</b><div class="dim">Silah geliştirmesi</div><div>Bu oyunda öldürme: <b>' +
       (state.cardKills[name] || 0) +
       '</b></div>'
     );
@@ -230,10 +231,13 @@ export function cardTip(name) {
     h +=
       '<div style="margin-top:4px">Toplam hasar: <b>' +
       Math.round(s ? s.dmg : 0).toLocaleString('tr') +
-      '</b> · Kill: <b>' +
+      '</b> · Öldürme: <b>' +
       (s ? s.kills : 0) +
       '</b></div>';
   return (
-    h + '<div>Sahipken kill: <b>' + (state.cardKills[name] || 0) + '</b></div>'
+    h +
+    '<div>Sahipken öldürme: <b>' +
+    (state.cardKills[name] || 0) +
+    '</b></div>'
   );
 }

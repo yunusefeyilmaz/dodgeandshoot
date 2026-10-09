@@ -33,7 +33,7 @@ export function refreshTip() {
   place();
 }
 
-// Dinamik (getter'lı) modifier'lar "şu an" etiketiyle gösterilir: kill'e bağlı kazanç anlık görünür
+// Dinamik (getter'lı) modifier'lar "şu an" etiketiyle gösterilir: öldürmeye bağlı kazanç anlık görünür
 export const partLines = (part) =>
   (part.mods || [])
     .map((m) => {
@@ -62,10 +62,10 @@ export function itemTip(inst) {
     partLines(inst.part) +
     (inst.def.desc ? '<div class="dim">' + inst.def.desc + '</div>' : '') +
     (inst.def.tracks
-      ? '<div>Aldıktan sonraki kill: <b>' + inst.kills + '</b></div>'
+      ? '<div>Aldıktan sonraki öldürme: <b>' + inst.kills + '</b></div>'
       : '') +
     '<div class="dim">Satış: ' +
     r.sell +
-    ' coin</div>'
+    ' altın</div>'
   );
 }

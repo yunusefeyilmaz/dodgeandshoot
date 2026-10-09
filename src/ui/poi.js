@@ -36,7 +36,7 @@ export function openMerchant(q, api) {
           '">' +
           r.name +
           '</small><br>' +
-          (s.sold ? 'SATILDI' : s.price + ' coin'),
+          (s.sold ? 'SATILDI' : s.price + ' altın'),
         () => {
           api.buy(i);
           draw();
@@ -49,7 +49,7 @@ export function openMerchant(q, api) {
       btn(
         "<b>Can iksiri</b>Canın %50'si yenilenir<br>" +
           api.healPrice() +
-          ' coin',
+          ' altın',
         () => {
           api.heal();
           draw();
@@ -59,7 +59,7 @@ export function openMerchant(q, api) {
     );
     nodes.push(
       btn(
-        '<b>Stoğu yenile</b>Yeni eşyalar<br>' + api.rerollPrice() + ' coin',
+        '<b>Stoğu yenile</b>Yeni eşyalar<br>' + api.rerollPrice() + ' altın',
         () => {
           api.reroll();
           draw();
@@ -68,7 +68,7 @@ export function openMerchant(q, api) {
       ),
     );
     nodes.push(btn('Kapat', hideOverlay));
-    showOverlay('Gezgin Tüccar — ' + api.coins() + ' coin', nodes, 'poi');
+    showOverlay('Gezgin Tüccar — ' + api.coins() + ' altın', nodes, 'poi');
   };
   draw();
 }

@@ -31,6 +31,7 @@ export const state = {
   obj: null,
   trial: null,
   hitsTaken: 0,
+  bossKillsRun: 0,
   parts: [],
   teles: [],
   zones: [],

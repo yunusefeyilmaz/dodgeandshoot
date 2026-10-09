@@ -8,7 +8,8 @@ import { CLASSES } from '../data/classes.js';
 import { PETS } from '../data/pets.js';
 import { startWave } from '../systems/waves.js';
 import { xpNeed } from '../systems/rewards.js';
-import { objectiveText } from '../systems/objectives.js';
+import { affordable } from '../systems/upgrades.js';
+import { objectiveInfo } from '../systems/objectives.js';
 import { dashState, dashRecharge } from '../systems/dash.js';
 import { finishRun, abandonRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
@@ -80,7 +81,8 @@ const STAT_KEYS = [
   'dashCdMul',
   'dashIframe',
 ];
-let pipSig = '',
+let shopBtn,
+  pipSig = '',
   sel = -1,
   clsSel = null,
   petSel = null,
@@ -117,6 +119,7 @@ function toggle(p) {
 }
 export function initHud() {
   $('startBtn').onclick = startWave;
+  shopBtn = document.querySelector('[data-p=shop]');
   $('auto').onchange = (e) => (state.wave.auto = e.target.checked);
   document
     .querySelectorAll('[data-p]')
@@ -134,7 +137,7 @@ export function initHud() {
   );
   tipOn(
     $('coins'),
-    D('Level · Coin', 'Coin ile Mağaza (B) yükseltmeleri alınır.'),
+    D('Seviye · Altın', 'Altın ile Yükseltmeler (B) ekranından stat alınır.'),
   );
   tipOn(
     $('startBtn'),
@@ -150,9 +153,9 @@ export function initHud() {
   const T = {
     inv: ['Envanter (I)', 'Itemlar burada. Tıklayıp satabilirsin.'],
     stat: ['Statlar (C)', 'Tüm statlarını ve kartlarını gör.'],
-    cls: ['Classlar (K)', 'Class slotların, combolar. Classı bırakabilirsin.'],
+    cls: ['Sınıflar (K)', 'Sınıf slotların, kombolar. Sınıfı bırakabilirsin.'],
     pet: ['Petler (P)', 'Petlerini ve skillerini yönet, bırak.'],
-    shop: ['Mağaza (B)', 'Coin ile yetenek ağacından stat al.'],
+    shop: ['Yükseltmeler (B)', 'Altın ile yetenek ağacından stat al.'],
     menu: ['Ana menü (Esc)', 'Turu bitirip ana menüye döner (onay sorar).'],
   };
   for (const k in T)
@@ -241,7 +244,7 @@ function buildInv() {
           inst.def.name +
           ' (+' +
           RARITIES[inst.def.rarity].sell +
-          ' coin)',
+          ' altın)',
         () => {
           sellItem(sel);
           sel = -1;
@@ -265,7 +268,7 @@ function slotEl(on, glyph, label, col, click, tip) {
   return d;
 }
 function buildCls() {
-  // class slotları (envanter gibi), combolar, bırakma
+  // sınıf slotları (envanter gibi), kombolar, bırakma
   const p = state.player,
     g = $('clsGrid');
   g.innerHTML = '';
@@ -305,7 +308,7 @@ function buildCls() {
       btn('Bırak: ' + CLASSES[clsSel].name, () =>
         confirmBox(
           CLASSES[clsSel].name +
-            " bırakılsın mı? Bonusları ve combo'ları kalkar, slot boşalır.",
+            " bırakılsın mı? Bonusları ve kombo'ları kalkar, slot boşalır.",
           () => {
             releaseClass(clsSel);
             clsSel = null;
@@ -326,7 +329,7 @@ function buildCls() {
           '</small></div>',
       )
       .join('') ||
-    '<small style="color:#9aa3b5">Henüz combo yok. İki class birleşince combo oluşur.</small>';
+    '<small style="color:#9aa3b5">Henüz kombo yok. İki sınıf birleşince kombo oluşur.</small>';
 }
 function buildPet() {
   const g = $('petGrid');
@@ -450,7 +453,7 @@ function statusItems(e) {
     });
   return L;
 }
-// Statlar paneli alt kısmı: silah / skiller / kartlar ikon olarak, hover'da ne yaptığı, hasarı, kill'i
+// Statlar paneli alt kısmı: silah / skiller / kartlar ikon olarak, hover'da ne yaptığı, hasarı, öldürme'i
 function updateStatIcons() {
   const p = state.player,
     w = WEAPONS[state.weapon];
@@ -581,6 +584,33 @@ const dashItem = (p) => {
       '</b></div><div class="dim">Bir saldırı değmeden hemen önce dash atarsan <b>MÜKEMMEL KAÇIŞ</b>: zaman yavaşlar + saldırı hızı buff\'ı.</div>',
   };
 };
+function renderObj() {
+  // tur hedefi kutusu: ikon, başlık, ilerleme çubuğu, ödül
+  const o = objectiveInfo(),
+    box = $('obj');
+  if (!o) {
+    box.style.display = 'none';
+    box._k = '';
+    return;
+  }
+  box.style.display = 'block';
+  box.className = o.status + (o.flash > 0 ? ' new' : '');
+  const k = o.icon + o.label + o.title + o.detail;
+  if (k !== box._k) {
+    box._k = k;
+    box.innerHTML =
+      '<div class="ol">' +
+      o.label +
+      '</div><div class="ot">' +
+      o.icon +
+      ' ' +
+      o.title +
+      '</div><div class="od">' +
+      o.detail +
+      '</div><div class="ob"><i></i></div>';
+  }
+  box.querySelector('.ob i').style.width = 100 * o.frac + '%';
+}
 export function updateHud() {
   const p = state.player,
     w = state.wave,
@@ -589,7 +619,7 @@ export function updateHud() {
   $('hpf').style.width = (100 * Math.max(0, p.hp)) / mh + '%';
   $('hpt').textContent = Math.ceil(Math.max(0, p.hp)) + ' / ' + Math.ceil(mh);
   $('xpf').style.width = (100 * state.xp) / xpNeed() + '%';
-  $('coins').textContent = 'Lv ' + state.level + ' · ' + state.coins + ' coin';
+  $('coins').textContent = 'Sv ' + state.level + ' · ' + state.coins + ' altın';
   const left =
     state.ents.filter((e) => e.team === 'e').length +
     w.toSpawn +
@@ -617,7 +647,7 @@ export function updateHud() {
           '" title="Tur ' +
           n +
           (i === 4 ? ' · BOSS' : '') +
-          (n % 3 === 0 ? ' · SWARM' : '') +
+          (n % 3 === 0 ? ' · SÜRÜ' : '') +
           '">' +
           (n <= done ? '✓' : i === 4 ? '☠' : n) +
           '</div>'
@@ -642,7 +672,17 @@ export function updateHud() {
       (bs[0].phase > 1 ? ' · Faz ' + bs[0].phase : '') +
       (bs[0].exposed > 0 ? ' · BİTKİN! ×1.6' : '');
   }
-  $('obj').textContent = objectiveText();
+  renderObj();
+  const aff = state.mode === 'run' && !overlayKind() && affordable();
+  shopBtn.classList.toggle('pulse', aff); // yükseltme alacak kadar altın varsa buton yanıp söner
+  if (
+    aff &&
+    w.phase === 'idle' &&
+    (state.remindT = (state.remindT ?? 10) - 1 / 60) <= 0
+  ) {
+    toast('💰 Yükseltme alacak kadar altının var! (B)');
+    state.remindT = 30;
+  }
   const t = $('toast');
   t.textContent = state.msg;
   t.style.opacity = state.msgT > 0 ? 1 : 0;
@@ -699,7 +739,7 @@ export function updateHud() {
       };
     }),
   ]);
-  // sol alt: classlar, combolar, petler (hover'da açıklama)
+  // sol alt: sınıflar, kombolar, petler (hover'da açıklama)
   syncIcons($('clsRow'), [
     ...state.mutators.map((mu) => ({
       id: 'm_' + mu.id,
@@ -713,7 +753,7 @@ export function updateHud() {
         '</b><div class="dim">' +
         mu.desc +
         '</div>' +
-        (state.heat ? '<div>Heat ' + state.heat + '</div>' : ''),
+        (state.heat ? '<div>Zorluk ' + state.heat + '</div>' : ''),
     })),
     ...p.classes.map((id) => {
       const c = CLASSES[id];
@@ -746,7 +786,7 @@ export function updateHud() {
         '<b style="color:#e0b040">' +
         x.name +
         '</b> <small>' +
-        (x.kind === 'synergy' ? 'Silah sinerjisi' : 'Combo') +
+        (x.kind === 'synergy' ? 'Silah sinerjisi' : 'Kombo') +
         '</small><div class="dim">' +
         x.desc +
         '</div>',

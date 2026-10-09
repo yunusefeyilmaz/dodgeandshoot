@@ -1,6 +1,6 @@
 import { meta, save } from '../core/save.js';
 import { WEAPONS } from '../data/weapons.js';
-// Boss Point = yenilen FARKLI boss sayısı - harcanan. Aynı bossu tekrar kesmek puan vermez.
+// Boss Puanı = yenilen FARKLI boss sayısı - harcanan. Aynı bossu tekrar kesmek puan vermez.
 export const owned = (w, id) =>
   !!(meta.weaponTree[w] && meta.weaponTree[w][id]);
 export const spent = () =>

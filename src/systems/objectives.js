@@ -3,6 +3,7 @@ import { sfx } from '../core/audio.js';
 import { rollItem } from './rewards.js';
 import { spawnPoi } from './pois.js';
 import { burst, ring } from './fx.js';
+import { revealItem } from '../ui/reveal.js';
 // TUR HEDEFLERİ (boss turları hariç): başarırsan ödül, kaçırırsan ceza yok. + RİSK PORTALI denemesi (20 sn hayatta kal)
 const cl = (v, a, b) => Math.min(b, Math.max(a, v));
 export function startObjective(n) {
@@ -10,7 +11,7 @@ export function startObjective(n) {
   if (n % 5 === 0 || n < 2) return;
   const p = state.player,
     type = ['time', 'nohit', 'zone', 'hunt'][Math.floor(Math.random() * 4)],
-    o = { type, done: false, failed: false, t: 0 };
+    o = { type, done: false, failed: false, t: 0, flash: 5 };
   if (type === 'time') o.limit = Math.round(40 + n * 1.5);
   if (type === 'nohit') o.hits0 = state.hitsTaken;
   if (type === 'zone') {
@@ -82,7 +83,7 @@ function reward(o, x, y) {
     };
   if (o.type === 'time') {
     coins(30 + n * 4);
-    toast('Hedef tamam! Bonus coin');
+    toast('Hedef tamam! Bonus altın');
   }
   if (o.type === 'nohit') {
     state.rerolls++;
@@ -90,7 +91,9 @@ function reward(o, x, y) {
     toast('Hasarsız tur! +1 kart yenileme');
   }
   if (o.type === 'zone') {
-    state.pickups.push({ type: 'item', def: rollItem(3, 1), x, y });
+    const def = rollItem(3, 1);
+    state.pickups.push({ type: 'item', def, x, y });
+    revealItem(def);
     toast('Bölge savunuldu! Ödül item');
   }
   if (o.type === 'hunt') {
@@ -104,6 +107,7 @@ function reward(o, x, y) {
 export function updateObjective(dt) {
   const o = state.obj,
     p = state.player;
+  if (o && o.flash > 0) o.flash -= dt;
   if (o && !o.done && !o.failed && state.wave.phase === 'active') {
     if (o.type === 'time') {
       o.t += dt;
@@ -140,7 +144,9 @@ export function updateObjective(dt) {
     }
     if (tr.t <= 0) {
       state.trial = null;
-      state.pickups.push({ type: 'item', def: rollItem(5, 2), x: p.x, y: p.y });
+      const rd = rollItem(5, 2);
+      state.pickups.push({ type: 'item', def: rd, x: p.x, y: p.y });
+      revealItem(rd);
       for (let i = 0; i < 10; i++)
         state.pickups.push({
           type: 'coin',
@@ -168,4 +174,67 @@ export function endObjective() {
 export function startTrial() {
   state.trial = { t: 20, spawnT: 0 };
   toast('RİSK PORTALI: 20 sn hayatta kal!');
+}
+// Üst paneldeki belirgin hedef kutusu için bilgi
+const REWARD = {
+  time: 'bonus altın',
+  nohit: '+1 kart yenileme',
+  zone: 'nadir item',
+  hunt: 'ödül sandığı',
+};
+export function objectiveInfo() {
+  const tr = state.trial;
+  if (tr)
+    return {
+      icon: '🌀',
+      label: 'RİSK PORTALI',
+      title: 'Hayatta kal!',
+      detail: Math.ceil(tr.t) + ' sn kaldı · Ödül: nadir item',
+      frac: 1 - tr.t / 20,
+      status: 'run',
+      flash: 0,
+    };
+  const o = state.obj;
+  if (!o) return null;
+  const I = {
+    time: [
+      '⏱️',
+      o.limit + ' sn içinde bitir',
+      Math.max(0, Math.ceil(o.limit - o.t)) + ' sn kaldı',
+      1 - o.t / o.limit,
+    ],
+    nohit: [
+      '🛡️',
+      'Hiç hasar almadan bitir',
+      'Hasar alırsan hedef başarısız olur',
+      1,
+    ],
+    zone: [
+      '🎯',
+      'İşaretli bölgede kal',
+      Math.floor(o.t) + ' / ' + o.need + ' sn',
+      o.t / o.need,
+    ],
+    hunt: [
+      '🗡️',
+      'İşaretli elit düşmanı öldür',
+      'Sarı halkalı hedefi bul',
+      o.target && o.target.hpMax
+        ? 1 - Math.max(0, o.target.hp) / o.target.hpMax
+        : 0,
+    ],
+  }[o.type];
+  return {
+    icon: I[0],
+    label: o.done
+      ? 'HEDEF TAMAMLANDI ✓'
+      : o.failed
+        ? 'HEDEF BAŞARISIZ ✗'
+        : 'TUR HEDEFİ',
+    title: I[1],
+    detail: I[2] + ' · Ödül: ' + REWARD[o.type],
+    frac: Math.max(0, Math.min(1, I[3])),
+    status: o.done ? 'done' : o.failed ? 'fail' : 'run',
+    flash: o.flash || 0,
+  };
 }

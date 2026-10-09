@@ -1,8 +1,8 @@
 import { state } from '../core/state.js';
 import { BAL } from '../data/balance.js';
-import { UPGRADES } from '../data/upgrades.js';
+import { UPGRADES, totalAt } from '../data/upgrades.js';
 import { WEAPONS } from '../data/weapons.js';
-import { rebuildPets } from './pets.js';
+import { rebuildPets, petNodes } from './pets.js';
 // Tüm upgrade'ler (genel + seçili silah) oyuncuda TEK part: seviyelere göre modifier'lar yeniden kurulur
 export const upgradePart = { mods: [] };
 export const weaponUpgrades = () =>
@@ -19,10 +19,7 @@ function rebuild() {
       stat: u.stat,
       tag: u.tag,
       op: u.op,
-      value:
-        u.op === 'add'
-          ? u.value * levelOf(u.id)
-          : Math.pow(u.value, levelOf(u.id)),
+      value: totalAt(u, levelOf(u.id)),
     }));
 }
 export function freeLevel(u) {
@@ -36,3 +33,11 @@ export function buy(u) {
   freeLevel(u);
   return true;
 }
+// Alınabilir (görünür, dolu olmayan, parası yeten) bir yükseltme var mı? (hatırlatma için)
+export const affordable = () =>
+  UPGRADES.concat(weaponUpgrades(), petNodes()).some(
+    (u) =>
+      (!u.parent || levelOf(u.parent) > 0) &&
+      !isMax(u) &&
+      state.coins >= costOf(u),
+  );

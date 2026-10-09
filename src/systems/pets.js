@@ -4,7 +4,7 @@ import { make, addPart } from '../core/entity.js';
 import { discover } from '../core/save.js';
 import { PETS } from '../data/pets.js';
 import { ABILITIES } from '../data/abilities.js';
-import { U } from '../data/upgrades.js';
+import { U, totalAt } from '../data/upgrades.js';
 const lv = (id) => state.upgradeLevels[id] || 0;
 // Pet yükseltmeleri oyun içi mağaza ağacında (sahip olunan her pet için bir dal)
 export const petNodes = () =>
@@ -36,8 +36,7 @@ export function rebuildPets() {
       .map((u) => ({
         stat: u.stat,
         op: u.op,
-        value:
-          u.op === 'add' ? u.value * lv(u.id) : Math.pow(u.value, lv(u.id)),
+        value: totalAt(u, lv(u.id)),
       }));
 }
 export function addPet(id) {

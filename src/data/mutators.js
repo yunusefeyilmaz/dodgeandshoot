@@ -1,11 +1,11 @@
 const mul = (stat, value) => ({ stat, op: 'mul', value }),
   add = (stat, value) => ({ stat, op: 'add', value });
-// Koşu mutatörleri: koşu başında rastgele seçilir (Heat 3+ iken 2 tane). mods = oyuncuya, flags = dünya kuralları
+// Koşu mutatörleri: koşu başında rastgele seçilir (Zorluk 3+ iken 2 tane). mods = oyuncuya, flags = dünya kuralları
 export const MUTATORS = [
   {
     id: 'crowd',
     name: 'Kalabalık',
-    desc: '%40 daha çok düşman, %30 daha çok coin',
+    desc: '%40 daha çok düşman, %30 daha çok altın',
     mods: [],
     flags: { crowd: 1.4, coinMul: 1.3 },
   },
@@ -40,14 +40,14 @@ export const MUTATORS = [
   {
     id: 'vamp',
     name: 'Vampir Gecesi',
-    desc: '%10 omnivamp ama max can -%20',
+    desc: '%10 tam can çalma ama max can -%20',
     mods: [add('omnivamp', 0.1), mul('maxHp', 0.8)],
     flags: {},
   },
   {
     id: 'gold',
     name: 'Altın Çağ',
-    desc: 'Coin ×1.5, item şansı ×1.5 ama düşman canı +%20',
+    desc: 'Altın ×1.5, item şansı ×1.5 ama düşman canı +%20',
     mods: [],
     flags: { coinMul: 1.5, itemMul: 1.5, enemyHp: 1.2 },
   },

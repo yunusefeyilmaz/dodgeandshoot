@@ -9,19 +9,19 @@ export const ACHIEVEMENTS = [
   {
     id: 'k100',
     name: 'Avcı',
-    desc: 'Toplam 100 kill',
+    desc: 'Toplam 100 öldürme',
     test: (m) => m.stats.kills >= 100,
   },
   {
     id: 'k1000',
     name: 'Katil',
-    desc: 'Toplam 1.000 kill',
+    desc: 'Toplam 1.000 öldürme',
     test: (m) => m.stats.kills >= 1000,
   },
   {
     id: 'k10000',
     name: 'Kıyamet',
-    desc: 'Toplam 10.000 kill',
+    desc: 'Toplam 10.000 öldürme',
     test: (m) => m.stats.kills >= 10000,
   },
   {
@@ -45,19 +45,19 @@ export const ACHIEVEMENTS = [
   {
     id: 's25',
     name: 'Seri Katil',
-    desc: '25 kill streak',
+    desc: '25 öldürme serisi',
     test: (m) => m.stats.bestStreak >= 25,
   },
   {
     id: 's50',
     name: 'Kasırga',
-    desc: '50 kill streak',
+    desc: '50 öldürme serisi',
     test: (m) => m.stats.bestStreak >= 50,
   },
   {
     id: 's100',
     name: 'Durdurulamaz',
-    desc: '100 kill streak',
+    desc: '100 öldürme serisi',
     test: (m) => m.stats.bestStreak >= 100,
   },
   {
@@ -81,13 +81,13 @@ export const ACHIEVEMENTS = [
   {
     id: 'cls',
     name: 'Sınıf Sahibi',
-    desc: 'İlk classını seç',
+    desc: 'İlk sınıfını seç',
     test: (m) => Object.keys(m.found.classes).length >= 1,
   },
   {
     id: 'cmb',
     name: 'Kombo!',
-    desc: 'İlk combonu keşfet',
+    desc: 'İlk kombonu keşfet',
     test: (m) => Object.keys(m.found.combos).length >= 1,
   },
   {

@@ -9,7 +9,7 @@ const N = (id, name, desc, cost, parent, mods) => ({
   parent,
   mods,
 });
-// upgrades = oyun içi coin ağacı · tree = menüde Boss Point ile açılan kalıcı ağaç · unlock = silahın açılma şartı (değiştirilebilir)
+// upgrades = oyun içi altın ağacı · tree = menüde Boss Puanı ile açılan kalıcı ağaç · unlock = silahın açılma şartı (değiştirilebilir)
 export const WEAPONS = {
   sword: {
     name: 'Kılıç',
@@ -18,10 +18,10 @@ export const WEAPONS = {
     ability: ABILITIES.sword,
     unlock: null,
     upgrades: [
-      U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.1, 10, 1.35, undefined, {
+      U('sw_dmg', 'Kılıç hasarı', 'damage', 'mul', 1.08, 10, 1.35, undefined, {
         tag: 'Sword',
       }),
-      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.12, 15, 1.4, 12, {
+      U('sw_area', 'Kılıç alanı', 'area', 'mul', 1.05, 15, 1.4, 12, {
         tag: 'Sword',
         rarity: 'rare',
         parent: 'sw_dmg',
@@ -152,6 +152,75 @@ export const WEAPONS = {
       N('b_ult', 'Okçu Ustası', '+1 delme, hasar +%25', 4, 'b_multi', [
         m('pierce', 1, 'add', 'Bow'),
         m('damage', 1.25, 'mul', 'Bow'),
+      ]),
+    ],
+  },
+  staff: {
+    name: 'Asa',
+    icon: '🪄',
+    desc: 'Büyü mermileri atar (AP ile güçlenir). Zincir, delme ve patlama ile büyür.',
+    ability: ABILITIES.staff,
+    unlock: { boss: 4, text: '4. bossu (tur 20) yen' },
+    upgrades: [
+      U('st_dmg', 'Asa hasarı', 'damage', 'mul', 1.08, 10, 1.35, undefined, {
+        tag: 'Staff',
+      }),
+      U('st_as', 'Asa hızı', 'attackSpeed', 'mul', 1.06, 15, 1.4, 10, {
+        tag: 'Staff',
+        parent: 'st_dmg',
+      }),
+      U('st_pierce', 'Asa delmesi', 'pierce', 'add', 1, 20, 1.6, 5, {
+        tag: 'Staff',
+        rarity: 'rare',
+        parent: 'st_dmg',
+      }),
+      U('st_chain', 'Şimşek asası (zincir)', 'chain', 'add', 0.3, 25, 1.5, 5, {
+        tag: 'Staff',
+        pct: 1,
+        rarity: 'rare',
+        parent: 'st_as',
+      }),
+      U('st_multi', 'Ek büyü', 'multishot', 'add', 1, 40, 1.9, 3, {
+        tag: 'Staff',
+        rarity: 'epic',
+        parent: 'st_pierce',
+      }),
+      U('st_blast', 'Patlayan asa', 'blast', 'add', 0.12, 30, 1.5, 5, {
+        tag: 'Staff',
+        pct: 1,
+        rarity: 'epic',
+        parent: 'st_chain',
+      }),
+    ],
+    tree: [
+      N('t_dmg', 'Büyülü Uç', 'Asa hasarı +%10', 1, null, [
+        m('damage', 1.1, 'mul', 'Staff'),
+      ]),
+      N('t_spd', 'Akıcı Büyü', 'Asa hızı +%10', 1, 't_dmg', [
+        m('attackSpeed', 1.1, 'mul', 'Staff'),
+      ]),
+      N('t_pierce', 'Delici Büyü', 'Büyüler +1 düşman deler', 1, 't_dmg', [
+        m('pierce', 1, 'add', 'Staff'),
+      ]),
+      N(
+        't_chain',
+        'Şimşek Asası',
+        'ÖZELLİK: Büyüler %40 zincir şimşek atar',
+        3,
+        't_spd',
+        [m('chain', 0.4, 'add', 'Staff')],
+      ),
+      N(
+        't_blast',
+        'Patlayan Büyü',
+        'ÖZELLİK: Vuruşlar %15 ihtimalle patlar',
+        3,
+        't_pierce',
+        [m('blast', 0.15, 'add', 'Staff')],
+      ),
+      N('t_ult', 'Arkmaj', 'Asa hasarı +%25, +1 ek büyü', 4, 't_chain', [
+        m('damage', 1.25, 'mul', 'Staff'),
+        m('multishot', 1, 'add', 'Staff'),
       ]),
     ],
   },

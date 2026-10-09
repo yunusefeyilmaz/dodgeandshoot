@@ -23,7 +23,8 @@ export const BAL = {
   swarmPerWave: 2,
   swarmMax: 90,
   coinMul: 0.55,
-  shopCostMul: 1.6, // coin kazancı ve mağaza fiyatı çarpanı
+  upgradeGrowth: 0.08,
+  shopCostMul: 1.6, // altın kazancı ve mağaza fiyatı çarpanı
   minCd: { weapon: 0.16, skill: 0.3 }, // en kısa bekleme (atış hızı/haste ne kadar artsa da)
 };
 // Stat üst sınırları: hiçbir kart/item/upgrade yığını bunları aşamaz

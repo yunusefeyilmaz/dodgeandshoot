@@ -44,19 +44,19 @@ export const CARDS = [
   C('Zırhlı', 'common', '+3 zırh', [m('armor', 3)]),
   C('Zihin', 'common', '+3 yetenek hızlandırma', [m('haste', 3)]),
   S(
-    'Fireball',
+    'Ateş Topu',
     'common',
-    'Yeni skill: Fireball (AP ile güçlenir)',
+    'Yeni skill: Ateş Topu (AP ile güçlenir)',
     ABILITIES.fireball,
   ),
   S(
-    'Frost Nova',
+    'Buz Patlaması',
     'common',
-    'Yeni skill: Frost Nova, yavaşlatır (AP)',
+    'Yeni skill: Buz Patlaması, yavaşlatır (AP)',
     ABILITIES.nova,
   ),
   {
-    name: 'Backpack',
+    name: 'Sırt Çantası',
     rarity: 'common',
     codex: 1,
     desc: '+2 envanter slotu',
@@ -66,11 +66,11 @@ export const CARDS = [
     },
   },
   // Yaygın Olmayan
-  C('Fire Mastery', 'uncommon', 'Fire skilleri +%25', [
+  C('Ateş Ustalığı', 'uncommon', 'Ateş skilleri +%25', [
     m('damage', 1.25, 'mul', 'Fire'),
   ]),
-  C('Overcharge', 'uncommon', 'Tüm hasar +%10', [m('damage', 1.1, 'mul')]),
-  C('Lucky Charm', 'uncommon', '+3 luck', [m('luck', 3)], {
+  C('Aşırı Yük', 'uncommon', 'Tüm hasar +%10', [m('damage', 1.1, 'mul')]),
+  C('Şanslı Tılsım', 'uncommon', '+3 luck', [m('luck', 3)], {
     repeat: true,
     max: 6,
   }),
@@ -117,7 +117,7 @@ export const CARDS = [
     'Yeni skill: zehirleyen diken (AP)',
     ABILITIES.venom,
   ),
-  C('Kan Susuzluğu', 'veryrare', '%4 omnivamp', [m('omnivamp', 0.04)]),
+  C('Kan Susuzluğu', 'veryrare', '%4 tam can çalma', [m('omnivamp', 0.04)]),
   // Aşırı Nadir
   C(
     'Void Dokunuşu',
@@ -160,7 +160,7 @@ export const CARDS = [
   C(
     'Boşluk Çağrısı',
     'epic',
-    'Void aşındırma +%30, +10 lethality',
+    'Void aşındırma +%30, +10 ölümcüllük',
     [m('voidShred', 0.3), m('lethality', 10)],
     { requires: 'Void Dokunuşu' },
   ),
@@ -181,10 +181,10 @@ export const CARDS = [
     ABILITIES.blades,
   ),
   {
-    name: 'Class Slot',
+    name: 'Sınıf Yuvası',
     rarity: 'epic',
     codex: 1,
-    desc: '+1 class slotu',
+    desc: '+1 sınıf slotu',
     max: 2,
     apply: () => state.classSlots++,
   },
@@ -200,7 +200,7 @@ export const CARDS = [
     m('multishot', 1, 'add', 'Projectile'),
     m('damage', 1.1, 'mul'),
   ]),
-  C('Ölümsüz', 'legendary', '+80 can, +1 can/sn, %5 omnivamp', [
+  C('Ölümsüz', 'legendary', '+80 can, +1 can/sn, %5 tam can çalma', [
     m('maxHp', 80),
     m('regen', 1),
     m('omnivamp', 0.05),
@@ -315,7 +315,7 @@ const UP = (n, tag, rarity, kind) => {
       C(
         n + ': Hız',
         rarity,
-        'Bu skillin bekleme süresi kısalır (+15 haste)',
+        'Bu skillin bekleme süresi kısalır (+15 hızlandırma)',
         [m('haste', 15, 'add', tag)],
         { requires: n, repeat: true, max: 4 },
       ),
@@ -349,8 +349,8 @@ const UP = (n, tag, rarity, kind) => {
       }),
     );
 };
-UP('Fireball', 'ab_fireball', 'uncommon', 'proj');
-UP('Frost Nova', 'ab_nova', 'uncommon', 'area');
+UP('Ateş Topu', 'ab_fireball', 'uncommon', 'proj');
+UP('Buz Patlaması', 'ab_nova', 'uncommon', 'area');
 UP('Zehir Dikeni', 'ab_venom', 'veryrare', 'proj');
 UP('Gök Gürültüsü', 'ab_thunder', 'ultrarare', 'rain');
 UP('Meteor', 'ab_meteor', 'epic', 'area');
@@ -444,8 +444,8 @@ EVO(
 EVO(
   'Buzul Çağı',
   'epic',
-  'Frost Nova: yavaşlatma +%30, alan +%25, haste +20',
-  ['Frost Nova', 'Ağır Darbe'],
+  'Buz Patlaması: yavaşlatma +%30, alan +%25, hızlandırma +20',
+  ['Buz Patlaması', 'Ağır Darbe'],
   [
     m('slow', 0.3, 'add', 'ab_nova'),
     m('area', 1.25, 'mul', 'ab_nova'),
@@ -470,6 +470,6 @@ EVO(
   'Altın Zehir',
   'epic',
   'Zehir +%30, +4 luck',
-  ['Zehirli Uçlar', 'Lucky Charm'],
+  ['Zehirli Uçlar', 'Şanslı Tılsım'],
   [m('poison', 0.3), m('luck', 4)],
 );

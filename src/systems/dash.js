@@ -54,6 +54,10 @@ export function updateDash(dt) {
   }
   const v = p.dashV;
   if (!v) return;
+  if (!Number.isFinite(v.dx)) {
+    p.dashV = null;
+    return;
+  } // bozuk dash verisi (NaN) koruması
   p.x = Math.min(3200, Math.max(0, p.x + v.dx * 900 * dt));
   p.y = Math.min(2400, Math.max(0, p.y + v.dy * 900 * dt));
   v.t -= dt;

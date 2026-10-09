@@ -1,6 +1,7 @@
 import { state, W, H } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { RARITIES } from '../core/rarity.js';
+import { T } from '../i18n/index.js';
 const cv = document.getElementById('c'),
   g = cv.getContext('2d'),
   v = state.view;
@@ -169,9 +170,9 @@ export function render() {
     g.textAlign = 'center';
     g.lineWidth = 4;
     g.strokeStyle = '#000';
-    g.strokeText(state.prompt.text, state.prompt.x, state.prompt.y - 44);
+    g.strokeText(T(state.prompt.text), state.prompt.x, state.prompt.y - 44);
     g.fillStyle = '#ffd84f';
-    g.fillText(state.prompt.text, state.prompt.x, state.prompt.y - 44);
+    g.fillText(T(state.prompt.text), state.prompt.x, state.prompt.y - 44);
   }
   g.textAlign = 'left';
   for (const pr of state.projs) {
@@ -379,8 +380,8 @@ export function render() {
   for (const e of state.ents)
     if ((e.boss || e.mini || e.objTarget) && !e.under) {
       g.fillStyle = '#fff';
-      g.strokeText(e.name, e.x, e.y - e.r - 14);
-      g.fillText(e.name, e.x, e.y - e.r - 14);
+      g.strokeText(T(e.name), e.x, e.y - e.r - 14);
+      g.fillText(T(e.name), e.x, e.y - e.r - 14);
     } // boss isimleri
   g.textAlign = 'center';
   g.lineJoin = 'round';
@@ -390,8 +391,8 @@ export function render() {
     g.globalAlpha = Math.min(1, x.t * 3);
     g.font = (x.big ? 'bold 20px' : 'bold 13px') + ' system-ui';
     g.fillStyle = x.col;
-    g.strokeText(x.text, x.x, x.y);
-    g.fillText(x.text, x.x, x.y);
+    g.strokeText(T(x.text), x.x, x.y);
+    g.fillText(T(x.text), x.x, x.y);
   }
   g.globalAlpha = 1;
   g.restore();
@@ -449,7 +450,10 @@ export function render() {
     g.fillStyle = '#e8e6df';
     g.font = '12px system-ui';
     g.fillText(
-      e.name + ' · ' + Math.round(Math.hypot(e.x - p.x, e.y - p.y) / 10) + 'm',
+      T(e.name) +
+        ' · ' +
+        Math.round(Math.hypot(e.x - p.x, e.y - p.y) / 10) +
+        'm',
       ax - Math.cos(ang) * 50,
       ay - Math.sin(ang) * 40 + 4,
     );

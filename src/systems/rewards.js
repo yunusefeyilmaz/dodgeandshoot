@@ -1,7 +1,7 @@
 import { state, rnd, dist, toast } from '../core/state.js';
 import { on } from '../core/events.js';
 import { stat } from '../core/stats.js';
-import { weightOf } from '../core/rarity.js';
+import { weightOf, rarityBoost } from '../core/rarity.js';
 import { BAL } from '../data/balance.js';
 import { ITEMS } from '../data/items.js';
 import { addItem } from './inventory.js';
@@ -13,7 +13,7 @@ import { RARITIES } from '../core/rarity.js';
 export const xpNeed = () =>
   Math.round(8 + 4 * state.level + 0.35 * state.level * state.level); // level atlama giderek yavaşlar
 
-// Kill: coin, xp, item. Luck: coin değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
+// Öldürme: altın, xp, item. Luck: altın değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
 on('Kill', ({ target: t }) => {
   if (t.team !== 'e') return;
   const luck = stat(state.player, 'luck');
@@ -51,16 +51,12 @@ on('Kill', ({ target: t }) => {
         (t.elite ? 4 : 1) *
         state.mut.itemMul; // item şansı düşük; boss garantili
   if (Math.random() < chance) {
-    const L = luck + (t.boss ? 5 : t.mini ? 3 : t.elite ? 2 : 0),
-      ws = ITEMS.map((i) => (i.unique ? 0 : weightOf(i.rarity, L)));
-    let x = Math.random() * ws.reduce((a, b) => a + b, 0);
-    const idx = ws.findIndex((w) => (x -= w) <= 0);
     state.pickups.push({
       type: 'item',
-      def: ITEMS[idx < 0 ? 0 : idx],
+      def: rollItem(t.boss ? 5 : t.mini ? 3 : t.elite ? 2 : 0, t.boss ? 3 : 0),
       x: t.x,
       y: t.y,
-    });
+    }); // luck+tur+boss bonusu; her boss en az Destansı item düşürür
   }
 });
 
@@ -101,7 +97,7 @@ export function updatePickups(dt) {
 
 // Item seçimi (sandık/tüccar için): luck + bonus, en az minTier. unique/lanetli itemlar rastgele gelmez.
 export function rollItem(bonus = 0, minTier = 0) {
-  const luck = stat(state.player, 'luck') + bonus,
+  const luck = rarityBoost(bonus),
     pool = ITEMS.filter((i) => !i.unique && RARITIES[i.rarity].tier >= minTier),
     ws = pool.map((i) => weightOf(i.rarity, luck));
   let x = Math.random() * ws.reduce((a, b) => a + b, 0);

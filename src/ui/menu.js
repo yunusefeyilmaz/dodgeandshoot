@@ -1,9 +1,10 @@
-import { meta, wipe } from '../core/save.js';
+import { meta, wipe, save } from '../core/save.js';
+import { getLang, applyLang } from '../i18n/index.js';
 import { RARITIES } from '../core/rarity.js';
 import { sfx, toggleMute } from '../core/audio.js';
 import { WEAPONS } from '../data/weapons.js';
 import { CARDS } from '../data/cards.js';
-import { CLASSES, COMBOS, SYNERGIES } from '../data/classes.js';
+import { CLASSES, KOMBOS, SYNERGIES } from '../data/classes.js';
 import { ITEMS } from '../data/items.js';
 import { PETS } from '../data/pets.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
@@ -41,9 +42,9 @@ export function openMenu() {
 }
 
 function mainScreen() {
-  M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Point: <b>${points()}</b></div>
+  M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Puanı: <b>${points()}</b></div>
     <button class="big" id="mPlay">Oyna</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button>
-    <div class="mfoot"><button id="mMute"></button><button id="mWipe">Kaydı sil</button></div></div>`;
+    <div class="mfoot"><button id="mMute"></button><button id="mWipe">Kaydı sil</button><button id="mLang"></button></div></div>`;
   const mute = () =>
     ($('mMute').textContent =
       'Ses: ' + (meta.settings.mute ? 'kapalı' : 'açık') + ' (M)');
@@ -51,6 +52,16 @@ function mainScreen() {
   $('mPlay').onclick = () => go(weaponScreen);
   $('mAch').onclick = () => go(achScreen);
   $('mStat').onclick = () => go(statScreen);
+  const lg = () =>
+    ($('mLang').textContent =
+      'Dil: ' + (getLang() === 'en' ? 'English' : 'Türkçe'));
+  lg();
+  $('mLang').onclick = () => {
+    meta.settings.lang = getLang() === 'en' ? 'tr' : 'en';
+    save(true);
+    applyLang();
+    mainScreen();
+  };
   $('mMute').onclick = () => {
     toggleMute();
     mute();
@@ -64,16 +75,16 @@ function mainScreen() {
 
 function weaponScreen() {
   if (!isUnlocked(selW)) selW = 'sword';
-  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Silah seç</h2><div class="sub">Boss Point: <b id="bp"></b></div></div>
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Silah seç</h2><div class="sub">Boss Puanı: <b id="bp"></b></div></div>
     <div class="wlist">${Object.entries(WEAPONS)
       .map(([id, w]) => {
         const u = isUnlocked(id);
         return `<div class="wcard ${u ? '' : 'lock'} ${id === selW ? 'sel' : ''}" data-w="${id}"><div class="ico">${u ? w.icon : '🔒'}</div><b>${u ? w.name : '???'}</b><small>${u ? w.desc : 'Kilitli: ' + w.unlock.text}</small>
-      ${u ? `<small>Kill: ${meta.weaponKills[id] || 0} · En iyi streak: ${meta.weaponStreak[id] || 0}</small>` : ''}</div>`;
+      ${u ? `<small>Öldürme: ${meta.weaponKills[id] || 0} · En iyi seri: ${meta.weaponStreak[id] || 0}</small>` : ''}</div>`;
       })
       .join('')}</div>
     <div class="treehead"><b>${WEAPONS[selW].name} yetenek ağacı</b><button id="mReset">Puanları sıfırla</button></div>
-    <div id="mtree" class="treewrap"></div><div class="treehead"><b>Zorluk (Heat): <span id="heatV"></span></b><span><button id="heatM">−</button> <button id="heatP">+</button></span></div><button class="big go" id="mGo">Başla</button></div>`;
+    <div id="mtree" class="treewrap"></div><div class="treehead"><b>Zorluk: <span id="heatV"></span></b><span><button id="heatM">−</button> <button id="heatP">+</button></span></div><button class="big go" id="mGo">Başla</button></div>`;
   $('mBack').onclick = () => go(mainScreen);
   M.querySelectorAll('.wcard').forEach((c) => {
     const id = c.dataset.w,
@@ -96,9 +107,9 @@ function weaponScreen() {
     renderTree($('mtree'), WEAPONS[selW].tree, {
       level: (n) => (owned(selW, n.id) ? 1 : 0),
       can: (n) => !owned(selW, n.id) && points() >= n.cost,
-      sub: (n) => (owned(selW, n.id) ? 'Açık ✓' : n.cost + ' Boss Point'),
+      sub: (n) => (owned(selW, n.id) ? 'Açık ✓' : n.cost + ' Boss Puanı'),
       tip: (n) =>
-        `<b>${n.name}</b><div>${n.desc}</div><div class="dim">${owned(selW, n.id) ? 'Açık' : 'Maliyet: ' + n.cost + ' Boss Point'}</div>`,
+        `<b>${n.name}</b><div>${n.desc}</div><div class="dim">${owned(selW, n.id) ? 'Açık' : 'Maliyet: ' + n.cost + ' Boss Puanı'}</div>`,
       buy: (n) => {
         if (buyNode(selW, n)) sfx('click');
       },
@@ -113,7 +124,7 @@ function weaponScreen() {
     });
   hov(
     $('mReset'),
-    "Harcanan tüm Boss Point'leri geri alır, ağacı yeniden kurabilirsin",
+    "Harcanan tüm Boss Puanı'leri geri alır, ağacı yeniden kurabilirsin",
   );
   const maxH = meta.maxHeat || 0;
   meta.settings.heat = Math.min(meta.settings.heat || 0, maxH);
@@ -125,15 +136,15 @@ function weaponScreen() {
         15 * h +
         ' can, +%' +
         10 * h +
-        ' hasar · coin/xp +%' +
+        ' hasar · altın/xp +%' +
         15 * h +
         (h >= 3 ? ' · 2 mutatör' : '') +
         ')'
       : 'normal';
     $('heatV').title =
-      'Açık: Heat ' +
+      'Açık: Zorluk ' +
       maxH +
-      ". Sonrakini açmak için en yüksek açık Heat'te 15. tura ulaş";
+      '. Sonrakini açmak için en yüksek açık zorlukta 15. tura ulaş';
   };
   $('heatM').onclick = () => {
     meta.settings.heat = Math.max(0, meta.settings.heat - 1);
@@ -146,9 +157,9 @@ function weaponScreen() {
   showH();
   hov(
     $('heatP'),
-    'Zorluğu artır (açık: Heat ' +
+    'Zorluğu artır (açık: Zorluk ' +
       maxH +
-      "). Sonrakini açmak için en yüksek açık Heat'te 15. tura ulaş",
+      '). Sonrakini açmak için en yüksek açık zorlukta 15. tura ulaş',
   );
   $('mGo').onclick = () => {
     setTip(null);
@@ -170,7 +181,7 @@ function entries() {
     weapons: Object.entries(WEAPONS).map(([id, w]) => ({
       f: isUnlocked(id),
       t: w.icon + ' ' + w.name,
-      s: `Kill: ${meta.weaponKills[id] || 0} · En iyi streak: ${meta.weaponStreak[id] || 0}`,
+      s: `Öldürme: ${meta.weaponKills[id] || 0} · En iyi seri: ${meta.weaponStreak[id] || 0}`,
       h: w.unlock ? 'Kilit: ' + w.unlock.text : '',
       col: '#4aa3ff',
       d: w.desc,
@@ -178,7 +189,7 @@ function entries() {
     cards: CARDS.filter((c) => c.codex).map((c) => ({
       f: !!meta.found.cards[c.name],
       t: c.name,
-      s: `${rc(c.rarity).name} · Kill: ${meta.cardKills[c.name] || 0}`,
+      s: `${rc(c.rarity).name} · Öldürme: ${meta.cardKills[c.name] || 0}`,
       col: rc(c.rarity).col,
       d: c.desc,
     })),
@@ -197,10 +208,10 @@ function entries() {
           const k = ids[i] + '+' + ids[j];
           o.push({
             f: !!meta.found.combos[k],
-            t: (COMBOS[k] || { name: 'Synergy' }).name,
+            t: (KOMBOS[k] || { name: 'Uyum' }).name,
             s: CLASSES[ids[i]].name + ' + ' + CLASSES[ids[j]].name,
             col: '#e0b040',
-            d: 'İki class birlikteyken her vuruşa ekstra combo hasarı.',
+            d: 'İki sınıf birlikteyken her vuruşa ekstra kombo hasarı.',
           });
         }
       for (const [k, sy] of Object.entries(SYNERGIES)) {
@@ -236,8 +247,8 @@ function achScreen() {
       ['ach', 'Başarımlar'],
       ['weapons', 'Silahlar'],
       ['cards', 'Kartlar'],
-      ['classes', 'Classlar'],
-      ['combos', 'Combolar'],
+      ['classes', 'Sınıflar'],
+      ['combos', 'Kombolar'],
       ['pets', 'Petler'],
       ['items', 'Itemlar'],
     ],
@@ -272,21 +283,21 @@ function statScreen() {
   const s = meta.stats,
     bn = (i) => BOSSES[i % BOSSES.length].name;
   const rows = [
-    ['Toplam kill', s.kills],
+    ['Toplam öldürme', s.kills],
     ['En iyi tur', s.bestWave],
-    ['En iyi streak', s.bestStreak],
-    ['Tek oyunda en çok kill', s.mostKills],
+    ['En iyi seri', s.bestStreak],
+    ['Tek oyunda en çok öldürme', s.mostKills],
     ['Oynanan oyun', s.runs],
     ['Ölüm', s.deaths],
     ['Toplam süre', fmtT(s.time)],
-    ['Toplam coin', s.coins],
+    ['Toplam altın', s.coins],
     ['Toplam hasar', Math.round(s.damage).toLocaleString('tr')],
     [
       'Ulaşılan en son boss',
       s.bossReached ? bn(s.bossReached - 1) + ' (#' + s.bossReached + ')' : '—',
     ],
     ['Yenilen farklı boss', meta.bossesDefeated.length + ' / ' + BOSSES.length],
-    ['Boss Point', points()],
+    ['Boss Puanı', points()],
   ];
   M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>İstatistikler</h2></div>
     <div class="sgrid">${rows.map(([k, v]) => `<div class="srow"><span>${k}</span><b>${v}</b></div>`).join('')}</div>

@@ -1,7 +1,7 @@
 import { state, toast, rnd, W, H } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
-import { RARITIES, weightOf } from '../core/rarity.js';
+import { RARITIES, weightOf, rarityBoost } from '../core/rarity.js';
 import { discover } from '../core/save.js';
 import { sfx } from '../core/audio.js';
 import { CARDS } from '../data/cards.js';
@@ -10,6 +10,7 @@ import { rollItem } from './rewards.js';
 import { addItem } from './inventory.js';
 import { burst, ring, shake } from './fx.js';
 import { openAltar, openMerchant } from '../ui/poi.js';
+import { revealItem } from '../ui/reveal.js';
 import { startTrial } from './objectives.js';
 // HARİTA OLAYLARI: gezip bulunur, E ile etkileşilir. Tur bitince yeni olaylar doğar; 2 tur içinde kullanılmazsa kaybolur.
 const pickPool = (minTier) => {
@@ -30,7 +31,7 @@ function giveCard(minTier) {
   const p = state.player,
     pool = pickPool(minTier);
   if (!pool.length) return toast('Sunak sessiz kaldı...');
-  const luck = stat(p, 'luck'),
+  const luck = rarityBoost(),
     ws = pool.map((c) => weightOf(c.rarity, luck));
   let x = Math.random() * ws.reduce((a, b) => a + b, 0);
   const i = ws.findIndex((w) => (x -= w) <= 0),
@@ -53,7 +54,7 @@ export const DEALS = [
   },
   {
     name: 'Altın Anlaşma',
-    desc: "Coinlerinin %40'ını feda et → +3 luck",
+    desc: "Altınlarının %40'ını feda et → +3 luck",
     ok: () => state.coins >= 20,
     apply: (p) => {
       state.coins = Math.floor(state.coins * 0.6);
@@ -114,6 +115,7 @@ function openChest(q) {
   const def = rollItem(q.good ? 6 : 3, q.good ? 2 : 0);
   state.pickups.push({ type: 'item', def, x: q.x, y: q.y });
   toast('Sandıktan çıktı: ' + def.name);
+  revealItem(def);
 }
 const stockOf = (n) =>
   Array.from({ length: 3 }, () => {
@@ -164,9 +166,9 @@ export const TYPES = {
       q.cost = Math.round(20 + state.wave.n * 6);
       q.mimic = Math.random() < 0.12;
     },
-    label: (q) => 'Sandığı aç' + (q.cost ? ' (' + q.cost + ' coin)' : ''),
+    label: (q) => 'Sandığı aç' + (q.cost ? ' (' + q.cost + ' altın)' : ''),
     use: (q) => {
-      if (state.coins < (q.cost || 0)) return toast('Yetersiz coin!');
+      if (state.coins < (q.cost || 0)) return toast('Yetersiz altın!');
       openChest(q);
     },
   },
@@ -218,6 +220,7 @@ export const TYPES = {
       state.pickups.push({ type: 'item', def, x: q.x, y: q.y });
       ring(q.x, q.y, 80, q.col);
       toast('Lanetli eşya: ' + def.name);
+      revealItem(def);
     },
   },
   portal: {

@@ -1,4 +1,5 @@
-// Coin ile alınan statlar (ağaç). parent: üst yetenek açılınca görünür. Maliyet = base * BAL.shopCostMul * grow^seviye. max: seviye sınırı
+import { BAL } from './balance.js';
+// Altın ile alınan statlar (ağaç). parent: üst yetenek açılınca görünür. Maliyet = base * BAL.shopCostMul * grow^seviye. max: seviye sınırı
 export const U = (id, name, stat, op, value, base, grow, max, o = {}) => ({
   id,
   name,
@@ -22,7 +23,7 @@ export const UPGRADES = [
   U('as', 'Saldırı hızı', 'attackSpeed', 'mul', 1.05, 12, 1.4, 12, {
     parent: 'ad',
   }),
-  U('ls', 'Lifesteal (silah)', 'lifesteal', 'add', 0.015, 25, 1.5, 8, {
+  U('ls', 'Can çalma (silah)', 'lifesteal', 'add', 0.015, 25, 1.5, 8, {
     pct: 1,
     parent: 'as',
   }),
@@ -37,14 +38,14 @@ export const UPGRADES = [
     pct: 1,
     parent: 'ad',
   }),
-  U('leth', 'Lethality', 'lethality', 'add', 2, 15, 1.4, 12, {
+  U('leth', 'Ölümcüllük', 'lethality', 'add', 2, 15, 1.4, 12, {
     parent: 'apen',
   }),
   U('ap', 'Büyü gücü (AP)', 'ap', 'add', 3, 10, 1.35, 25),
   U('haste', 'Yetenek hızlandırma', 'haste', 'add', 6, 20, 1.4, 12, {
     parent: 'ap',
   }),
-  U('ov', 'Omnivamp', 'omnivamp', 'add', 0.015, 25, 1.5, 8, {
+  U('ov', 'Tam can çalma', 'omnivamp', 'add', 0.015, 25, 1.5, 8, {
     pct: 1,
     parent: 'haste',
   }),
@@ -67,3 +68,18 @@ export const UPGRADES = [
   }),
   U('kb', 'Geri itme', 'knockback', 'add', 30, 10, 1.4, 8, { parent: 'ms' }),
 ];
+// Seviye arttıkça her seviyenin kazancı da artar (maliyet gibi): i. seviyenin kazancı = değer * (1 + büyüme * i)
+export const stepAt = (u, i) =>
+  u.op === 'add'
+    ? u.value * (1 + BAL.upgradeGrowth * i)
+    : 1 + (u.value - 1) * (1 + BAL.upgradeGrowth * i);
+export const totalAt = (u, L) => {
+  let a = 0,
+    m = 1;
+  for (let i = 0; i < L; i++) {
+    const s = stepAt(u, i);
+    if (u.op === 'add') a += s;
+    else m *= s;
+  }
+  return u.op === 'add' ? a : m;
+};

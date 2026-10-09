@@ -15,6 +15,7 @@ import { initHud, updateHud } from './ui/hud.js';
 import { openCards, openClassPick } from './ui/cards.js';
 import { openMenu } from './ui/menu.js';
 import './ui/achievements.js';
+import './i18n/index.js';
 
 const player = make({
   team: 'p',
