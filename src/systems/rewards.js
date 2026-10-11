@@ -15,7 +15,7 @@ export const xpNeed = () =>
 
 // Öldürme: altın, xp, item. Luck: altın değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
 on('Kill', ({ target: t }) => {
-  if (t.team !== 'e') return;
+  if (t.team !== 'e' || t.crystal) return;
   const luck = stat(state.player, 'luck');
   state.kills++;
   state.xp += t.xp * (1 + 0.15 * state.heat);

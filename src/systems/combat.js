@@ -7,6 +7,7 @@ import { addTele, updateTele } from './telegraph.js';
 import { sfx } from '../core/audio.js';
 import { BAL } from '../data/balance.js';
 import { SCRIPTS, checkPhase } from './bossScripts.js';
+import { pillarBlocks } from './arena.js';
 import { perfectDodge } from './dash.js';
 import { addBuff, updateBuffs } from './buffs.js';
 
@@ -648,6 +649,7 @@ function enemyAI(e, p, dt) {
 function updateZones(dt) {
   for (const z of state.zones) {
     z.t -= dt;
+    if (z.grow) z.r = Math.min(z.maxR || 999, z.r + z.grow * dt); // büyüyen zehir bulutu
     if (z.chase) {
       const tg = nearest({ team: z.team, x: z.x, y: z.y });
       if (tg) {
@@ -709,6 +711,7 @@ export function updateCombat(dt) {
   };
   const p = state.player;
   for (const e of state.ents) {
+    if (e.crystal && e.owner.hp <= 0) e.hp = 0; // kristaller boss ile birlikte yok olur
     e.hurt = Math.max(0, (e.hurt || 0) - dt);
     e.barT = Math.max(0, (e.barT || 0) - dt);
     if (e.slow && (e.slow.t -= dt) <= 0) e.slow = null;
@@ -824,6 +827,7 @@ export function updateCombat(dt) {
     pr.life -= dt;
     if (Math.random() < 0.12) burst(pr.x, pr.y, pr.col || '#fff', 1, 10, 0.25);
     if (pr.team !== 'p') {
+      if (pillarBlocks(pr)) continue;
       for (const e of foes({ team: pr.team })) if (tryHit(pr, e)) break;
       continue;
     }

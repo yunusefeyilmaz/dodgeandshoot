@@ -3,6 +3,7 @@ import { stat } from '../core/stats.js';
 import { addTele } from './telegraph.js';
 import { burst, shake, ring } from './fx.js';
 import { dealDamage } from './combat.js';
+import { make } from '../core/entity.js';
 import { ABILITIES } from '../data/abilities.js';
 // Özel boss davranışları. custom:true => varsayılan AI yerine update() çalışır. tick() her karede ek davranış. onDeath() true dönerse ölüm iptal (yeniden doğuş).
 function dive(e, p) {
@@ -260,3 +261,72 @@ SCRIPTS.generic = {
   ],
 };
 SCRIPTS.nel.phases = SCRIPTS.itsugo.phases = SCRIPTS.generic.phases;
+
+// DEMİR TİTAN: 3 kalkan kristali varken hasarın %80'i emilir. Hepsi kırılınca kalkan düşer ve Titan BİTKİN kalır. Fazlarda kristaller yenilenir.
+function spawnCrystals(e) {
+  for (let i = 0; i < 3; i++) {
+    const a = i * 2.094 + rnd(0, 1),
+      c = make({
+        team: 'e',
+        x: e.x + Math.cos(a) * 170,
+        y: e.y + Math.sin(a) * 170,
+        r: 16,
+        col: '#6fe0ff',
+        shape: 'diamond',
+        base: { speed: 0, armor: 0, mr: 0, damage: 1, kbResist: 0.9 },
+      });
+    c.hpMax = c.hp = e.hpMax * 0.05;
+    c.crystal = true;
+    c.owner = e;
+    c.name = 'Kristal';
+    c.xp = 0;
+    c.coin = 0;
+    c.script = 'crystal';
+    c.custom = true;
+    c.res = { slow: 0.9, poison: 0.9, void: 0.9, chain: 0.9 };
+    state.ents.push(c);
+  }
+  burst(e.x, e.y, '#6fe0ff', 24, 300, 0.6);
+}
+SCRIPTS.crystal = { custom: true, update() {} };
+SCRIPTS.titan = {
+  phases: [
+    {
+      at: 0.66,
+      text: 'Titan kristalleri yeniledi!',
+      enter(e) {
+        spawnCrystals(e);
+      },
+    },
+    {
+      at: 0.33,
+      text: 'Titan kristalleri yeniledi! Daha hızlı!',
+      enter(e) {
+        e.parts.push({ mods: [{ stat: 'speed', op: 'mul', value: 1.2 }] });
+        spawnCrystals(e);
+      },
+    },
+  ],
+  init(e) {
+    e.baseDr = e.dr;
+    spawnCrystals(e);
+    toast('Kalkan kristallerini kır!');
+  },
+  tick(e) {
+    const n = state.ents.reduce(
+      (a, c) => a + (c.crystal && c.owner === e && c.hp > 0 ? 1 : 0),
+      0,
+    );
+    if (n > 0) {
+      e.dr = 0.8;
+      e.shielded = true;
+    } else {
+      e.dr = e.baseDr;
+      if (e.shielded) {
+        e.shielded = false;
+        e.exposed = 3.5;
+        toast('Kalkan kırıldı! Titan bitkin!');
+      }
+    }
+  },
+};

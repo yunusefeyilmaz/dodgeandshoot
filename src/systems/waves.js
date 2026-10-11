@@ -67,7 +67,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
         (def.mini ? BAL.miniHp : 1)) *
     power *
-    (elite ? 3 : 1) *
+    (elite ? 2 : 1) *
     (state.curse && state.curse.waves > 0 ? 1.25 : 1) *
     state.mut.enemyHp *
     (1 + 0.15 * state.heat);
@@ -91,7 +91,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + 0.1 * state.heat) *
         power *
         (boss ? BAL.bossDmg : 1) *
-        (elite ? 1.5 : 1),
+        (elite ? 0.5 : 1),
     },
   });
   e.hpMax = e.hp = hp;
@@ -103,6 +103,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   e.res = { ...(def.res || {}) };
   e.mini = !!def.mini;
   e.dropId = def.drop;
+  e.arena = def.arena;
   e.deathBlast = def.deathBlast;
   e.dr = Math.min(0.8, (def.dr || 0) + (elite ? 0.1 : 0));
   e.dodge = def.dodge;

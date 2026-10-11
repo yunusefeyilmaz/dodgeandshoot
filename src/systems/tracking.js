@@ -11,7 +11,7 @@ on('DamageDealt', (d) => {
   if (d.source === state.player) meta.stats.damage += d.amount;
 });
 on('Kill', ({ target: t, tags = [] }) => {
-  if (t.team !== 'e') return;
+  if (t.team !== 'e' || t.crystal) return;
   const s = meta.stats;
   s.kills++;
   state.streak++;

@@ -6,6 +6,7 @@ import { updatePets } from './systems/pets.js';
 import { updateDash } from './systems/dash.js';
 import { updatePois } from './systems/pois.js';
 import { updateObjective } from './systems/objectives.js';
+import { updateArena } from './systems/arena.js';
 import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
@@ -48,6 +49,7 @@ function step() {
   updateObjective(dt);
   updatePets(dt);
   updateCombat(dt);
+  updateArena(dt);
   updatePickups(dt);
   updateTracking(dt);
   if (state.xp >= xpNeed()) openCards();

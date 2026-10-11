@@ -307,7 +307,7 @@ const B = (name, col, hp, speed, armor, abilities, o = {}) => ({
 // Her 5 turda bir boss. Liste bitince başa döner, her döngüde %75 güçlenir. Özel: Hulud, Nel·Don·Peshce, Itsugo. Kendi tasarımlarım: Kaboom, Rüzgar Efendisi, Vesper, Kronos, Raiden.
 export const BOSSES = [
   B('Gölge Bekçi', '#8b3fd9', 500, 50, 10, ['fan', 'dash']),
-  B('Hulud', '#c9a23a', 2200, 75, 50, ['ring', 'quake'], {
+  B('Hulud', '#c9a23a', 2200, 150, 50, ['ring', 'quake'], {
     script: 'worm',
     r: 30,
     contact: 2.5,
@@ -389,6 +389,7 @@ export const BOSSES = [
       orbit: [{ n: 2, r: 125, speed: 1.6, dmg: 50, size: 20 }],
       dr: 0.4,
       shape: 'square',
+      script: 'titan',
     },
   ),
   B(
@@ -408,3 +409,18 @@ export const BOSSES = [
     },
   ),
 ];
+// Boss arena mekanikleri (systems/arena.js MECH tablosu). Demir Titan'ın kalkan kristalleri: bossScripts.js 'titan'
+const AR = {
+  'Gölge Bekçi': 'dark',
+  'Kızıl Golem': 'golem',
+  'Buz Ejderi': 'frost',
+  'Ateş Lordu': 'lava',
+  Kronos: 'ring',
+  'Rüzgar Efendisi': 'wind',
+  'Zehir Kraliçe': 'clouds',
+  Raiden: 'pillars',
+  'Kadim Ruh': 'rot',
+};
+BOSSES.forEach((b) => {
+  if (AR[b.name]) b.arena = AR[b.name];
+});

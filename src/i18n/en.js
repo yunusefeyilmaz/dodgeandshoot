@@ -427,4 +427,30 @@ export const EN = {
   'zaman yavaşlar': 'time slows',
   Dokunulmaz: 'Invulnerable',
   dokunulmaz: 'invulnerable',
+  // arena mekanikleri
+  'Karanlık çöküyor! Işık çemberine gir!':
+    'Darkness falls! Step into a light circle!',
+  'Karanlık çökünce ışık çemberine gir!':
+    'When darkness falls, step into a light circle!',
+  'Sarsıntı dalgaları! Dalganın içinden dash ile geç!':
+    'Shockwaves! Dash through the wave!',
+  'Buz dalgaları yavaşlatır! Dash ile geç!':
+    'Frost waves slow you! Dash through them!',
+  'Lav çatlakları! Kırmızı çizgilerden uzak dur!':
+    'Lava cracks! Stay away from the red lines!',
+  'Zaman çöküyor! Daralan çemberin içinde kal!':
+    'Time is collapsing! Stay inside the shrinking circle!',
+  'Rüzgar sürekli itiyor! Dash ile karşı koy!':
+    'The wind keeps pushing! Dash against it!',
+  'Rüzgar yön değiştirdi!': 'The wind changed direction!',
+  'Zehir bulutları büyüyor! Hareket halinde kal!':
+    'Poison clouds are growing! Keep moving!',
+  'Sütunların arkasına saklan: yıldırımları durdururlar!':
+    'Hide behind the pillars: they stop lightning!',
+  'Kadim Ruh her fazda yeni bir tehlike getirir!':
+    'The Ancient Spirit brings a new danger each phase!',
+  'Kalkan kristallerini kır!': 'Break the shield crystals!',
+  'Kalkan kırıldı! Titan bitkin!': 'Shield broken! The Titan is exhausted!',
+  'Titan kristalleri yeniledi!': 'The Titan renewed its crystals!',
+  Kristal: 'Crystal',
 };

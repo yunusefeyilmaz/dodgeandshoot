@@ -15,6 +15,7 @@ export const state = {
   pois: [],
   prompt: null,
   curse: null,
+  arena: { waves: [], pillars: [], dark: null, ring: null, wind: null },
   rerolls: 2,
   banishes: 1,
   banned: [],

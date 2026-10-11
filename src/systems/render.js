@@ -125,6 +125,30 @@ export function render() {
       g.fillRect(k.x - 6, k.y - 6, 12, 12);
     }
   }
+  for (const w of state.arena.waves) {
+    g.globalAlpha = 0.55;
+    g.strokeStyle = w.col;
+    g.lineWidth = w.w;
+    circle(w.x, w.y, w.r);
+    g.stroke();
+    g.globalAlpha = 1;
+    g.strokeStyle = '#fff8';
+    g.lineWidth = 3;
+    circle(w.x, w.y, w.r);
+    g.stroke();
+  }
+  for (const q of state.arena.pillars) {
+    g.fillStyle = '#6a7080';
+    circle(q.x, q.y, q.r);
+    g.fill();
+    g.strokeStyle = '#cfd3dc';
+    g.lineWidth = 3;
+    g.stroke();
+    g.fillStyle = '#000a';
+    g.fillRect(q.x - 20, q.y - q.r - 12, 40, 5);
+    g.fillStyle = '#ffd84f';
+    g.fillRect(q.x - 20, q.y - q.r - 12, (40 * Math.max(0, q.hp)) / q.max, 5);
+  }
   const ob = state.obj;
   if (ob && ob.type === 'zone' && !ob.done && !ob.failed) {
     g.strokeStyle = '#5cc8ff';
@@ -413,6 +437,54 @@ export function render() {
     gr.addColorStop(1, 'rgba(190,0,0,' + a + ')');
     g.fillStyle = gr;
     g.fillRect(0, 0, v.w, v.h);
+  }
+  const A = state.arena; // ekran katmanları: karanlık, daralan çember, rüzgar
+  const hole = (x, y, rr) => {
+    g.moveTo(x - v.x + rr, y - v.y);
+    g.arc(x - v.x, y - v.y, rr, 0, 6.2832);
+  };
+  if (A.dark) {
+    g.fillStyle = 'rgba(4,4,14,.82)';
+    g.beginPath();
+    g.rect(0, 0, v.w, v.h);
+    hole(p.x, p.y, 80);
+    for (const l of A.dark.lights) hole(l.x, l.y, l.r);
+    g.fill('evenodd');
+    g.strokeStyle = '#ffd84f';
+    g.lineWidth = 3;
+    for (const l of A.dark.lights) {
+      g.beginPath();
+      g.arc(l.x - v.x, l.y - v.y, l.r, 0, 6.2832);
+      g.stroke();
+    }
+  }
+  if (A.ring) {
+    g.fillStyle = 'rgba(40,40,140,.38)';
+    g.beginPath();
+    g.rect(0, 0, v.w, v.h);
+    hole(A.ring.x, A.ring.y, A.ring.r);
+    g.fill('evenodd');
+    g.strokeStyle = '#8f9bff';
+    g.lineWidth = 4;
+    g.beginPath();
+    g.arc(A.ring.x - v.x, A.ring.y - v.y, A.ring.r, 0, 6.2832);
+    g.stroke();
+  }
+  if (A.wind) {
+    g.save();
+    g.translate(v.w / 2, v.h * 0.24);
+    g.rotate(A.wind.a);
+    g.globalAlpha = 0.85;
+    g.fillStyle = '#cfeaff';
+    g.beginPath();
+    g.moveTo(28, 0);
+    g.lineTo(-14, -15);
+    g.lineTo(-6, 0);
+    g.lineTo(-14, 15);
+    g.closePath();
+    g.fill();
+    g.restore();
+    g.globalAlpha = 1;
   }
   if (state.flash > 0.01) {
     g.fillStyle = 'rgba(255,0,0,' + state.flash * 0.1 + ')';
