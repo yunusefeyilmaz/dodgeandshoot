@@ -40,8 +40,10 @@ const STEP = 1 / 60;
 let last = null,
   acc = 0;
 function step() {
-  const dt = STEP * (state.slowT > 0 ? 0.35 : 1);
-  state.slowT = Math.max(0, (state.slowT || 0) - STEP); // mükemmel kaçışta zaman yavaşlar
+  const dt =
+    STEP * (state.slowT > 0 ? 0.35 : 1) * (state.hitstop > 0 ? 0.06 : 1);
+  state.slowT = Math.max(0, (state.slowT || 0) - STEP);
+  state.hitstop = Math.max(0, (state.hitstop || 0) - STEP); // hit-stop: kritik/boss ölümünde kısa donma     // mükemmel kaçışta zaman yavaşlar
   updateWaves(dt);
   updatePlayer(dt);
   updateDash(dt);

@@ -67,7 +67,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
         (def.mini ? BAL.miniHp : 1)) *
     power *
-    (elite ? 2 : 1) *
+    (elite ? 2.5 : 1) *
     (state.curse && state.curse.waves > 0 ? 1.25 : 1) *
     state.mut.enemyHp *
     (1 + 0.15 * state.heat);
@@ -82,7 +82,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
     coin: Math.ceil(def.coin * (1 + n * 0.1) * power * (elite ? 3 : 1)),
     base: {
       speed: def.speed * (elite ? 1.1 : 1) * state.mut.enemySpeed,
-      armor: (def.armor || 0) * (1 + n * 0.03) * power * (elite ? 1.5 : 1),
+      armor: (def.armor || 0) * (1 + n * 0.03) * power * (elite ? 1.3 : 1),
       mr: (def.armor || 0) * 0.5 * (1 + n * 0.03) * power,
       kbResist: def.kbResist || 0,
       ...stats,
@@ -91,7 +91,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
         (1 + 0.1 * state.heat) *
         power *
         (boss ? BAL.bossDmg : 1) *
-        (elite ? 0.5 : 1),
+        (elite ? 1.25 : 1),
     },
   });
   e.hpMax = e.hp = hp;
@@ -175,6 +175,15 @@ export function startWave() {
   );
   onWaveStart(w.n, w.bossPending);
   startObjective(w.n);
+  state.bannerQ.push({
+    text: 'TUR ' + w.n,
+    sub: w.bossPending
+      ? bossFor(w.n).def.name
+      : w.swarmPending
+        ? 'SÜRÜ GELİYOR!'
+        : '',
+    kind: w.bossPending ? 'boss' : w.swarmPending ? 'swarm' : 'wave',
+  });
 }
 
 export function updateWaves(dt) {
@@ -204,6 +213,7 @@ export function updateWaves(dt) {
         const d = MINIBOSSES[Math.floor(Math.random() * MINIBOSSES.length)];
         spawn(d);
         toast('Mini boss: ' + d.name);
+        state.bannerQ.push({ text: 'MİNİ BOSS', sub: d.name, kind: 'mini' });
       }
       w.miniPending = 0;
     }
@@ -241,6 +251,11 @@ export function updateWaves(dt) {
       state.coins += 5 + w.n * 2;
       onWaveEnd(w.n);
       endObjective();
+      state.bannerQ.push({
+        text: 'TUR ' + w.n + ' TAMAMLANDI',
+        sub: '+' + (5 + w.n * 2) + ' altın',
+        kind: 'done',
+      });
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
       toast('Tur ' + w.n + ' bitti! Bonus altın');

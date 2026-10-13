@@ -17,6 +17,8 @@ on('Kill', ({ target: t, tags = [] }) => {
   state.streak++;
   state.streakT = 3; // streak: öldürme'ler arası max 3 sn
   if (state.streak > s.bestStreak) s.bestStreak = state.streak;
+  if (state.streak > (state.bestStreakRun || 0))
+    state.bestStreakRun = state.streak;
   if (state.streak % 10 === 0)
     addBuff(state.player, {
       id: 'streak',
@@ -71,6 +73,7 @@ function bossDown(t) {
     }
   if (no % 2 === 0) state.pendingClass = true; // her 2 bossta bir sınıf seçimi
   burst(t.x, t.y, t.col, 50, 380, 0.9);
+  state.bannerQ.push({ text: 'BOSS YENİLDİ', sub: bn, kind: 'boss' });
   shake(0.8);
   save(true);
 }
@@ -100,6 +103,16 @@ export function finishRun() {
 let acc = 0;
 export function updateTracking(dt) {
   meta.stats.time += dt;
+  state.runTime = (state.runTime || 0) + dt;
+  if (
+    state.waypoint &&
+    ((state.waypoint.t -= dt) <= 0 ||
+      Math.hypot(
+        state.waypoint.x - state.player.x,
+        state.waypoint.y - state.player.y,
+      ) < 90)
+  )
+    state.waypoint = null;
   if ((state.streakT -= dt) <= 0) state.streak = 0;
   if ((acc += dt) >= 1) {
     acc = 0;

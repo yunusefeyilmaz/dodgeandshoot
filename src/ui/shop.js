@@ -15,6 +15,7 @@ import { petNodes } from '../systems/pets.js';
 import { sfx } from '../core/audio.js';
 import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { renderTree } from './tree.js';
+import { statGlyph } from './icons.js';
 // Yükseltmeler ekranı (ağaç). Tooltip: ne artıyor, şu anki -> sonraki değer, örnek hasar, maliyet.
 const owner = (u) =>
   u.pet
@@ -104,6 +105,7 @@ export function openShop() {
     document.getElementById('ovt').textContent =
       'Yükseltmeler — ' + state.coins + ' altın';
     renderTree(el, nodes, {
+      icon: (n) => statGlyph(n.stat),
       level: (n) => levelOf(n.id),
       can: (n) => !isMax(n) && state.coins >= costOf(n),
       sub: (n) =>

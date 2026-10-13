@@ -56,7 +56,7 @@ export function renderTree(el, nodes, api) {
     d.style.cssText = `left:${p.d * GX}px;top:${p.r * GY}px;width:${NW}px;height:${NH}px`;
     d.innerHTML = g
       ? '<b>???</b><small>Üst yeteneği aç</small>'
-      : `<b>${n.name}</b><small>${api.sub(n)}</small>`;
+      : `<span class="ni">${api.icon ? api.icon(n) : ''}</span><b>${n.name}</b><small>${api.sub(n)}</small>`;
     if (!g) {
       d.onmouseenter = () => setTip(() => api.tip(n));
       d.onmouseleave = () => setTip(null);

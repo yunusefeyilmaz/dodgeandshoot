@@ -473,3 +473,28 @@ EVO(
   ['Zehirli Uçlar', 'Şanslı Tılsım'],
   [m('poison', 0.3), m('luck', 4)],
 );
+
+// --- v14: yeni skiller ve yükseltmeleri
+CARDS.push(
+  S(
+    'Buz Mızrağı',
+    'rare',
+    'Yeni skill: delici, yavaşlatan buz mızrağı (AP)',
+    ABILITIES.icelance,
+  ),
+  S(
+    'Gölge Hançerleri',
+    'uncommon',
+    'Yeni skill: 3 hançer fırlatır (AD)',
+    ABILITIES.knives,
+  ),
+  S(
+    'Şifa Çiçeği',
+    'rare',
+    'Yeni skill: canını yeniler + çevreye hasar (AP)',
+    ABILITIES.bloom,
+  ),
+);
+UP('Buz Mızrağı', 'ab_icelance', 'rare', 'proj');
+UP('Gölge Hançerleri', 'ab_knives', 'uncommon', 'proj');
+UP('Şifa Çiçeği', 'ab_bloom', 'rare', 'area');

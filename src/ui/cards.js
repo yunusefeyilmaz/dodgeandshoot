@@ -2,7 +2,7 @@ import { state, toast } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
 import { RARITIES, weightOf, rarityBoost, tierOdds } from '../core/rarity.js';
-import { discover } from '../core/save.js';
+import { discover, meta } from '../core/save.js';
 import { sfx } from '../core/audio.js';
 import { CARDS } from '../data/cards.js';
 import { CLASSES } from '../data/classes.js';
@@ -101,6 +101,7 @@ export function openCards() {
   ring(p.x, p.y, 140, '#e0b040');
   burst(p.x, p.y, '#e0b040', 28, 280, 0.8);
   sfx('level');
+  state.bannerQ.push({ text: 'SEVİYE ' + state.level, kind: 'level' });
   showCards(false, true);
 }
 let cur = null; // ekrandaki kartlar: yasak modu / iptal bunları DEĞİŞTİRMEZ, sadece Yenile (hak harcar) yeniler
@@ -148,6 +149,8 @@ function showCards(ban, fresh) {
         state.picked.push(c.name);
         if (c.codex) discover('cards', c.name, c.name, 'Kart');
         if (c.evo) {
+          meta.stats.evos = (meta.stats.evos || 0) + 1;
+          state.bannerQ.push({ text: 'EVRİM!', sub: c.name, kind: 'evo' });
           toast('EVRİM! ' + c.name);
           ring(state.player.x, state.player.y, 200, '#ff5fd2');
           burst(state.player.x, state.player.y, '#ff5fd2', 40, 360, 0.9);

@@ -18,6 +18,7 @@ import {
 } from '../systems/meta.js';
 import { startRun } from '../systems/run.js';
 import { renderTree } from './tree.js';
+import { statGlyph } from './icons.js';
 import { setTip } from './tooltip.js';
 const M = document.getElementById('menu'),
   $ = (id) => document.getElementById(id);
@@ -105,6 +106,7 @@ function weaponScreen() {
   const draw = () => {
     $('bp').textContent = points();
     renderTree($('mtree'), WEAPONS[selW].tree, {
+      icon: (n) => statGlyph(n.mods[0].stat),
       level: (n) => (owned(selW, n.id) ? 1 : 0),
       can: (n) => !owned(selW, n.id) && points() >= n.cost,
       sub: (n) => (owned(selW, n.id) ? 'Açık ✓' : n.cost + ' Boss Puanı'),

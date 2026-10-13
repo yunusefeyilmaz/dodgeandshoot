@@ -1,5 +1,6 @@
 import { state, toast, rnd, W, H } from '../core/state.js';
 import { sfx } from '../core/audio.js';
+import { meta } from '../core/save.js';
 import { rollItem } from './rewards.js';
 import { spawnPoi } from './pois.js';
 import { burst, ring } from './fx.js';
@@ -69,6 +70,7 @@ export function objectiveText() {
 }
 function reward(o, x, y) {
   o.done = true;
+  meta.stats.objDone = (meta.stats.objDone || 0) + 1;
   sfx('level');
   ring(x, y, 100, '#5cc8ff');
   const n = state.wave.n,

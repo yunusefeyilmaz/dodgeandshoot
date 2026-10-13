@@ -307,7 +307,7 @@ const B = (name, col, hp, speed, armor, abilities, o = {}) => ({
 // Her 5 turda bir boss. Liste bitince başa döner, her döngüde %75 güçlenir. Özel: Hulud, Nel·Don·Peshce, Itsugo. Kendi tasarımlarım: Kaboom, Rüzgar Efendisi, Vesper, Kronos, Raiden.
 export const BOSSES = [
   B('Gölge Bekçi', '#8b3fd9', 500, 50, 10, ['fan', 'dash']),
-  B('Hulud', '#c9a23a', 2200, 150, 50, ['ring', 'quake'], {
+  B('Hulud', '#c9a23a', 2200, 75, 50, ['ring', 'quake'], {
     script: 'worm',
     r: 30,
     contact: 2.5,
@@ -392,6 +392,12 @@ export const BOSSES = [
       script: 'titan',
     },
   ),
+  B('Nefer', '#e0c070', 3400, 65, 40, ['slowfield', 'fan', 'dash', 'summon'], {
+    dodge: true,
+  }), // kum çukurları
+  B('Magmor', '#ff5a1a', 4200, 50, 70, ['bomb', 'quake', 'dash', 'ring'], {
+    dr: 0.3,
+  }), // lav + sarsıntı dalgaları
   B(
     'Kadim Ruh',
     '#ffd84f',
@@ -419,6 +425,8 @@ const AR = {
   'Rüzgar Efendisi': 'wind',
   'Zehir Kraliçe': 'clouds',
   Raiden: 'pillars',
+  Nefer: 'sand',
+  Magmor: 'magma',
   'Kadim Ruh': 'rot',
 };
 BOSSES.forEach((b) => {

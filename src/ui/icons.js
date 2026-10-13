@@ -53,6 +53,7 @@ export const glyphOf = (ab) => {
   for (const t of ab.tags) if (GL[t]) return GL[t];
   return '✦';
 };
+export const statGlyph = (s) => SG[s] || '✦';
 export const CLASS_GLYPH = {
   assassin: '🗡️',
   vampire: '🦇',

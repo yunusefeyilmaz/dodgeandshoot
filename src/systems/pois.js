@@ -2,7 +2,8 @@ import { state, toast, rnd, W, H } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
 import { RARITIES, weightOf, rarityBoost } from '../core/rarity.js';
-import { discover } from '../core/save.js';
+import { discover, meta } from '../core/save.js';
+import { addBuff } from './buffs.js';
 import { sfx } from '../core/audio.js';
 import { CARDS } from '../data/cards.js';
 import { ITEMS } from '../data/items.js';
@@ -91,6 +92,7 @@ export const DEALS = [
 function openChest(q) {
   state.coins -= q.cost || 0;
   q.done = true;
+  meta.stats.chests = (meta.stats.chests || 0) + 1;
   sfx('item');
   ring(q.x, q.y, 80, q.col);
   burst(q.x, q.y, q.col, 24, 300, 0.6);
@@ -217,10 +219,38 @@ export const TYPES = {
       const list = ITEMS.filter((i) => i.cursed),
         def = list[Math.floor(Math.random() * list.length)];
       q.done = true;
+      meta.stats.cursed = (meta.stats.cursed || 0) + 1;
       state.pickups.push({ type: 'item', def, x: q.x, y: q.y });
       ring(q.x, q.y, 80, q.col);
       toast('Lanetli eşya: ' + def.name);
       revealItem(def);
+    },
+  },
+  fountain: {
+    glyph: '⛲',
+    name: 'Şifa Çeşmesi',
+    col: '#6fe0ff',
+    w: 12,
+    min: 2,
+    make: () => {},
+    label: () => 'Çeşmeden iç (%40 can + yenilenme)',
+    use: (q) => {
+      const p = state.player,
+        mx = stat(p, 'maxHp');
+      q.done = true;
+      p.hp = Math.min(mx, p.hp + mx * 0.4);
+      ring(q.x, q.y, 90, q.col);
+      sfx('item');
+      toast('Çeşme seni yeniledi');
+      addBuff(p, {
+        id: 'fountain',
+        name: 'Çeşme Suyu',
+        desc: '+3 can yenileme',
+        col: '#6fe0ff',
+        glyph: '💧',
+        dur: 20,
+        mods: [{ stat: 'regen', op: 'add', value: 3 }],
+      });
     },
   },
   portal: {

@@ -55,6 +55,11 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
   }
   if (t.exposed > 0) amt *= 1.6; // bitkin boss daha çok hasar alır
   if (t.dr) amt *= 1 - Math.min(0.8, t.dr);
+  if (src.team === 'e' && t === state.player) {
+    const cap =
+      stat(t, 'maxHp') * (src.boss ? BAL.bossHitCap : BAL.enemyHitCap);
+    if (amt > cap) amt = cap;
+  } // düşman tek vuruşta öldüremez
   t.hp -= amt;
   t.hurt = 0.12;
   t.barT = 2.5;
@@ -81,7 +86,10 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       0.35,
     );
     sfx(crit ? 'crit' : 'hit');
-    if (crit) shake(0.18);
+    if (crit) {
+      shake(0.18);
+      state.hitstop = Math.max(state.hitstop || 0, 0.03);
+    }
   } else {
     state.hitsTaken++;
     state.flash = Math.min(1, state.flash + 0.5);
@@ -248,7 +256,10 @@ const EFFECTS = {
     }
   },
   Nova(c, fx, ab) {
-    const r = fx.radius * stat(c, 'area', ab.tags);
+    const r =
+      fx.radius *
+      stat(c, 'area', ab.tags) *
+      (c.team === 'e' && !c.boss ? 0.7 : 1); // düşman yakın dövüş alanı oyuncununkinden küçük
     for (const e of foes(c))
       if (reach(c.x, c.y, e, r))
         dealDamage(c, e, power(c, fx, ab), ab.tags, {
@@ -355,6 +366,13 @@ const EFFECTS = {
       },
     });
   },
+  Heal(c, fx) {
+    c.hp = Math.min(
+      stat(c, 'maxHp'),
+      c.hp + fx.amount + stat(c, 'ap') * (fx.ratio || 0),
+    );
+    state.fx.push({ x: c.x, y: c.y, r: 45, t: 0.25 });
+  }, // kendini iyileştirir (Şifa Çiçeği)
   HealAllies(c, fx) {
     for (const e of state.ents)
       if (
@@ -864,7 +882,11 @@ export function updateCombat(dt) {
       state.deaths.push({ x: e.x, y: e.y, r: e.r, col: e.col, t: 0.4 });
       burst(e.x, e.y, e.col, e.boss ? 40 : 8, e.boss ? 320 : 160, 0.6);
       sfx('kill');
-      if (e.boss) shake(0.8);
+      if (e.boss) {
+        shake(0.8);
+        state.hitstop = 0.12;
+        state.slowT = Math.max(state.slowT || 0, 1.1);
+      }
       if (e.deathBlast) deathBlast(e);
       else if (state.mut.explode && e.team === 'e' && !e.boss) {
         e.deathBlast = { radius: 70, damage: 18 };

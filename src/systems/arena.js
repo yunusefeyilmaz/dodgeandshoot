@@ -309,3 +309,36 @@ export function updateArena(dt) {
   }
   A.waves = A.waves.filter((w) => w.r < 1300);
 }
+MECH.sand = {
+  hint: 'Kum çukurları çekiyor! Çukurlardan uzak dur!',
+  tick(e, ar, dt) {
+    ar.t = (ar.t ?? 3) - dt;
+    if (ar.t > 0 || idle(e)) return;
+    ar.t = 5;
+    const p = P();
+    for (let i = 0; i < 2; i++) {
+      const a = rnd(0, 6.28),
+        d = rnd(60, 220);
+      state.zones.push({
+        x: p.x + Math.cos(a) * d,
+        y: p.y + Math.sin(a) * d,
+        r: 110,
+        t: 8,
+        team: 'e',
+        src: e,
+        dps: 8 * stat(e, 'damage'),
+        col: '#c9a560',
+        slow: 0.5,
+        pull: 110,
+        tick: 0,
+      });
+    }
+  },
+};
+MECH.magma = {
+  hint: 'Lav çatlakları ve sarsıntı dalgaları birlikte!',
+  tick(e, ar, dt, A) {
+    MECH.lava.tick(e, (ar.l ??= {}), dt, A);
+    MECH.golem.tick(e, (ar.g ??= {}), dt, A);
+  },
+};

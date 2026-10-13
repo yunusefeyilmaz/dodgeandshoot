@@ -149,6 +149,20 @@ export function render() {
     g.fillStyle = '#ffd84f';
     g.fillRect(q.x - 20, q.y - q.r - 12, (40 * Math.max(0, q.hp)) / q.max, 5);
   }
+  const wp = state.waypoint; // görev listesinden işaretlenen konum
+  if (wp) {
+    g.globalAlpha = 0.6 + 0.4 * Math.sin(performance.now() / 150);
+    g.strokeStyle = '#fff';
+    g.lineWidth = 3;
+    circle(wp.x, wp.y, 32 + Math.sin(performance.now() / 200) * 6);
+    g.stroke();
+    g.globalAlpha = 1;
+    g.font = '24px system-ui';
+    g.textAlign = 'center';
+    g.fillStyle = '#fff';
+    g.fillText('📍', wp.x, wp.y - 38);
+    g.textAlign = 'left';
+  }
   const ob = state.obj;
   if (ob && ob.type === 'zone' && !ob.done && !ob.failed) {
     g.strokeStyle = '#5cc8ff';
@@ -412,9 +426,10 @@ export function render() {
   g.lineWidth = 3;
   g.strokeStyle = '#000b'; // hasar sayıları
   for (const x of state.texts) {
+    const kk = x.big ? 1 + Math.max(0, x.t - 0.5) * 7 : 1;
     g.globalAlpha = Math.min(1, x.t * 3);
-    g.font = (x.big ? 'bold 20px' : 'bold 13px') + ' system-ui';
-    g.fillStyle = x.col;
+    g.font = 'bold ' + Math.round((x.big ? 20 : 13) * kk) + 'px system-ui';
+    g.fillStyle = x.col; // kritik yazısı büyüyerek belirir
     g.strokeText(T(x.text), x.x, x.y);
     g.fillText(T(x.text), x.x, x.y);
   }
@@ -532,6 +547,16 @@ export function render() {
   }
   for (const q of [
     ...state.pois,
+    ...(state.waypoint
+      ? [
+          {
+            x: state.waypoint.x,
+            y: state.waypoint.y,
+            col: '#ffffff',
+            glyph: '📍',
+          },
+        ]
+      : []),
     ...(ob && ob.type === 'zone' && !ob.done && !ob.failed
       ? [{ x: ob.x, y: ob.y, col: '#5cc8ff', glyph: '🎯' }]
       : []),

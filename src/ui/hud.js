@@ -1,6 +1,8 @@
 import { state, toast } from '../core/state.js';
 import { meta } from '../core/save.js';
-import { toggleMute } from '../core/audio.js';
+import { toggleMute, sfx } from '../core/audio.js';
+import { questList, setWaypoint } from './quests.js';
+import { ABILITIES } from '../data/abilities.js';
 import { stat } from '../core/stats.js';
 import { LABELS, DESCS, fmtStat } from '../core/labels.js';
 import { RARITIES } from '../core/rarity.js';
@@ -611,6 +613,109 @@ function renderObj() {
   }
   box.querySelector('.ob i').style.width = 100 * o.frac + '%';
 }
+let qSig = '',
+  qEls = {},
+  qNow = {};
+function renderQuests() {
+  // sol görev listesi; tıklanabilirler haritada 📍 gösterir
+  const L = questList(),
+    box = $('quests'),
+    list = $('qlist'),
+    sig = L.map((q) => q.id).join('|');
+  box.style.display = L.length ? 'block' : 'none';
+  if (sig !== qSig) {
+    qSig = sig;
+    qEls = {};
+    list.innerHTML = '';
+    for (const q of L) {
+      const d = document.createElement('div');
+      d.innerHTML =
+        '<div class="qh"></div><div class="qt"></div><div class="qs"></div><div class="qb"><i></i></div>';
+      d.onclick = () => {
+        const c = qNow[q.id];
+        if (c && c.at) {
+          setWaypoint(c.at, c.title);
+          sfx('click');
+          toast('📍 İşaretlendi: ' + c.title);
+        }
+      };
+      list.appendChild(d);
+      qEls[q.id] = d;
+    }
+  }
+  qNow = {};
+  for (const q of L) {
+    qNow[q.id] = q;
+    const d = qEls[q.id],
+      k = q.head + q.icon + q.title + q.sub + q.status + !!q.at;
+    if (d._k !== k) {
+      d._k = k;
+      d.className = 'q ' + (q.status || '') + (q.at ? ' go' : '');
+      const c = d.children;
+      c[0].textContent = q.head;
+      c[1].textContent = q.icon + ' ' + q.title + (q.at ? '  📍' : '');
+      c[2].textContent = q.sub || '';
+      c[3].style.display = q.frac == null ? 'none' : 'block';
+    }
+    d.children[3].firstChild.style.width = 100 * (q.frac || 0) + '%';
+  }
+}
+function showBanners() {
+  // TUR n / TAMAMLANDI / BOSS / SEVİYE banner'ları
+  while (state.bannerQ.length) {
+    const b = state.bannerQ.shift(),
+      d = document.createElement('div');
+    d.className = 'bn ' + (b.kind || 'wave');
+    d.innerHTML =
+      '<b>' + b.text + '</b>' + (b.sub ? '<span>' + b.sub + '</span>' : '');
+    $('banners').appendChild(d);
+    setTimeout(() => d.remove(), 2600);
+  }
+}
+const fmtTime = (s) =>
+  Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function summaryEl() {
+  // koşu özeti: istatistikler + en çok hasar veren skiller
+  const d = document.createElement('div'),
+    p = state.player,
+    top = Object.entries(state.abStats)
+      .sort((a, b) => b[1].dmg - a[1].dmg)
+      .slice(0, 5),
+    mx = top.length ? top[0][1].dmg || 1 : 1;
+  d.className = 'sum';
+  d.innerHTML =
+    '<div class="sg2">' +
+    [
+      ['Ulaşılan tur', state.wave.n],
+      ['Öldürme', state.kills],
+      ['En iyi seri', state.bestStreakRun || 0],
+      ['Seviye', state.level],
+      ['Süre', fmtTime(state.runTime || 0)],
+      ['Kart', state.picked.length],
+      ['Yenilen boss', state.bossKillsRun || 0],
+      ['Sınıf / Pet', p.classes.length + ' / ' + state.pets.length],
+    ]
+      .map(([k, v]) => '<span>' + k + '</span><b>' + v + '</b>')
+      .join('') +
+    '</div>' +
+    (top.length
+      ? '<div class="sh">EN ÇOK HASAR VEREN</div>' +
+        top
+          .map(
+            ([id, s]) =>
+              '<div class="bar2"><i style="width:' +
+              (100 * s.dmg) / mx +
+              '%"></i><span>' +
+              ((ABILITIES[id] && ABILITIES[id].name) ||
+                (id === 'orbit' ? 'Tırpanlar' : id)) +
+              '</span><b>' +
+              Math.round(s.dmg).toLocaleString('tr') +
+              '</b></div>',
+          )
+          .join('')
+      : '');
+  return d;
+}
 export function updateHud() {
   const p = state.player,
     w = state.wave,
@@ -672,7 +777,8 @@ export function updateHud() {
       (bs[0].phase > 1 ? ' · Faz ' + bs[0].phase : '') +
       (bs[0].exposed > 0 ? ' · BİTKİN! ×1.6' : '');
   }
-  renderObj();
+  renderQuests();
+  showBanners();
   const aff = state.mode === 'run' && !overlayKind() && affordable();
   shopBtn.classList.toggle('pulse', aff); // yükseltme alacak kadar altın varsa buton yanıp söner
   if (
@@ -878,8 +984,8 @@ export function updateHud() {
     finishRun();
     hideOverlay();
     showOverlay(
-      'Öldün — Tur ' + w.n,
-      [btn('Menüye dön', () => location.reload())],
+      'Düştün — Tur ' + w.n,
+      [summaryEl(), btn('Menüye dön', () => location.reload())],
       'over',
     );
   }

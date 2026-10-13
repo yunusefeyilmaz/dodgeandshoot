@@ -638,6 +638,53 @@ export const ABILITIES = {
       { type: 'Gust', radius: 180, delay: 0.9, force: 500, damage: 15 },
     ],
   },
+  icelance: {
+    id: 'icelance',
+    name: 'Buz Mızrağı',
+    tags: ['Ice', 'Projectile'],
+    dmgType: 'magic',
+    cooldown: 2.2,
+    effects: [
+      {
+        type: 'Projectile',
+        damage: 26,
+        speed: 520,
+        pierce: 3,
+        size: 6,
+        color: '#9be0ff',
+        proc: { slow: 0.5 },
+      },
+    ],
+  },
+  knives: {
+    id: 'knives',
+    name: 'Gölge Hançerleri',
+    tags: ['Physical', 'Projectile'],
+    dmgType: 'phys',
+    cooldown: 1.5,
+    effects: [
+      {
+        type: 'Projectile',
+        damage: 11,
+        speed: 480,
+        count: 3,
+        spread: 0.45,
+        color: '#b8b0ff',
+      },
+    ],
+  },
+  bloom: {
+    id: 'bloom',
+    name: 'Şifa Çiçeği',
+    tags: ['Heal', 'Area'],
+    dmgType: 'magic',
+    cooldown: 9,
+    range: 600,
+    effects: [
+      { type: 'Heal', amount: 25, ratio: 0.8 },
+      { type: 'Nova', damage: 10, radius: 90 },
+    ],
+  },
   summon: {
     id: 'summon',
     name: 'Çağrı',
