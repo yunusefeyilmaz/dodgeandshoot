@@ -23,6 +23,7 @@ export const BAL = {
   swarmPerWave: 2,
   swarmMax: 90,
   coinMul: 0.55,
+  coinLife: 25,
   enemyHitCap: 0.35,
   bossHitCap: 0.5,
   upgradeGrowth: 0.08,

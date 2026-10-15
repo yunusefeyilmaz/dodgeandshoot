@@ -29,6 +29,20 @@ const resOf = (x, key, rp) =>
 // tags'te 'Status' varsa kritik ve yeni efekt tetiklenmez. o: {dir, type, trueDmg, proc}
 export function dealDamage(src, t, amt, tags = [], o = {}) {
   if (t.hp <= 0 || !Number.isFinite(amt)) return 0;
+  if (t.absorb && t.absorb.some((g) => tags.includes(g))) {
+    // emilim: ateşten can yenileyen ejderha vb.
+    const h = amt * 0.5;
+    t.hp = Math.min(t.hpMax || t.hp, t.hp + h);
+    state.texts.push({
+      x: t.x,
+      y: t.y - t.r - 4,
+      vy: -45,
+      t: 0.8,
+      col: '#6fd36f',
+      text: '+' + Math.round(h) + ' ♥',
+    });
+    return 0;
+  }
   if (t.invuln > 0) {
     if (!tags.includes('Status') && src !== t) perfectDodge();
     return 0;
@@ -778,6 +792,7 @@ export function updateCombat(dt) {
     }
     if (!(e.lock > 0) && !e.under && !(e.stun > 0) && !(e.exposed > 0))
       for (const ab of e.abilities) {
+        if (e.off && e.off[ab.id]) continue; // oyuncu bu skili kapattı
         e.cd[ab.id] = Math.max(-dt, (e.cd[ab.id] || 0) - dt);
         const t = nearest(e);
         if (

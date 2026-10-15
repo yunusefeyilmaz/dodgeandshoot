@@ -519,3 +519,39 @@ kbd {
   border-color: var(--gold);
   box-shadow: 0 0 16px #e8b04a44;
 }
+.qtitle {
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+#quests.collapsed #qlist {
+  display: none;
+}
+.q.tracked {
+  border-left-color: #fff;
+  box-shadow: 0 0 10px #ffffff33;
+}
+.keys {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 0 28px;
+  max-width: 780px;
+}
+.krow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ffffff14;
+}
+.krow button {
+  min-width: 110px;
+  text-align: center;
+}
+.ico.off {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+#skills .ico {
+  cursor: pointer;
+}

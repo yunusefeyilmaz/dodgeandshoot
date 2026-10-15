@@ -104,6 +104,23 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   e.mini = !!def.mini;
   e.dropId = def.drop;
   e.arena = def.arena;
+  e.absorb = def.absorb;
+  if (def.absorb && boss)
+    toast(
+      'Bu boss ' +
+        def.absorb
+          .map(
+            (x) =>
+              ({
+                Fire: 'ateşi',
+                Ice: 'buzu',
+                Poison: 'zehri',
+                Lightning: 'yıldırımı',
+              })[x] || x,
+          )
+          .join(', ') +
+        ' emer (can yeniler)! O skilleri kapat (skill ikonuna tıkla).',
+    );
   e.deathBlast = def.deathBlast;
   e.dr = Math.min(0.8, (def.dr || 0) + (elite ? 0.1 : 0));
   e.dodge = def.dodge;
@@ -249,13 +266,7 @@ export function updateWaves(dt) {
       w.phase = 'idle';
       w.cd = 2;
       state.coins += 5 + w.n * 2;
-      onWaveEnd(w.n);
-      endObjective();
-      state.bannerQ.push({
-        text: 'TUR ' + w.n + ' TAMAMLANDI',
-        sub: '+' + (5 + w.n * 2) + ' altın',
-        kind: 'done',
-      });
+      state.vacuum = 3; // tur sonu: tüm altın/itemlar sana çekilir onWaveEnd(w.n); endObjective(); state.bannerQ.push({ text: 'TUR ' + w.n + ' TAMAMLANDI', sub: '+' + (5 + w.n * 2) + ' altın', kind: 'done' });
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
       toast('Tur ' + w.n + ' bitti! Bonus altın');

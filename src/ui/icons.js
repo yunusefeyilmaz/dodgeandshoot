@@ -21,6 +21,8 @@ export function syncIcons(box, items) {
       box._m.set(it.id, d);
       d.firstChild.textContent = it.glyph;
     }
+    if (it.click) d.onclick = it.click;
+    d.classList.toggle('off', !!it.off);
     d._tip = it.tip;
     d.style.borderColor = it.col;
     d.style.setProperty('--f', Math.max(0, Math.min(1, it.frac || 0)));

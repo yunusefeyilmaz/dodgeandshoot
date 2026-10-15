@@ -10,6 +10,7 @@ import { ITEMS } from '../data/items.js';
 import { rollItem } from './rewards.js';
 import { addItem } from './inventory.js';
 import { burst, ring, shake } from './fx.js';
+import { is } from '../core/keymap.js';
 import { openAltar, openMerchant } from '../ui/poi.js';
 import { revealItem } from '../ui/reveal.js';
 import { startTrial } from './objectives.js';
@@ -387,5 +388,5 @@ export function interact() {
   }
 }
 addEventListener('keydown', (e) => {
-  if (e.key.toLowerCase() === 'e' && !e.repeat) interact();
+  if (is(e, 'interact') && !e.repeat) interact();
 });

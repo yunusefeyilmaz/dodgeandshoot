@@ -1,5 +1,6 @@
 import { meta, wipe, save } from '../core/save.js';
 import { getLang, applyLang } from '../i18n/index.js';
+import { ACTIONS, keyOf, resetKeys, rebind, keyName } from '../core/keymap.js';
 import { RARITIES } from '../core/rarity.js';
 import { sfx, toggleMute } from '../core/audio.js';
 import { WEAPONS } from '../data/weapons.js';
@@ -44,7 +45,7 @@ export function openMenu() {
 
 function mainScreen() {
   M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Puanı: <b>${points()}</b></div>
-    <button class="big" id="mPlay">Oyna</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button>
+    <button class="big" id="mPlay">Oyna</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button><button class="big" id="mSet">Ayarlar</button>
     <div class="mfoot"><button id="mMute"></button><button id="mWipe">Kaydı sil</button><button id="mLang"></button></div></div>`;
   const mute = () =>
     ($('mMute').textContent =
@@ -53,6 +54,7 @@ function mainScreen() {
   $('mPlay').onclick = () => go(weaponScreen);
   $('mAch').onclick = () => go(achScreen);
   $('mStat').onclick = () => go(statScreen);
+  $('mSet').onclick = () => go(settingsScreen);
   const lg = () =>
     ($('mLang').textContent =
       'Dil: ' + (getLang() === 'en' ? 'English' : 'Türkçe'));
@@ -281,6 +283,37 @@ function achScreen() {
   });
 }
 
+function settingsScreen() {
+  // tuş atama: bir tuşa tıkla, sonra yeni tuşa bas (çakışan tuş yer değiştirir)
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Ayarlar</h2></div><h3>Tuş atamaları</h3><div class="sub">Bir tuşa tıkla, sonra yeni tuşa bas. Ok tuşları her zaman da hareket ettirir. İptal için Esc.</div>
+    <div class="keys">${ACTIONS.map(([id, name]) => `<div class="krow"><span>${name}</span><button data-a="${id}"></button></div>`).join('')}</div><div class="treehead"><span></span><button id="kReset">Varsayılana dön</button></div></div>`;
+  const draw = () =>
+    M.querySelectorAll('[data-a]').forEach(
+      (b) => (b.textContent = keyName(keyOf(b.dataset.a))),
+    );
+  draw();
+  $('mBack').onclick = () => go(mainScreen);
+  $('kReset').onclick = () => {
+    resetKeys();
+    save(true);
+    draw();
+  };
+  M.querySelectorAll('[data-a]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        b.textContent = 'Bir tuşa bas...';
+        const h = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.removeEventListener('keydown', h, true);
+          if (e.code !== 'Escape') rebind(b.dataset.a, e.code);
+          save(true);
+          draw();
+        };
+        window.addEventListener('keydown', h, true);
+      }),
+  );
+}
 function statScreen() {
   const s = meta.stats,
     bn = (i) => BOSSES[i % BOSSES.length].name;

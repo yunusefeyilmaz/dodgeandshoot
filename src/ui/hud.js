@@ -1,6 +1,7 @@
 import { state, toast } from '../core/state.js';
-import { meta } from '../core/save.js';
+import { meta, save } from '../core/save.js';
 import { toggleMute, sfx } from '../core/audio.js';
+import { is, keyOf, keyName } from '../core/keymap.js';
 import { questList, setWaypoint } from './quests.js';
 import { ABILITIES } from '../data/abilities.js';
 import { stat } from '../core/stats.js';
@@ -96,6 +97,19 @@ let shopBtn,
 const open = (k) => panels[k].style.display === 'block';
 const anyOpen = () => Object.keys(panels).some(open);
 
+function toggleQuests() {
+  meta.settings.questsClosed = !meta.settings.questsClosed;
+  save(true);
+  sfx('click');
+}
+function refreshKbd() {
+  document.querySelectorAll('[data-p]').forEach((b) => {
+    const k = b.querySelector('kbd');
+    if (k) k.textContent = keyName(keyOf(b.dataset.p));
+  });
+  const sk = $('startBtn').querySelector('kbd');
+  if (sk) sk.textContent = keyName(keyOf('wave'));
+}
 function leaveRun() {
   // oyun içinden ana menüye dönüş (onaylı)
   if (state.mode !== 'run' || state.over) return;
@@ -175,21 +189,21 @@ export function initHud() {
   $('ts').onmouseover = $('statGrid').onmouseover;
   $('ts').onmouseleave = () => setTip(null);
   addEventListener('keydown', (e) => {
-    const k = e.key.toLowerCase();
-    if (k === 'm') {
+    if (is(e, 'mute')) {
       toggleMute();
       toast(meta.settings.mute ? 'Ses kapalı' : 'Ses açık');
     }
     if (state.mode !== 'run') return;
-    if (k === 'i') toggle('inv');
-    else if (k === 'c') toggle('stat');
-    else if (k === 'k') toggle('cls');
-    else if (k === 'p') toggle('pet');
-    else if (k === 'b') toggle('shop');
-    else if (k === ' ') {
+    if (is(e, 'inv')) toggle('inv');
+    else if (is(e, 'stat')) toggle('stat');
+    else if (is(e, 'cls')) toggle('cls');
+    else if (is(e, 'pet')) toggle('pet');
+    else if (is(e, 'shop')) toggle('shop');
+    else if (is(e, 'quests')) toggleQuests();
+    else if (is(e, 'wave')) {
       e.preventDefault();
       if (!overlayKind()) startWave();
-    } else if (k === 'escape') {
+    } else if (is(e, 'menu')) {
       if (anyOpen())
         Object.values(panels).forEach((p) => (p.style.display = 'none'));
       else if (['shop', 'confirm', 'poi'].includes(overlayKind()))
@@ -197,6 +211,7 @@ export function initHud() {
       else if (!overlayKind()) leaveRun();
     }
   });
+  document.querySelector('.qtitle').onclick = () => toggleQuests();
   $('c').addEventListener('mousedown', (ev) => {
     // düşmana tıkla: hedef kartı
     if (state.mode !== 'run') return;
@@ -555,6 +570,21 @@ function updateTarget() {
     pc(R.chain) +
     (t.abilities.length
       ? '<br>Skiller: ' + t.abilities.map((a) => a.name).join(', ')
+      : '') +
+    (t.absorb
+      ? '<br><b style="color:#6fd36f">Emer: ' +
+        t.absorb
+          .map(
+            (x) =>
+              ({
+                Fire: 'Ateş',
+                Ice: 'Buz',
+                Poison: 'Zehir',
+                Lightning: 'Yıldırım',
+              })[x] || x,
+          )
+          .join(', ') +
+        ' (can yeniler)</b>'
       : '');
   if (html !== box._h) {
     box._h = html;
@@ -621,8 +651,24 @@ function renderQuests() {
   const L = questList(),
     box = $('quests'),
     list = $('qlist'),
-    sig = L.map((q) => q.id).join('|');
+    sig = L.map((q) => q.id).join('|'),
+    closed = !!meta.settings.questsClosed;
   box.style.display = L.length ? 'block' : 'none';
+  box.classList.toggle('collapsed', closed);
+  const ttl =
+    (closed ? '▸ ' : '▾ ') + 'GÖREVLER' + (closed ? ' (' + L.length + ')' : '');
+  if (box._t !== ttl) {
+    box._t = ttl;
+    box.firstChild.textContent = ttl;
+  }
+  const wp = state.waypoint;
+  if (wp && wp.qid) {
+    const q = L.find((x) => x.id === wp.qid);
+    if (q && q.at) {
+      wp.x = q.at.x;
+      wp.y = q.at.y;
+    } else state.waypoint = null;
+  } // takip edilen görev: yol işareti hedefi canlı izler
   if (sig !== qSig) {
     qSig = sig;
     qEls = {};
@@ -633,10 +679,14 @@ function renderQuests() {
         '<div class="qh"></div><div class="qt"></div><div class="qs"></div><div class="qb"><i></i></div>';
       d.onclick = () => {
         const c = qNow[q.id];
-        if (c && c.at) {
-          setWaypoint(c.at, c.title);
-          sfx('click');
-          toast('📍 İşaretlendi: ' + c.title);
+        if (!c || !c.at) return;
+        sfx('click');
+        if (state.waypoint && state.waypoint.qid === q.id) {
+          state.waypoint = null;
+          toast('Yol işareti kaldırıldı');
+        } else {
+          setWaypoint(c.at, c.title, q.id);
+          toast('📍 Yol gösteriliyor: ' + c.title);
         }
       };
       list.appendChild(d);
@@ -647,10 +697,21 @@ function renderQuests() {
   for (const q of L) {
     qNow[q.id] = q;
     const d = qEls[q.id],
-      k = q.head + q.icon + q.title + q.sub + q.status + !!q.at;
+      k =
+        q.head +
+        q.icon +
+        q.title +
+        q.sub +
+        q.status +
+        !!q.at +
+        (state.waypoint && state.waypoint.qid === q.id);
     if (d._k !== k) {
       d._k = k;
-      d.className = 'q ' + (q.status || '') + (q.at ? ' go' : '');
+      d.className =
+        'q ' +
+        (q.status || '') +
+        (q.at ? ' go' : '') +
+        (state.waypoint && state.waypoint.qid === q.id ? ' tracked' : '');
       const c = d.children;
       c[0].textContent = q.head;
       c[1].textContent = q.icon + ' ' + q.title + (q.at ? '  📍' : '');
@@ -841,7 +902,17 @@ export function updateHud() {
         col: ab.dmgType === 'magic' ? '#6fb4ff' : '#e8e6df',
         frac: cd / mx,
         text: cd > 0.05 ? cd.toFixed(cd < 10 ? 1 : 0) : '',
-        tip: () => abTip(ab, p),
+        tip: () =>
+          abTip(ab, p) +
+          '<div class="dim">Tıkla: ' +
+          (p.off && p.off[ab.id] ? 'AÇ (şu an KAPALI)' : 'kapat') +
+          '</div>',
+        off: !!(p.off && p.off[ab.id]),
+        click: () => {
+          p.off = p.off || {};
+          p.off[ab.id] = !p.off[ab.id];
+          sfx('click');
+        },
       };
     }),
   ]);
@@ -979,6 +1050,7 @@ export function updateHud() {
   }
   if (open('stat')) updateStatIcons();
   if (frame % 6 === 0) refreshTip();
+  if (frame % 60 === 1) refreshKbd();
   if (state.over && !overShown) {
     overShown = true;
     finishRun();

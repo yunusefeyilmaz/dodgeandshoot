@@ -61,38 +61,60 @@ on('Kill', ({ target: t }) => {
 });
 
 export function updatePickups(dt) {
+  // toplama: mıknatıs, tur sonu süpürgesi (vacuum), eski altınlar otomatik toplanır -> birikme/kasma yok
   const p = state.player,
-    m = stat(p, 'magnet');
-  state.pickups = state.pickups.filter((k) => {
-    const d = dist(k, p);
-    k.age = (k.age || 0) + dt;
-    if (k.type === 'item' && k.age > BAL.itemLife) return false; // yerdeki item zamanla kaybolur
-    if (k.type === 'item' && state.inventory.indexOf(null) < 0) {
-      if (d < 14 && state.msgT <= 0) toast('Envanter dolu!');
-      return true;
-    } // dolu: alınamaz
-    if (d < m) {
-      const s = (260 + (m - d)) * dt;
-      k.x += ((p.x - k.x) / (d || 1)) * s;
-      k.y += ((p.y - k.y) / (d || 1)) * s;
-    }
-    if (d > 14) return true;
-    if (k.type === 'coin') {
+    vac = state.vacuum > 0,
+    m = vac ? 1e5 : stat(p, 'magnet');
+  if (vac) state.vacuum -= dt;
+  const keep = [],
+    credit = (k) => {
       state.coins += k.v;
       meta.stats.coins += k.v;
+    };
+  for (const k of state.pickups) {
+    const d = dist(k, p);
+    k.age = (k.age || 0) + dt;
+    if (k.type === 'item') {
+      if (k.age > BAL.itemLife) continue;
+      if (state.inventory.indexOf(null) < 0) {
+        if (d < 14 && state.msgT <= 0) toast('Envanter dolu!');
+        keep.push(k);
+        continue;
+      }
+    } else if (k.age > BAL.coinLife) {
+      credit(k);
+      continue;
+    }
+    if (d < m) {
+      const sp = (vac ? 900 : 260 + (m - d)) * dt,
+        dd = d || 1;
+      k.x += ((p.x - k.x) / dd) * sp;
+      k.y += ((p.y - k.y) / dd) * sp;
+    }
+    if (d > 14) {
+      keep.push(k);
+      continue;
+    }
+    if (k.type === 'coin') {
+      credit(k);
       burst(k.x, k.y, '#e0b040', 3, 80, 0.3);
       sfx('coin');
-      return false;
+      continue;
     }
-    const ok = addItem(k.def);
-    if (ok) {
+    if (addItem(k.def)) {
       const c = RARITIES[k.def.rarity].col;
       ring(k.x, k.y, 40, c);
       burst(k.x, k.y, c, 10, 160, 0.5);
       sfx('item');
-    }
-    return !ok;
-  });
+    } else keep.push(k);
+  }
+  if (keep.length > 320)
+    for (let i = 0; i < keep.length - 320; i++)
+      if (keep[i].type === 'coin') {
+        credit(keep[i]);
+        keep[i] = null;
+      } // sert üst sınır
+  state.pickups = keep.length > 320 ? keep.filter(Boolean) : keep;
 }
 
 // Item seçimi (sandık/tüccar için): luck + bonus, en az minTier. unique/lanetli itemlar rastgele gelmez.

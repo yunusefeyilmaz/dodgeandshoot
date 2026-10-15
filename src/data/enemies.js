@@ -432,3 +432,14 @@ const AR = {
 BOSSES.forEach((b) => {
   if (AR[b.name]) b.arena = AR[b.name];
 });
+// Emilim: bu etiketli hasar bossu iyileştirir (oyuncu o skili kapatmalı)
+const ABS = {
+  'Ateş Lordu': ['Fire'],
+  Magmor: ['Fire'],
+  'Buz Ejderi': ['Ice'],
+  'Zehir Kraliçe': ['Poison'],
+  Raiden: ['Lightning'],
+};
+BOSSES.forEach((b) => {
+  if (ABS[b.name]) b.absorb = ABS[b.name];
+});

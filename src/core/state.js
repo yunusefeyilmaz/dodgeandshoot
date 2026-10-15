@@ -16,6 +16,7 @@ export const state = {
   prompt: null,
   curse: null,
   hitstop: 0,
+  vacuum: 0,
   bannerQ: [],
   waypoint: null,
   runTime: 0,

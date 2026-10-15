@@ -7,6 +7,7 @@ import { burst, ring, shake } from './fx.js';
 import { addBuff } from './buffs.js';
 import { dealDamage } from './combat.js';
 import { inputDir } from './player.js';
+import { is } from '../core/keymap.js';
 // DASH (Shift): kısa mesafe atılır, kısa süre dokunulmaz. Dokunulmazken bir saldırı değerse MÜKEMMEL KAÇIŞ: zaman yavaşlar + buff.
 const maxCharges = (p) => Math.round(stat(p, 'dashCharges'));
 export const dashRecharge = (p) =>
@@ -32,8 +33,8 @@ export function tryDash() {
   p.lastDir = [dx, dy];
   if (d.charges === maxCharges(p)) d.t = dashRecharge(p);
   d.charges--;
-  p.dashV = { dx, dy, t: 0.16 };
-  p.invuln = stat(p, 'dashIframe');
+  state.reverse = 0;
+  p.dashV = { dx, dy, t: 0.16 }; // dash genjutsuyu da bozar p.invuln = stat(p, 'dashIframe');
   sfx('dash');
   burst(p.x, p.y, '#5cc8ff', 10, 260, 0.3);
   return true;
@@ -123,5 +124,5 @@ export function perfectDodge() {
   sfx('crit');
 }
 addEventListener('keydown', (e) => {
-  if (e.key === 'Shift' && !e.repeat) tryDash();
+  if (is(e, 'dash') && !e.repeat) tryDash();
 });

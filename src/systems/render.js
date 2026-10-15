@@ -111,6 +111,13 @@ export function render() {
   }
   g.globalAlpha = 1;
   for (const k of state.pickups) {
+    if (
+      k.x < v.x - 20 ||
+      k.x > v.x + v.w + 20 ||
+      k.y < v.y - 20 ||
+      k.y > v.y + v.h + 20
+    )
+      continue; // ekran dışı çizilmez
     if (k.type === 'coin') {
       g.fillStyle = '#e0b040';
       circle(k.x, k.y, 4);
@@ -150,6 +157,48 @@ export function render() {
     g.fillRect(q.x - 20, q.y - q.r - 12, (40 * Math.max(0, q.hp)) / q.max, 5);
   }
   const wp = state.waypoint; // görev listesinden işaretlenen konum
+  if (wp && Math.hypot(wp.x - p.x, wp.y - p.y) > 110) {
+    // oyuncudan hedefe YOL: akan kesikli çizgi + ilerleyen oklar + mesafe
+    const dx = wp.x - p.x,
+      dy = wp.y - p.y,
+      d = Math.hypot(dx, dy),
+      ux = dx / d,
+      uy = dy / d,
+      ang = Math.atan2(dy, dx);
+    g.save();
+    g.setLineDash([12, 12]);
+    g.lineDashOffset = -performance.now() / 30;
+    g.strokeStyle = '#ffffffb0';
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(p.x + ux * 24, p.y + uy * 24);
+    g.lineTo(wp.x - ux * 34, wp.y - uy * 34);
+    g.stroke();
+    g.restore();
+    for (let t = 70 + ((performance.now() / 8) % 170); t < d - 60; t += 170) {
+      g.save();
+      g.translate(p.x + ux * t, p.y + uy * t);
+      g.rotate(ang);
+      g.fillStyle = '#ffd84f';
+      g.beginPath();
+      g.moveTo(12, 0);
+      g.lineTo(-8, -9);
+      g.lineTo(-3, 0);
+      g.lineTo(-8, 9);
+      g.closePath();
+      g.fill();
+      g.restore();
+    }
+    g.font = 'bold 13px system-ui';
+    g.textAlign = 'center';
+    g.lineWidth = 3;
+    g.strokeStyle = '#000';
+    g.fillStyle = '#fff';
+    const lab = T(wp.label || '') + ' · ' + Math.round(d / 10) + ' m';
+    g.strokeText(lab, p.x + ux * 100, p.y + uy * 100 - 16);
+    g.fillText(lab, p.x + ux * 100, p.y + uy * 100 - 16);
+    g.textAlign = 'left';
+  }
   if (wp) {
     g.globalAlpha = 0.6 + 0.4 * Math.sin(performance.now() / 150);
     g.strokeStyle = '#fff';
@@ -298,6 +347,14 @@ export function render() {
   }
   for (const e of state.ents) {
     if (e.under) continue;
+    if (
+      !e.segs &&
+      (e.x < v.x - 90 ||
+        e.x > v.x + v.w + 90 ||
+        e.y < v.y - 90 ||
+        e.y > v.y + v.h + 90)
+    )
+      continue; // ekran dışı düşman çizilmez
     if (e.segs) {
       g.fillStyle = '#8a7430';
       for (let i = e.segs.length - 1; i >= 0; i--) {
