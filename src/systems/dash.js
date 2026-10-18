@@ -1,3 +1,4 @@
+import { charDash } from './characters.js';
 import { state } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { meta } from '../core/save.js';
@@ -34,7 +35,9 @@ export function tryDash() {
   if (d.charges === maxCharges(p)) d.t = dashRecharge(p);
   d.charges--;
   state.reverse = 0;
-  p.dashV = { dx, dy, t: 0.16 }; // dash genjutsuyu da bozar p.invuln = stat(p, 'dashIframe');
+  p.dashV = { dx, dy, t: 0.16 };
+  charDash();
+  p.invuln = stat(p, 'dashIframe'); // dash genjutsuyu da bozar
   sfx('dash');
   burst(p.x, p.y, '#5cc8ff', 10, 260, 0.3);
   return true;

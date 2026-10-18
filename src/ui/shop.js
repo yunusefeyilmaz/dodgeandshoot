@@ -15,7 +15,7 @@ import { petNodes } from '../systems/pets.js';
 import { sfx } from '../core/audio.js';
 import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { renderTree } from './tree.js';
-import { statGlyph } from './icons.js';
+import { previewParts, statGlyph } from './icons.js';
 // Yükseltmeler ekranı (ağaç). Tooltip: ne artıyor, şu anki -> sonraki değer, örnek hasar, maliyet.
 const owner = (u) =>
   u.pet
@@ -85,6 +85,11 @@ const tip = (n) => {
         fmtStat(n.stat, nxt) +
         '</b></div>' +
         example(n) +
+        (n.pet
+          ? ''
+          : previewParts({
+              mods: [{ stat: n.stat, op: n.op, value: st, tag: n.tag }],
+            })) +
         '<div class="dim">Maliyet: ' +
         costOf(n) +
         ' altın</div>') +

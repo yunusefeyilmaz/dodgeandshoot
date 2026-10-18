@@ -11,10 +11,12 @@ import { updateCombat } from './systems/combat.js';
 import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
 import { updateTracking } from './systems/tracking.js';
+import { updateCharacter } from './systems/characters.js';
 import { render } from './systems/render.js';
 import { initHud, updateHud } from './ui/hud.js';
 import { openCards, openClassPick } from './ui/cards.js';
 import { openMenu } from './ui/menu.js';
+import { MAPS } from './data/maps.js';
 import './ui/achievements.js';
 import './i18n/index.js';
 
@@ -30,6 +32,7 @@ const player = make({
 addPart(player, upgradePart);
 state.player = player;
 state.ents.push(player);
+state.map = MAPS.forest;
 state.mode = 'menu';
 state.paused = true; // menüden silah seçilince startRun() oyunu başlatır
 initHud();
@@ -51,6 +54,7 @@ function step() {
   updateObjective(dt);
   updatePets(dt);
   updateCombat(dt);
+  updateCharacter(dt);
   updateArena(dt);
   updatePickups(dt);
   updateTracking(dt);

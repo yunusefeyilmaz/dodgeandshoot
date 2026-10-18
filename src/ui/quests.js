@@ -82,6 +82,6 @@ export function questList() {
   }
   return L;
 }
-export const setWaypoint = (at, label) => {
-  state.waypoint = { x: at.x, y: at.y, label, t: 12 };
+export const setWaypoint = (at, label, qid) => {
+  state.waypoint = { x: at.x, y: at.y, label, qid, t: qid ? 1e9 : 12 };
 };

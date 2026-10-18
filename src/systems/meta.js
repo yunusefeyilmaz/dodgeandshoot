@@ -34,3 +34,6 @@ export function resetTree() {
 }
 export const treeMods = (w) =>
   WEAPONS[w].tree.filter((n) => owned(w, n.id)).flatMap((n) => n.mods);
+
+export const treeParts = (w) =>
+  WEAPONS[w].tree.filter((n) => n.part && owned(w, n.id)).map((n) => n.part);

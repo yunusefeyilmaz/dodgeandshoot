@@ -54,6 +54,26 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     Math.cos(o.dir - t.face) > 0.3
   )
     amt *= stat(src, 'backstab', tags);
+  if (
+    src === state.player &&
+    state.cp &&
+    state.cp.shadowT > 0 &&
+    tags.includes('Weapon')
+  ) {
+    amt *= 1 + stat(src, 'shadowDmg');
+    state.cp.shadowT = 0;
+  } // Suikastçı: dash sonrası ilk vuruş
+  const fo =
+    tags.includes('Weapon') && src.team === 'p' ? stat(src, 'focus', tags) : 0; // odak: aynı hedefe art arda vuruş
+  if (fo > 0) {
+    const f = (src.fcs ??= { t: null, n: 0 });
+    if (f.t === t) f.n = Math.min(5, f.n + 1);
+    else {
+      f.t = t;
+      f.n = 0;
+    }
+    amt *= 1 + fo * f.n;
+  }
   const crit =
     !status && Math.random() < Math.min(1, stat(src, 'critChance', tags));
   if (crit) amt *= stat(src, 'critDmg', tags);
@@ -140,6 +160,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
     t.dead = true;
     if (o.ab && src.team === 'p')
       (state.abStats[o.ab] ??= { dmg: 0, kills: 0 }).kills++;
+    if (!tags.includes('Status')) killFx(src, t, amt, tags);
     emit('Kill', { source: src, target: t, tags });
   }
   return amt;
@@ -235,7 +256,8 @@ const power = (c, fx, ab) =>
   (fx.damage +
     stat(c, ab.dmgType === 'magic' ? 'ap' : 'ad') * (fx.ratio ?? 1)) *
   stat(c, 'damage', ab.tags) *
-  (c.pw || 1);
+  (c.pw || 1) *
+  (c.surging ? 1 + 0.5 * c.surging : 1);
 
 const EFFECTS = {
   Projectile(c, fx, ab) {
@@ -243,7 +265,8 @@ const EFFECTS = {
     if (!t) return;
     const n = (fx.count || 1) + Math.round(stat(c, 'multishot', ab.tags)),
       base = Math.atan2(t.y - c.y, t.x - c.x);
-    const spread = fx.spread || Math.min(0.6, 0.2 * (n - 1));
+    const spread = fx.spread || Math.min(0.6, 0.2 * (n - 1)),
+      sp = fx.speed * stat(c, 'projSpeed', ab.tags);
     for (let i = 0; i < n; i++) {
       const a = fx.radial
         ? base + (i * 6.283) / n
@@ -251,8 +274,8 @@ const EFFECTS = {
       state.projs.push({
         x: c.x,
         y: c.y,
-        vx: Math.cos(a) * fx.speed,
-        vy: Math.sin(a) * fx.speed,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
         dmg: power(c, fx, ab),
         type: ab.dmgType,
         proc: fx.proc,
@@ -262,9 +285,17 @@ const EFFECTS = {
         tags: ab.tags,
         life: 2.5,
         col: fx.color,
-        size: fx.size,
+        size: (fx.size || 4) * (c.surging ? 1.4 : 1),
         shape: fx.shape,
-        pierce: (fx.pierce || 0) + Math.round(stat(c, 'pierce', ab.tags)),
+        trail: fx.trail,
+        tcol: fx.tcol,
+        accel: fx.accel,
+        homing: (fx.homing || 0) + stat(c, 'homing', ab.tags),
+        ric: Math.round(stat(c, 'ricochet', ab.tags)),
+        pierce:
+          (fx.pierce || 0) +
+          Math.round(stat(c, 'pierce', ab.tags)) +
+          (c.surging ? 1 : 0),
         hit: new Set(),
       });
     }
@@ -273,16 +304,25 @@ const EFFECTS = {
     const r =
       fx.radius *
       stat(c, 'area', ab.tags) *
-      (c.team === 'e' && !c.boss ? 0.7 : 1); // düşman yakın dövüş alanı oyuncununkinden küçük
+      (c.team === 'e' && !c.boss ? 0.7 : 1) *
+      (c.surging ? 1 + 0.35 * c.surging : 1); // düşman yakın dövüş alanı oyuncununkinden küçük
+    const pl = stat(c, 'pull', ab.tags);
     for (const e of foes(c))
-      if (reach(c.x, c.y, e, r))
+      if (reach(c.x, c.y, e, r)) {
         dealDamage(c, e, power(c, fx, ab), ab.tags, {
           dir: Math.atan2(e.y - c.y, e.x - c.x),
           type: ab.dmgType,
           proc: fx.proc,
           ab: ab.id,
         });
-    state.fx.push({ x: c.x, y: c.y, r, t: 0.25 });
+        if (pl > 0 && e.hp > 0) {
+          const d = dist(c, e) || 1,
+            im = pl * 8 * (1 - Math.min(0.95, stat(e, 'kbResist')));
+          e.kx = (e.kx || 0) + ((c.x - e.x) / d) * im;
+          e.ky = (e.ky || 0) + ((c.y - e.y) / d) * im;
+        }
+      }
+    state.fx.push({ x: c.x, y: c.y, r, t: 0.25, s: fxStyle(ab) });
   },
   Rain(c, fx, ab) {
     // rastgele alanlara uyarılı vuruş (düşmanda kırmızı, oyuncuda mavi alan)
@@ -315,7 +355,7 @@ const EFFECTS = {
                 proc: fx.proc,
                 ab: ab.id,
               });
-          state.fx.push({ x, y, r, t: 0.25 });
+          state.fx.push({ x, y, r, t: 0.25, s: fxStyle(ab) });
           burst(x, y, team === 'e' ? '#ff6a4a' : '#9be0ff', 10, 200, 0.5);
           for (let j = 0; j < (fx.cluster || 0); j++) {
             // bomba: patlayınca küçük bombalara bölünür
@@ -736,6 +776,118 @@ function deathBlast(e) {
     },
   });
 }
+const fxStyle = (ab) => {
+  const t = ab.tags;
+  return t.includes('Lightning')
+    ? 'bolt'
+    : t.includes('Fire')
+      ? 'fire'
+      : t.includes('Ice')
+        ? 'ice'
+        : t.includes('Poison')
+          ? 'poison'
+          : t.includes('Sword')
+            ? 'slash'
+            : t.includes('Earth')
+              ? 'quake'
+              : t.includes('Dark')
+                ? 'dark'
+                : t.includes('Heal')
+                  ? 'heal'
+                  : 'ring';
+};
+function weaponExtras(e, ab, n) {
+  // silah ağacının benzersiz mekanikleri: hilal dalgası, ok yağmuru
+  const cr = stat(e, 'crescent', ab.tags),
+    vo = stat(e, 'volley', ab.tags),
+    f0 = ab.effects[0];
+  if (cr > 0 && n % 3 === 0)
+    EFFECTS.Projectile(
+      e,
+      {
+        type: 'Projectile',
+        damage: (f0.damage || 20) * 0.6 * cr,
+        shape: 'crescent',
+        size: 14,
+        pierce: 3,
+        speed: 520,
+        count: 1,
+        color: '#ffe0a0',
+      },
+      ab,
+    );
+  if (vo > 0 && n % 5 === 0)
+    EFFECTS.Rain(
+      e,
+      {
+        count: 5,
+        radius: 45,
+        delay: 0.5,
+        damage: (f0.damage || 14) * 0.7 * vo,
+        spread: 130,
+      },
+      ab,
+    );
+}
+function nearestUnhit(pr, range) {
+  let b = null,
+    bd = range * range;
+  for (const e of state.fc.enemies) {
+    if (pr.hit.has(e) || e.hp <= 0) continue;
+    const d = (e.x - pr.x) ** 2 + (e.y - pr.y) ** 2;
+    if (d < bd) {
+      bd = d;
+      b = e;
+    }
+  }
+  return b;
+}
+function steer(pr, dt) {
+  // güdümlü mermi: yakındaki düşmana doğru döner
+  const t = nearestUnhit(pr, 480);
+  if (!t) return;
+  const sp = Math.hypot(pr.vx, pr.vy),
+    a = Math.atan2(pr.vy, pr.vx),
+    da =
+      ((Math.atan2(t.y - pr.y, t.x - pr.x) - a + Math.PI * 3) % (Math.PI * 2)) -
+      Math.PI,
+    tr = Math.max(-pr.homing * dt, Math.min(pr.homing * dt, da));
+  pr.vx = Math.cos(a + tr) * sp;
+  pr.vy = Math.sin(a + tr) * sp;
+}
+function bounce(pr) {
+  // sekme: vurduktan sonra en yakın başka düşmana yönel
+  const t = nearestUnhit(pr, 330);
+  if (!t) return false;
+  const sp = Math.hypot(pr.vx, pr.vy),
+    a = Math.atan2(t.y - pr.y, t.x - pr.x);
+  pr.vx = Math.cos(a) * sp;
+  pr.vy = Math.sin(a) * sp;
+  pr.ric--;
+  pr.life = Math.max(pr.life, 1.2);
+  return true;
+}
+function killFx(src, t, amt, tags) {
+  // öldürme efektleri: ölüm patlaması (Asa), dash yenileme (Kılıç)
+  if (src.team !== 'p') return;
+  const kn = stat(src, 'killNova', tags);
+  if (kn > 0) {
+    for (const e of foes(src))
+      if (e !== t && reach(t.x, t.y, e, 110))
+        dealDamage(src, e, amt * kn, ['Status', 'Area'], { type: 'magic' });
+    state.fx.push({ x: t.x, y: t.y, r: 110, t: 0.25, s: 'bolt' });
+    burst(t.x, t.y, '#c9a8ff', 12, 260, 0.5);
+  }
+  if (
+    tags.includes('Sword') &&
+    stat(src, 'refreshDash', tags) > 0 &&
+    src.dash &&
+    src.dash.charges < Math.round(stat(src, 'dashCharges'))
+  )
+    src.dash.charges++;
+}
+import { reviveIfPossible } from './campaign.js';
+import { charCast } from './characters.js';
 export function updateCombat(dt) {
   state.fc = {
     enemies: state.ents.filter((e) => e.team === 'e' && e.hp > 0 && !e.under),
@@ -800,7 +952,13 @@ export function updateCombat(dt) {
           t &&
           dist(e, t) < (ab.range || 340) * stat(e, 'area', ab.tags)
         ) {
+          const n = (e.wc[ab.id] = (e.wc[ab.id] || 0) + 1),
+            sg = stat(e, 'surge', ab.tags);
+          e.surging = sg > 0 && n % 3 === 0 ? sg : 0; // üçleme: her 3. saldırı güçlü
           for (const fx of ab.effects) EFFECTS[fx.type](e, fx, ab);
+          weaponExtras(e, ab, n);
+          e.surging = 0;
+          if (e === state.player) charCast(e);
           const as = ab.tags.includes('Weapon')
             ? stat(e, 'attackSpeed', ab.tags)
             : 1;
@@ -848,6 +1006,7 @@ export function updateCombat(dt) {
       ab: pr.ab,
     });
     pr.hit.add(e);
+    if (pr.ric > 0 && bounce(pr)) return false; // sekme: başka düşmana yönelir
     if (pr.pierce-- <= 0) {
       pr.life = 0;
       return true;
@@ -855,10 +1014,18 @@ export function updateCombat(dt) {
     return false;
   };
   for (const pr of state.projs) {
+    pr.age = (pr.age || 0) + dt;
+    if (pr.accel) {
+      const k = 1 + pr.accel * dt;
+      pr.vx *= k;
+      pr.vy *= k;
+    }
+    if (pr.homing > 0 && pr.team === 'p') steer(pr, dt);
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;
     pr.life -= dt;
-    if (Math.random() < 0.12) burst(pr.x, pr.y, pr.col || '#fff', 1, 10, 0.25);
+    if (Math.random() < (pr.trail || 0.12))
+      burst(pr.x, pr.y, pr.tcol || pr.col || '#fff', 1, 10, 0.25);
     if (pr.team !== 'p') {
       if (pillarBlocks(pr)) continue;
       for (const e of foes({ team: pr.team })) if (tryHit(pr, e)) break;
@@ -924,5 +1091,5 @@ export function updateCombat(dt) {
   updateTele(dt);
   updateFx(dt);
   state.fc = null;
-  if (p.hp <= 0) state.over = true;
+  if (p.hp <= 0 && !reviveIfPossible(p, stat(p, 'maxHp'))) state.over = true;
 }

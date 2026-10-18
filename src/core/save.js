@@ -6,6 +6,11 @@ const def = () => ({
   bestBoss: 0,
   unlockedWeapons: ['sword'],
   weaponTree: {},
+  maps: {},
+  starPerks: {},
+  souls: 0,
+  chars: {},
+  unlockedChars: ['warrior'],
   stats: {
     runs: 0,
     deaths: 0,

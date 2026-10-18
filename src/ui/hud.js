@@ -18,6 +18,7 @@ import { finishRun, abandonRun } from '../systems/tracking.js';
 import { sellItem } from '../systems/inventory.js';
 import { releaseClass } from '../systems/classes.js';
 import { removePet } from '../systems/pets.js';
+import { updateCharHud } from './charhud.js';
 import { openShop } from './shop.js';
 import { picked } from './cards.js';
 import {
@@ -93,7 +94,8 @@ let shopBtn,
   clsSig = '',
   petSig = '',
   frame = 0,
-  overShown = false;
+  overShown = false,
+  wonShown = false;
 const open = (k) => panels[k].style.display === 'block';
 const anyOpen = () => Object.keys(panels).some(open);
 
@@ -775,6 +777,14 @@ function summaryEl() {
           )
           .join('')
       : '');
+  if (state.lastGain)
+    d.innerHTML +=
+      '<div class="sh">KALICI İLERLEME</div><div class="sg2"><span>Kazanılan Ruh</span><b>+' +
+      state.lastGain.souls +
+      '</b><span>Karakter XP</span><b>+' +
+      state.lastGain.xp +
+      (state.lastGain.up ? ' · SEVİYE ATLADI ×' + state.lastGain.up : '') +
+      '</b></div>';
   return d;
 }
 export function updateHud() {
@@ -793,7 +803,11 @@ export function updateHud() {
   $('wave').textContent =
     w.n === 0
       ? 'Hazır'
-      : 'Tur ' + w.n + (w.phase === 'active' ? ' · kalan ' + left : ' · bitti');
+      : 'Tur ' +
+        w.n +
+        '/' +
+        state.map.rounds +
+        (w.phase === 'active' ? ' · kalan ' + left : ' · bitti');
   $('startBtn').style.display = w.phase === 'active' ? 'none' : 'block';
   $('startBtn').disabled = state.over || !state.weapon;
   const done = w.phase === 'active' ? w.n - 1 : w.n,
@@ -1051,12 +1065,47 @@ export function updateHud() {
   if (open('stat')) updateStatIcons();
   if (frame % 6 === 0) refreshTip();
   if (frame % 60 === 1) refreshKbd();
+  updateCharHud();
+  if (state.victory && !wonShown) {
+    wonShown = true;
+    const v = state.victory,
+      g = state.lastGain || {};
+    hideOverlay();
+    showOverlay(
+      'ZAFER — ' + state.map.name,
+      [
+        summaryEl(),
+        (() => {
+          const d = document.createElement('div');
+          d.className = 'sum';
+          d.innerHTML =
+            '<div class="sh">HARİTA TAMAMLANDI</div><div class="stars" style="font-size:28px;text-align:center">' +
+            '★'.repeat(v.stars) +
+            '<span class="off">' +
+            '★'.repeat(3 - v.stars) +
+            '</span></div><div style="text-align:center">' +
+            (v.gained
+              ? '+' +
+                v.gained +
+                ' yeni yıldız kazandın! (Ana menü → Yıldız Yetenekleri)'
+              : 'Daha fazla yıldız için daha yüksek zorlukta dene.') +
+            '</div><div style="text-align:center">Ruh: <b>+' +
+            (g.souls || 0) +
+            '</b></div>';
+          return d;
+        })(),
+        btn('Sonsuz modda devam et', () => hideOverlay()),
+        btn('Menüye dön', () => location.reload()),
+      ],
+      'over',
+    );
+  }
   if (state.over && !overShown) {
     overShown = true;
     finishRun();
     hideOverlay();
     showOverlay(
-      'Düştün — Tur ' + w.n,
+      'Düştün — ' + state.map.name + ', Tur ' + w.n,
       [summaryEl(), btn('Menüye dön', () => location.reload())],
       'over',
     );

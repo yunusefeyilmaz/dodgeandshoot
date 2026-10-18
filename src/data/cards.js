@@ -45,22 +45,22 @@ export const CARDS = [
   C('Zihin', 'common', '+3 yetenek hızlandırma', [m('haste', 3)]),
   S(
     'Ateş Topu',
-    'common',
+    'uncommon',
     'Yeni skill: Ateş Topu (AP ile güçlenir)',
     ABILITIES.fireball,
   ),
   S(
     'Buz Patlaması',
-    'common',
+    'uncommon',
     'Yeni skill: Buz Patlaması, yavaşlatır (AP)',
     ABILITIES.nova,
   ),
   {
     name: 'Sırt Çantası',
-    rarity: 'common',
+    rarity: 'epic',
     codex: 1,
     desc: '+2 envanter slotu',
-    max: 4,
+    max: 3,
     apply: () => {
       state.inventory.push(null, null);
     },
@@ -70,7 +70,7 @@ export const CARDS = [
     m('damage', 1.25, 'mul', 'Fire'),
   ]),
   C('Aşırı Yük', 'uncommon', 'Tüm hasar +%10', [m('damage', 1.1, 'mul')]),
-  C('Şanslı Tılsım', 'uncommon', '+3 luck', [m('luck', 3)], {
+  C('Şanslı Tılsım', 'rare', '+3 luck', [m('luck', 3)], {
     repeat: true,
     max: 6,
   }),
@@ -182,7 +182,7 @@ export const CARDS = [
   ),
   {
     name: 'Sınıf Yuvası',
-    rarity: 'epic',
+    rarity: 'mythic',
     codex: 1,
     desc: '+1 sınıf slotu',
     max: 2,
@@ -396,7 +396,7 @@ CARDS.push(
 CARDS.push(
   {
     name: 'Kader Çarkı',
-    rarity: 'rare',
+    rarity: 'epic',
     codex: 1,
     desc: '+2 kart yenileme hakkı',
     max: 3,
@@ -406,7 +406,7 @@ CARDS.push(
   },
   {
     name: 'Kara Liste',
-    rarity: 'rare',
+    rarity: 'epic',
     codex: 1,
     desc: '+1 kart yasaklama hakkı',
     max: 3,
@@ -498,3 +498,86 @@ CARDS.push(
 UP('Buz Mızrağı', 'ab_icelance', 'rare', 'proj');
 UP('Gölge Hançerleri', 'ab_knives', 'uncommon', 'proj');
 UP('Şifa Çiçeği', 'ab_bloom', 'rare', 'area');
+
+// --- Her kademede TEKRAR alınabilen "dolgu" kartlar: kademeler hiç boşalmasın (nadir kartlar bitince oranlar bozulmasın)
+const FILL = (name, rarity, desc, mods, max) =>
+  CARDS.push(C(name, rarity, desc, mods, { max, repeat: true }));
+FILL('Güç Antrenmanı', 'uncommon', '+4 AD', [m('ad', 4)], 6);
+FILL('Zihin Antrenmanı', 'uncommon', '+4 AP', [m('ap', 4)], 6);
+FILL(
+  'Atik Adımlar',
+  'uncommon',
+  '+12 hareket hızı, +6 yetenek hızlandırma',
+  [m('speed', 12), m('haste', 6)],
+  4,
+);
+FILL(
+  'Demir Deri',
+  'rare',
+  '+8 zırh, +8 büyü direnci',
+  [m('armor', 8), m('mr', 8)],
+  5,
+);
+FILL(
+  'Kanlı Keskinlik',
+  'rare',
+  '+%4 kritik şansı, +%10 kritik hasarı',
+  [m('critChance', 0.04), m('critDmg', 0.1)],
+  5,
+);
+FILL(
+  'Yaşam Pınarı',
+  'rare',
+  '+40 max can, +0.5 can/sn',
+  [m('maxHp', 40), m('regen', 0.5)],
+  5,
+);
+FILL(
+  'Savaş Çılgınlığı',
+  'epic',
+  'Saldırı hızı +%8, hasar +%6',
+  [m('attackSpeed', 1.08, 'mul'), m('damage', 1.06, 'mul')],
+  4,
+);
+FILL(
+  'Zırh Delici',
+  'epic',
+  '+%8 zırh delme, +%8 büyü delme',
+  [m('armorPen', 0.08), m('magicPen', 0.08)],
+  4,
+);
+FILL(
+  'Ejder Kanı',
+  'mythic',
+  '+14 AD, +14 AP, +70 max can',
+  [m('ad', 14), m('ap', 14), m('maxHp', 70)],
+  3,
+);
+FILL(
+  'Kader Dokunuşu',
+  'mythic',
+  '+4 şans, kritik hasarı +%25',
+  [m('luck', 4), m('critDmg', 0.25)],
+  3,
+);
+FILL(
+  'Yarı Tanrı',
+  'legendary',
+  'Hasar +%10, +100 max can, +3 şans',
+  [m('damage', 1.1, 'mul'), m('maxHp', 100), m('luck', 3)],
+  3,
+);
+FILL(
+  'Fırtına Kalbi',
+  'legendary',
+  'Saldırı hızı +%12, hareket hızı +20, yetenek hızlandırma +12',
+  [m('attackSpeed', 1.12, 'mul'), m('speed', 20), m('haste', 12)],
+  3,
+);
+FILL(
+  'Kadim Kan',
+  'ancient',
+  'Hasar +%12, +25 AD, +25 AP',
+  [m('damage', 1.12, 'mul'), m('ad', 25), m('ap', 25)],
+  2,
+);

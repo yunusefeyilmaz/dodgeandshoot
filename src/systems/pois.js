@@ -1,7 +1,7 @@
 import { state, toast, rnd, W, H } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
-import { RARITIES, weightOf, rarityBoost } from '../core/rarity.js';
+import { RARITIES, weightsFor, rarityBoost } from '../core/rarity.js';
 import { discover, meta } from '../core/save.js';
 import { addBuff } from './buffs.js';
 import { sfx } from '../core/audio.js';
@@ -34,7 +34,7 @@ function giveCard(minTier) {
     pool = pickPool(minTier);
   if (!pool.length) return toast('Sunak sessiz kaldı...');
   const luck = rarityBoost(),
-    ws = pool.map((c) => weightOf(c.rarity, luck));
+    ws = weightsFor(pool, luck);
   let x = Math.random() * ws.reduce((a, b) => a + b, 0);
   const i = ws.findIndex((w) => (x -= w) <= 0),
     c = pool[i < 0 ? 0 : i];

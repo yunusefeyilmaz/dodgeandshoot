@@ -1,7 +1,7 @@
 import { state, rnd, dist, toast } from '../core/state.js';
 import { on } from '../core/events.js';
 import { stat } from '../core/stats.js';
-import { weightOf, rarityBoost } from '../core/rarity.js';
+import { weightsFor, rarityBoost } from '../core/rarity.js';
 import { BAL } from '../data/balance.js';
 import { ITEMS } from '../data/items.js';
 import { addItem } from './inventory.js';
@@ -47,8 +47,14 @@ on('Kill', ({ target: t }) => {
     ? 1
     : t.mini
       ? 0.45
-      : Math.min(BAL.itemDropMax, BAL.itemDropBase + luck * BAL.itemDropLuck) *
-        (t.elite ? 4 : 1) *
+      : Math.min(
+          BAL.itemDropMax,
+          (BAL.itemDropBase + luck * BAL.itemDropLuck) /
+            (1 + state.wave.n * 0.1),
+        ) *
+        (t.elite
+          ? 4
+          : 1) /* tur başına ~1 item: düşman sayısı arttıkça kill başına şans düşer */ *
         state.mut.itemMul; // item şansı düşük; boss garantili
   if (Math.random() < chance) {
     state.pickups.push({
@@ -121,7 +127,7 @@ export function updatePickups(dt) {
 export function rollItem(bonus = 0, minTier = 0) {
   const luck = rarityBoost(bonus),
     pool = ITEMS.filter((i) => !i.unique && RARITIES[i.rarity].tier >= minTier),
-    ws = pool.map((i) => weightOf(i.rarity, luck));
+    ws = weightsFor(pool, luck);
   let x = Math.random() * ws.reduce((a, b) => a + b, 0);
   const idx = ws.findIndex((w) => (x -= w) <= 0);
   return pool[idx < 0 ? 0 : idx];

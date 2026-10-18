@@ -1,7 +1,7 @@
 import { state, toast } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { addPart } from '../core/entity.js';
-import { RARITIES, weightOf, rarityBoost, tierOdds } from '../core/rarity.js';
+import { RARITIES, weightsFor, rarityBoost, tierOdds } from '../core/rarity.js';
 import { discover, meta } from '../core/save.js';
 import { sfx } from '../core/audio.js';
 import { CARDS } from '../data/cards.js';
@@ -12,6 +12,7 @@ import { xpNeed } from '../systems/rewards.js';
 import { burst, ring } from '../systems/fx.js';
 import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { setTip } from './tooltip.js';
+import { previewParts } from './icons.js';
 export const picked = state.picked;
 
 // Nadirliğe göre renkli kart
@@ -51,20 +52,21 @@ function cardEl(c, onPick) {
         '</div>' +
         (c.requires
           ? '<div class="dim">Bağlı kart: ' + c.requires + ' gerekli</div>'
-          : ''),
+          : '') +
+        previewParts(c.part),
     );
   d.onmouseleave = () => setTip(null);
   return d;
 }
 function pickWeighted(pool, n, luck) {
-  // luck yüksek nadirlikleri öne çıkarır
-  const out = [],
-    w = (c) => weightOf(c.rarity, luck);
+  // kademe eğrisine göre ağırlıklı seçim (kademe başına eşitlenmiş)
+  const out = [];
   while (out.length < n && pool.length) {
-    let x = Math.random() * pool.reduce((s, c) => s + w(c), 0);
-    const c = pool.find((c) => (x -= w(c)) <= 0) || pool[0];
-    out.push(c);
-    pool.splice(pool.indexOf(c), 1);
+    const ws = weightsFor(pool, luck);
+    let x = Math.random() * ws.reduce((a, b) => a + b, 0),
+      i = ws.findIndex((w) => (x -= w) <= 0);
+    if (i < 0) i = 0;
+    out.push(pool.splice(i, 1)[0]);
   }
   return out;
 }
@@ -167,19 +169,24 @@ function showCards(ban, fresh) {
     boost.toFixed(1) +
     ' = luck + tur + boss)</small><br>' +
     tierOdds(buildPool(), boost)
-      .map(
-        (t) =>
-          '<span style="color:' +
-          t.col +
-          '">' +
-          t.name +
-          ' %' +
-          (t.p >= 1
-            ? t.p.toFixed(1)
-            : t.p >= 0.01
-              ? t.p.toFixed(2)
-              : t.p.toFixed(4)) +
-          '</span>',
+      .map((t) =>
+        t.n
+          ? '<span style="color:' +
+            t.col +
+            '">' +
+            t.name +
+            ' %' +
+            (t.p >= 1
+              ? t.p.toFixed(1)
+              : t.p >= 0.01
+                ? t.p.toFixed(2)
+                : t.p >= 0.0001
+                  ? t.p.toFixed(4)
+                  : '<0.0001') +
+            '</span>'
+          : '<span style="color:#6b6470">' +
+            t.name +
+            ' — (kart kalmadı)</span>',
       )
       .join(' · ');
   nodes.push(odds);

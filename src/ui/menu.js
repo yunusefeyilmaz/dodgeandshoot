@@ -18,13 +18,44 @@ import {
   isUnlocked,
 } from '../systems/meta.js';
 import { startRun } from '../systems/run.js';
+import { MAP_LIST } from '../data/maps.js';
+import { CHARS, CHAR_LIST, xpFor, MAX_CHAR_LEVEL } from '../data/characters.js';
+import {
+  mapState,
+  isMapUnlocked,
+  starsEarned,
+  starPoints,
+  STAR_PERKS,
+  hasPerk,
+  buyPerk,
+  resetPerks,
+  starReq,
+} from '../systems/campaign.js';
+import {
+  charMeta,
+  isCharUnlocked,
+  unlockChar,
+  charPoints,
+  charOwned,
+  buyCharNode,
+  resetCharTree,
+} from '../systems/characters.js';
 import { renderTree } from './tree.js';
 import { statGlyph } from './icons.js';
 import { setTip } from './tooltip.js';
 const M = document.getElementById('menu'),
   $ = (id) => document.getElementById(id);
 let tab = 'ach',
-  selW = 'sword';
+  selW = 'sword',
+  selM = meta.settings.map || 'forest',
+  selC = meta.settings.char || 'warrior',
+  viewC = 'warrior';
+const stars = (n) =>
+  '<span class="stars">' +
+  '★'.repeat(n) +
+  '<span class="off">' +
+  '★'.repeat(3 - n) +
+  '</span></span>';
 const hov = (el, html) => {
   el.onmouseenter = () => setTip(() => html);
   el.onmouseleave = () => setTip(null);
@@ -44,14 +75,16 @@ export function openMenu() {
 }
 
 function mainScreen() {
-  M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Puanı: <b>${points()}</b></div>
-    <button class="big" id="mPlay">Oyna</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button><button class="big" id="mSet">Ayarlar</button>
+  M.innerHTML = `<div class="mwrap center"><h1>DODGE<br>AND SHOOT</h1><div class="sub">Boss Puanı: <b>${points()}</b> · Ruh: <b>${meta.souls || 0}</b> · Yıldız: <b>${starPoints()}</b></div>
+    <button class="big" id="mPlay">Oyna</button><button class="big" id="mChars">Karakterler</button><button class="big" id="mStars">Yıldız Yetenekleri</button><button class="big" id="mAch">Başarılar</button><button class="big" id="mStat">İstatistikler</button><button class="big" id="mSet">Ayarlar</button>
     <div class="mfoot"><button id="mMute"></button><button id="mWipe">Kaydı sil</button><button id="mLang"></button></div></div>`;
   const mute = () =>
     ($('mMute').textContent =
       'Ses: ' + (meta.settings.mute ? 'kapalı' : 'açık') + ' (M)');
   mute();
   $('mPlay').onclick = () => go(weaponScreen);
+  $('mChars').onclick = () => go(charsScreen);
+  $('mStars').onclick = () => go(starsScreen);
   $('mAch').onclick = () => go(achScreen);
   $('mStat').onclick = () => go(statScreen);
   $('mSet').onclick = () => go(settingsScreen);
@@ -78,7 +111,20 @@ function mainScreen() {
 
 function weaponScreen() {
   if (!isUnlocked(selW)) selW = 'sword';
-  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Silah seç</h2><div class="sub">Boss Puanı: <b id="bp"></b></div></div>
+  if (!isMapUnlocked(selM)) selM = 'forest';
+  if (!isCharUnlocked(selC)) selC = 'warrior';
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Sefere Çık</h2><div class="sub">Boss Puanı: <b id="bp"></b></div></div>
+    <div class="sh2">HARİTA</div><div class="wlist">${MAP_LIST.map((mp) => {
+      const u = isMapUnlocked(mp.id),
+        ms = mapState(mp.id);
+      return `<div class="wcard ${u ? '' : 'lock'} ${mp.id === selM ? 'sel' : ''}" data-m="${mp.id}"><div class="ico">${u ? mp.icon : '🔒'}</div><b>${mp.name}</b><small>${u ? mp.desc : 'Kilitli: ' + mp.unlock.text}</small>${u ? `<div>${stars(ms.stars)}</div><small>${mp.rounds} tur · ${mp.bosses.length} boss · zorluk ×${mp.diff}${ms.best ? ' · en iyi tur ' + ms.best : ''}</small>` : ''}</div>`;
+    }).join('')}</div>
+    <div class="sh2">KARAKTER</div><div class="wlist">${CHAR_LIST.map((id) => {
+      const c = CHARS[id],
+        u = isCharUnlocked(id);
+      return `<div class="wcard ${u ? '' : 'lock'} ${id === selC ? 'sel' : ''}" data-c="${id}"><div class="ico">${u ? c.icon : '🔒'}</div><b>${c.name}</b><small>${u ? c.passive.name + ': ' + c.desc : 'Kilitli: ' + c.cost + ' Ruh (Karakterler ekranı)'}</small>${u ? `<small>Seviye ${charMeta(id).lvl}</small>` : ''}</div>`;
+    }).join('')}</div>
+    <div class="sh2">SİLAH</div>
     <div class="wlist">${Object.entries(WEAPONS)
       .map(([id, w]) => {
         const u = isUnlocked(id);
@@ -89,7 +135,44 @@ function weaponScreen() {
     <div class="treehead"><b>${WEAPONS[selW].name} yetenek ağacı</b><button id="mReset">Puanları sıfırla</button></div>
     <div id="mtree" class="treewrap"></div><div class="treehead"><b>Zorluk: <span id="heatV"></span></b><span><button id="heatM">−</button> <button id="heatP">+</button></span></div><button class="big go" id="mGo">Başla</button></div>`;
   $('mBack').onclick = () => go(mainScreen);
-  M.querySelectorAll('.wcard').forEach((c) => {
+  M.querySelectorAll('[data-m]').forEach((c) => {
+    const mp = MAP_LIST.find((x) => x.id === c.dataset.m),
+      u = isMapUnlocked(mp.id);
+    c.onclick = () =>
+      u &&
+      go(() => {
+        selM = mp.id;
+        meta.settings.map = selM;
+        save(true);
+        weaponScreen();
+      });
+    hov(
+      c,
+      u
+        ? `<b>${mp.name}</b><div class="dim">${mp.desc}</div><div class="dim">Yıldızlar: ${[1, 2, 3].map((n) => (mapState(mp.id).stars >= n ? '★ ' : '☆ ') + starReq(n)).join('<br>')}</div>`
+        : `<b>Kilitli harita</b><div class="dim">${mp.unlock.text}</div>`,
+    );
+  });
+  M.querySelectorAll('[data-c]').forEach((c) => {
+    const ch = CHARS[c.dataset.c],
+      u = isCharUnlocked(c.dataset.c);
+    c.onclick = () =>
+      u &&
+      go(() => {
+        selC = c.dataset.c;
+        meta.settings.char = selC;
+        save(true);
+        weaponScreen();
+      });
+    hov(
+      c,
+      `<b>${ch.icon} ${ch.name}</b><div class="dim">${ch.desc}</div><div><b>${ch.passive.name}:</b> ${ch.passive.text}</div>` +
+        (u
+          ? ''
+          : `<div class="dim">Açmak için ${ch.cost} Ruh gerekir (şu an ${meta.souls || 0})</div>`),
+    );
+  });
+  M.querySelectorAll('[data-w]').forEach((c) => {
     const id = c.dataset.w,
       w = WEAPONS[id];
     c.onclick = () =>
@@ -168,8 +251,96 @@ function weaponScreen() {
   $('mGo').onclick = () => {
     setTip(null);
     M.style.display = 'none';
-    startRun(selW);
+    startRun(selW, { map: selM, char: selC });
   };
+}
+
+function charsScreen() {
+  if (!CHARS[viewC]) viewC = 'warrior';
+  const c = CHARS[viewC],
+    u = isCharUnlocked(viewC),
+    cm = charMeta(viewC),
+    need = xpFor(cm.lvl);
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Karakterler</h2><div class="sub">Ruh: <b id="soul">${meta.souls || 0}</b></div></div>
+    <div class="wlist">${CHAR_LIST.map((id) => {
+      const x = CHARS[id],
+        k = isCharUnlocked(id);
+      return `<div class="wcard ${k ? '' : 'lock'} ${id === viewC ? 'sel' : ''}" data-c="${id}"><div class="ico">${x.icon}</div><b>${x.name}</b><small>${k ? 'Seviye ' + charMeta(id).lvl : x.cost + ' Ruh'}</small></div>`;
+    }).join('')}</div>
+    <div class="cdet"><div><h3 style="margin:4px 0">${c.icon} ${c.name}</h3><div class="dim">${c.desc}</div><div style="margin-top:6px"><b>${c.passive.name}</b><br><small>${c.passive.text}</small></div>
+      <div style="margin-top:8px"><small>Başlangıç: ${c.mods.map((m) => (m.value > 0 && m.op === 'add' ? '+' : '') + (m.op === 'mul' ? '×' + m.value : m.value) + ' ' + m.stat).join(', ')}</small></div>
+      ${
+        u
+          ? `<div style="margin-top:10px">Seviye <b>${cm.lvl}</b>${cm.lvl >= MAX_CHAR_LEVEL ? ' (MAX)' : ` · XP ${cm.xp}/${need}`}</div><div class="xpb"><i style="width:${cm.lvl >= MAX_CHAR_LEVEL ? 100 : (100 * cm.xp) / need}%"></i></div>
+      <div style="margin-top:6px">Ruh Puanı: <b id="cp">${charPoints(viewC)}</b> <small>(her seviye 1 puan)</small></div>`
+          : `<div style="margin-top:12px"><button class="big" id="cUnlock" ${(meta.souls || 0) >= c.cost ? '' : 'disabled'}>Aç — ${c.cost} Ruh</button></div>`
+      }</div>
+      <div>${u ? `<div class="treehead"><b>${c.name} ağacı</b><button id="cReset">Puanları sıfırla</button></div><div id="ctree" class="treewrap"></div>` : '<div class="dim">Ruh toplayarak karakteri aç. Ruh, her koşu sonunda kazanılır (öldürme, tur ve boss başına).</div>'}</div></div></div>`;
+  $('mBack').onclick = () => go(mainScreen);
+  M.querySelectorAll('[data-c]').forEach((e) => {
+    e.onclick = () =>
+      go(() => {
+        viewC = e.dataset.c;
+        charsScreen();
+      });
+  });
+  if ($('cUnlock'))
+    $('cUnlock').onclick = () => {
+      if (unlockChar(viewC)) {
+        sfx('click');
+        selC = viewC;
+        meta.settings.char = selC;
+        save(true);
+        charsScreen();
+      }
+    };
+  if (u) {
+    const draw = () => {
+      $('cp').textContent = charPoints(viewC);
+      renderTree($('ctree'), c.tree, {
+        icon: (n) => statGlyph(n.mods[0].stat),
+        level: (n) => (charOwned(viewC, n.id) ? 1 : 0),
+        can: (n) =>
+          !charOwned(viewC, n.id) &&
+          charPoints(viewC) >= n.cost &&
+          (!n.parent || charOwned(viewC, n.parent)),
+        sub: (n) => (charOwned(viewC, n.id) ? 'Açık ✓' : n.cost + ' Ruh Puanı'),
+        tip: (n) =>
+          `<b>${n.name}</b><div>${n.desc}</div><div class="dim">${charOwned(viewC, n.id) ? 'Açık' : 'Maliyet: ' + n.cost + ' Ruh Puanı'}</div>`,
+        buy: (n) => {
+          if (buyCharNode(viewC, n)) sfx('click');
+        },
+        rerender: draw,
+      });
+    };
+    draw();
+    $('cReset').onclick = () =>
+      go(() => {
+        resetCharTree(viewC);
+        charsScreen();
+      });
+  }
+}
+function starsScreen() {
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Yıldız Yetenekleri</h2><div class="sub">Kullanılabilir: <b>${starPoints()}</b> ★ (toplam ${starsEarned()})</div></div>
+    <div class="dim">Her harita 3 yıldız verir: ★ haritayı bitir · ★★ Zorluk 2+ ile bitir · ★★★ Zorluk 4+ ile bitir. Yıldızlar kalıcı yetenek satın almak için harcanır.</div>
+    <div class="wlist">${MAP_LIST.map((mp) => `<div class="wcard"><div class="ico">${mp.icon}</div><b>${mp.name}</b><div>${stars(mapState(mp.id).stars)}</div></div>`).join('')}</div>
+    <div class="treehead"><b>Yetenekler</b><button id="pReset">Yıldızları geri al</button></div>
+    <div class="wlist">${STAR_PERKS.map((p) => `<div class="wcard perk ${hasPerk(p.id) ? 'have' : starPoints() >= p.cost ? 'buy' : ''}" data-p="${p.id}"><div class="ico">${p.icon}</div><b>${p.name}</b><small>${p.desc}</small><small>${hasPerk(p.id) ? 'Açık ✓' : p.cost + ' ★'}</small></div>`).join('')}</div></div>`;
+  $('mBack').onclick = () => go(mainScreen);
+  $('pReset').onclick = () =>
+    go(() => {
+      resetPerks();
+      starsScreen();
+    });
+  M.querySelectorAll('[data-p]').forEach((e) => {
+    e.onclick = () => {
+      if (buyPerk(e.dataset.p)) {
+        sfx('click');
+        go(starsScreen);
+      }
+    };
+  });
 }
 
 function entries() {

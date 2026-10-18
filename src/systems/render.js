@@ -15,6 +15,347 @@ const circle = (x, y, r) => {
   g.beginPath();
   g.arc(x, y, r, 0, 7);
 };
+const hash = (x, y) => {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+function drawDecor(th) {
+  // haritaya özel zemin süsleri (ağaç, kaktüs, kristal): hücre başına sabit, ekran dışı çizilmez
+  const S = 170,
+    t = performance.now() / 1000;
+  for (let cx = Math.floor(v.x / S) - 1; cx <= (v.x + v.w) / S; cx++)
+    for (let cy = Math.floor(v.y / S) - 1; cy <= (v.y + v.h) / S; cy++) {
+      if (hash(cx, cy) > th.density) continue;
+      const x = cx * S + hash(cy, cx) * S,
+        y = cy * S + hash(cx + 7, cy + 3) * S,
+        s = 0.7 + hash(cx + 1, cy + 9) * 0.8,
+        k = hash(cx + 5, cy + 5);
+      if (x < 0 || y < 0 || x > W || y > H) continue;
+      if (th.decor === 'forest') {
+        g.fillStyle = '#2a1f14';
+        g.fillRect(x - 3 * s, y, 6 * s, 16 * s);
+        g.fillStyle = k > 0.5 ? '#16301d' : '#1c3a22';
+        circle(x, y - 6 * s, 22 * s);
+        g.fill();
+        circle(x - 12 * s, y + 2 * s, 15 * s);
+        g.fill();
+        circle(x + 12 * s, y + 2 * s, 15 * s);
+        g.fill();
+        if (k > 0.8) {
+          g.fillStyle = '#9bffd0';
+          g.globalAlpha = 0.4 + 0.4 * Math.sin(t * 2 + x);
+          circle(x + Math.sin(t + y) * 20, y - 24 * s, 2);
+          g.fill();
+          g.globalAlpha = 1;
+        }
+      } else if (th.decor === 'desert') {
+        if (k > 0.55) {
+          g.fillStyle = '#2f5a2a';
+          g.fillRect(x - 3 * s, y - 20 * s, 6 * s, 30 * s);
+          g.fillRect(x - 12 * s, y - 12 * s, 9 * s, 4 * s);
+          g.fillRect(x - 12 * s, y - 20 * s, 4 * s, 12 * s);
+          g.fillRect(x + 3 * s, y - 8 * s, 9 * s, 4 * s);
+          g.fillRect(x + 8 * s, y - 16 * s, 4 * s, 12 * s);
+        } else {
+          g.strokeStyle = '#5a3a1e';
+          g.lineWidth = 3;
+          g.beginPath();
+          g.arc(x, y + 30 * s, 40 * s, 3.6, 5.8);
+          g.stroke();
+          g.fillStyle = '#4a3220';
+          circle(x + 30 * s, y + 8 * s, 8 * s);
+          g.fill();
+        }
+      } else {
+        g.fillStyle = k > 0.5 ? '#3a2a6a' : '#2a1f55';
+        const fl = Math.sin(t + x * 0.01) * 6;
+        g.beginPath();
+        g.moveTo(x, y - 30 * s + fl);
+        g.lineTo(x + 10 * s, y + fl);
+        g.lineTo(x, y + 22 * s + fl);
+        g.lineTo(x - 10 * s, y + fl);
+        g.closePath();
+        g.fill();
+        g.fillStyle = '#b08aff';
+        g.globalAlpha = 0.35 + 0.3 * Math.sin(t * 1.5 + y);
+        circle(x + 40 * s, y - 20 * s, 2);
+        g.fill();
+        g.globalAlpha = 1;
+      }
+    }
+}
+function drawProj(pr) {
+  // her mermi türü kendine özgü şekilde çizilir
+  const a = Math.atan2(pr.vy, pr.vx),
+    s = pr.size || 4,
+    c = pr.col || '#fff';
+  g.save();
+  g.translate(pr.x, pr.y);
+  g.rotate(a);
+  g.fillStyle = c;
+  g.strokeStyle = c;
+  switch (pr.shape) {
+    case 'arrow':
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.moveTo(-s * 3, 0);
+      g.lineTo(s * 2, 0);
+      g.stroke();
+      g.beginPath();
+      g.moveTo(s * 3, 0);
+      g.lineTo(s * 1.2, -s * 0.9);
+      g.lineTo(s * 1.2, s * 0.9);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = '#fff8';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(-s * 3, 0);
+      g.lineTo(-s * 3.8, -s * 0.8);
+      g.moveTo(-s * 3, 0);
+      g.lineTo(-s * 3.8, s * 0.8);
+      g.stroke();
+      break;
+    case 'fire': {
+      const fl = 1 + Math.sin((pr.age || 0) * 30) * 0.15;
+      g.fillStyle = '#ff5a1a';
+      g.beginPath();
+      g.ellipse(0, 0, s * 1.8 * fl, s, 0, 0, 7);
+      g.fill();
+      g.fillStyle = '#ffd36a';
+      g.beginPath();
+      g.ellipse(s * 0.3, 0, s, s * 0.55, 0, 0, 7);
+      g.fill();
+      g.fillStyle = '#ff8a3d99';
+      g.beginPath();
+      g.moveTo(-s * 1.5, 0);
+      g.lineTo(-s * 4 * fl, -s * 0.5);
+      g.lineTo(-s * 4 * fl, s * 0.5);
+      g.closePath();
+      g.fill();
+      break;
+    }
+    case 'shard':
+      g.beginPath();
+      g.moveTo(s * 3, 0);
+      g.lineTo(0, -s * 0.9);
+      g.lineTo(-s * 2.2, 0);
+      g.lineTo(0, s * 0.9);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#ffffffaa';
+      g.beginPath();
+      g.moveTo(s * 2.4, 0);
+      g.lineTo(0, -s * 0.3);
+      g.lineTo(-s, 0);
+      g.closePath();
+      g.fill();
+      break;
+    case 'dagger':
+      g.rotate((pr.age || 0) * 22);
+      g.beginPath();
+      g.moveTo(s * 2.4, 0);
+      g.lineTo(-s, -s * 0.7);
+      g.lineTo(-s * 0.5, 0);
+      g.lineTo(-s, s * 0.7);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#4a3f6a';
+      g.fillRect(-s * 1.8, -s * 0.35, s, s * 0.7);
+      break;
+    case 'blade':
+      g.rotate((pr.age || 0) * 18);
+      for (let i = 0; i < 2; i++) {
+        g.rotate(1.5708);
+        g.beginPath();
+        g.moveTo(s * 2, 0);
+        g.lineTo(0, -s * 0.5);
+        g.lineTo(0, s * 0.5);
+        g.closePath();
+        g.fill();
+      }
+      break;
+    case 'bolt':
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.moveTo(-s * 3, 0);
+      g.lineTo(-s, -s * 0.9);
+      g.lineTo(0, s * 0.6);
+      g.lineTo(s * 2, -s * 0.4);
+      g.lineTo(s * 3, 0);
+      g.stroke();
+      break;
+    case 'glob': {
+      const w = 1 + Math.sin((pr.age || 0) * 20) * 0.18;
+      g.beginPath();
+      g.ellipse(0, 0, s * 1.4 * w, s / w, 0, 0, 7);
+      g.fill();
+      g.fillStyle = '#ffffff55';
+      g.beginPath();
+      g.arc(-s * 0.3, -s * 0.3, s * 0.4, 0, 7);
+      g.fill();
+      break;
+    }
+    case 'petal':
+      g.beginPath();
+      g.ellipse(0, 0, s * 2, s * 0.8, 0, 0, 7);
+      g.fill();
+      break;
+    case 'crescent':
+      g.lineWidth = 5;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.arc(-s * 0.6, 0, s * 1.6, -1.1, 1.1);
+      g.stroke();
+      break;
+    default:
+      g.beginPath();
+      g.arc(0, 0, s, 0, 7);
+      g.fill();
+      g.fillStyle = '#ffffff88';
+      g.beginPath();
+      g.arc(-s * 0.25, -s * 0.25, s * 0.45, 0, 7);
+      g.fill();
+  }
+  g.restore();
+}
+function drawFx(f) {
+  // alan efektleri: ateş patlaması, buz kristalleri, yıldırım, zehir, kılıç savurması...
+  const k = 1 - f.t / 0.25,
+    a = Math.min(1, f.t * 4),
+    r = f.r * (0.5 + 0.5 * k),
+    seed = f.x * 0.013 + f.y * 0.007;
+  g.globalAlpha = a;
+  g.lineWidth = 3;
+  switch (f.s) {
+    case 'fire':
+      g.fillStyle = '#ff7a2a66';
+      circle(f.x, f.y, r);
+      g.fill();
+      g.strokeStyle = '#ffd36a';
+      circle(f.x, f.y, r);
+      g.stroke();
+      g.strokeStyle = '#ff5a1a';
+      for (let i = 0; i < 8; i++) {
+        const an = i * 0.785 + seed;
+        g.beginPath();
+        g.moveTo(f.x + Math.cos(an) * r * 0.5, f.y + Math.sin(an) * r * 0.5);
+        g.lineTo(f.x + Math.cos(an) * r * 1.15, f.y + Math.sin(an) * r * 1.15);
+        g.stroke();
+      }
+      break;
+    case 'ice':
+      g.strokeStyle = '#bff0ff';
+      circle(f.x, f.y, r);
+      g.stroke();
+      g.fillStyle = '#9be0ff44';
+      g.fill();
+      for (let i = 0; i < 8; i++) {
+        const an = i * 0.785 + 0.39;
+        g.beginPath();
+        g.moveTo(f.x + Math.cos(an) * r * 0.35, f.y + Math.sin(an) * r * 0.35);
+        g.lineTo(f.x + Math.cos(an) * r * 1.1, f.y + Math.sin(an) * r * 1.1);
+        g.stroke();
+      }
+      break;
+    case 'bolt':
+      g.strokeStyle = '#fff6a0';
+      g.lineWidth = 3;
+      for (let i = 0; i < 4; i++) {
+        const an = i * 1.57 + seed;
+        g.beginPath();
+        g.moveTo(f.x, f.y);
+        for (let j = 1; j <= 4; j++)
+          g.lineTo(
+            f.x + (Math.cos(an + (j % 2 ? 0.35 : -0.35)) * r * j) / 4,
+            f.y + (Math.sin(an + (j % 2 ? 0.35 : -0.35)) * r * j) / 4,
+          );
+        g.stroke();
+      }
+      g.strokeStyle = '#ffe066';
+      circle(f.x, f.y, r * 0.6);
+      g.stroke();
+      break;
+    case 'poison':
+      g.fillStyle = '#7bd94a44';
+      circle(f.x, f.y, r);
+      g.fill();
+      g.fillStyle = '#7bd94a';
+      for (let i = 0; i < 6; i++) {
+        const an = i * 1.05 + seed;
+        circle(
+          f.x + Math.cos(an) * r * 0.6,
+          f.y + Math.sin(an) * r * 0.6 - k * 12,
+          4 + (i % 3),
+        );
+        g.fill();
+      }
+      break;
+    case 'slash':
+      g.strokeStyle = '#fff3c4';
+      g.lineWidth = 7 * a + 1;
+      g.lineCap = 'round';
+      {
+        const a0 = (seed * 40) % 6.28;
+        g.beginPath();
+        g.arc(f.x, f.y, r, a0, a0 + 2.2 + k * 1.2);
+        g.stroke();
+        g.strokeStyle = '#ffffffaa';
+        g.lineWidth = 2;
+        g.beginPath();
+        g.arc(f.x, f.y, r * 0.85, a0 + 0.2, a0 + 2 + k);
+        g.stroke();
+      }
+      g.lineCap = 'butt';
+      break;
+    case 'quake':
+      g.strokeStyle = '#b08a5a';
+      circle(f.x, f.y, r);
+      g.stroke();
+      g.strokeStyle = '#5a4630';
+      for (let i = 0; i < 7; i++) {
+        const an = i * 0.9 + seed;
+        g.beginPath();
+        g.moveTo(f.x, f.y);
+        g.lineTo(f.x + Math.cos(an) * r * 0.6, f.y + Math.sin(an) * r * 0.6);
+        g.lineTo(f.x + Math.cos(an + 0.2) * r, f.y + Math.sin(an + 0.2) * r);
+        g.stroke();
+      }
+      break;
+    case 'dark':
+      g.fillStyle = '#4a1f7a55';
+      circle(f.x, f.y, r);
+      g.fill();
+      g.strokeStyle = '#b04fff';
+      circle(f.x, f.y, r);
+      g.stroke();
+      circle(f.x, f.y, r * 0.55);
+      g.stroke();
+      break;
+    case 'heal':
+      g.strokeStyle = '#7bff9b';
+      circle(f.x, f.y, r);
+      g.stroke();
+      g.fillStyle = '#7bff9b';
+      for (let i = 0; i < 5; i++) {
+        const an = i * 1.26 + seed;
+        g.font = '14px system-ui';
+        g.fillText(
+          '+',
+          f.x + Math.cos(an) * r * 0.7 - 4,
+          f.y + Math.sin(an) * r * 0.7 - k * 14,
+        );
+      }
+      break;
+    default:
+      g.strokeStyle = '#9be0ff';
+      g.lineWidth = 2;
+      circle(f.x, f.y, r);
+      g.stroke();
+  }
+  g.globalAlpha = 1;
+}
 const body = (e) => {
   // düşman şekilleri
   const r = e.r,
@@ -47,7 +388,8 @@ export function render() {
   const p = state.player;
   v.x = Math.max(0, Math.min(W - v.w, p.x - v.w / 2));
   v.y = Math.max(0, Math.min(H - v.h, p.y - v.h / 2));
-  g.fillStyle = '#1d2029';
+  const th = state.map.theme;
+  g.fillStyle = th.bg;
   g.fillRect(0, 0, v.w, v.h);
   const sh = state.shake * 14;
   g.save();
@@ -55,7 +397,8 @@ export function render() {
     -v.x + (Math.random() - 0.5) * sh,
     -v.y + (Math.random() - 0.5) * sh,
   );
-  g.strokeStyle = '#ffffff0d';
+  drawDecor(th);
+  g.strokeStyle = th.grid;
   g.lineWidth = 1;
   g.beginPath();
   for (let x = Math.floor(v.x / 100) * 100; x <= v.x + v.w; x += 100) {
@@ -67,7 +410,7 @@ export function render() {
     g.lineTo(v.x + v.w, y);
   }
   g.stroke();
-  g.strokeStyle = '#e05a5a55';
+  g.strokeStyle = th.border;
   g.lineWidth = 4;
   g.strokeRect(0, 0, W, H);
   if (state.showMagnet) {
@@ -75,14 +418,7 @@ export function render() {
     circle(p.x, p.y, stat(p, 'magnet'));
     g.stroke();
   }
-  for (const f of state.fx) {
-    g.strokeStyle = '#9be0ff';
-    g.lineWidth = 2;
-    g.globalAlpha = f.t * 4;
-    circle(f.x, f.y, f.r);
-    g.stroke();
-    g.globalAlpha = 1;
-  }
+  for (const f of state.fx) drawFx(f);
   for (const d of state.deaths) {
     // ölüm: yassılıp yayılarak kaybolur (ezilme)
     const k = 1 - d.t / 0.4;
@@ -262,25 +598,7 @@ export function render() {
     g.fillText(T(state.prompt.text), state.prompt.x, state.prompt.y - 44);
   }
   g.textAlign = 'left';
-  for (const pr of state.projs) {
-    if (pr.shape === 'crescent') {
-      g.save();
-      g.translate(pr.x, pr.y);
-      g.rotate(Math.atan2(pr.vy, pr.vx));
-      g.strokeStyle = pr.col;
-      g.lineWidth = 5;
-      g.lineCap = 'round';
-      g.beginPath();
-      g.arc(-pr.size * 0.6, 0, pr.size * 1.6, -1.1, 1.1);
-      g.stroke();
-      g.lineCap = 'butt';
-      g.restore();
-    } else {
-      g.fillStyle = pr.col || '#fff';
-      circle(pr.x, pr.y, pr.size || 4);
-      g.fill();
-    }
-  }
+  for (const pr of state.projs) drawProj(pr);
   const spin = performance.now() / 180;
   for (const z of state.zones) {
     // yanan iz, hortum

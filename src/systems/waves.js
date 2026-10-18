@@ -8,17 +8,21 @@ import { BAL } from '../data/balance.js';
 import { onWaveStart } from './tracking.js';
 import { onWaveEnd } from './pois.js';
 import { startObjective, endObjective } from './objectives.js';
+import { onVictory } from './campaign.js';
 
 export const BOSS_EVERY = 5,
   SÜRÜ_EVERY = 3;
 export const isBossWave = (n) => n % BOSS_EVERY === 0;
 export const isSwarmWave = (n) => n % SÜRÜ_EVERY === 0;
+const BY_NAME = Object.fromEntries(BOSSES.map((b) => [b.name, b]));
 export function bossFor(n) {
-  const i = n / BOSS_EVERY - 1;
-  return {
-    def: BOSSES[i % BOSSES.length],
-    power: 1 + Math.floor(i / BOSSES.length) * 0.75,
-  };
+  // haritanın boss listesi: her 5 turda bir; liste bitince başa döner (+%75)
+  const L =
+      state.map && state.map.bosses
+        ? state.map.bosses.map((x) => BY_NAME[x]).filter(Boolean)
+        : BOSSES,
+    i = n / BOSS_EVERY - 1;
+  return { def: L[i % L.length], power: 1 + Math.floor(i / L.length) * 0.75 };
 }
 
 function spawnPos(boss, ang) {
@@ -45,7 +49,9 @@ function spawnPos(boss, ang) {
   };
 }
 const pickType = (n) => {
-  const L = SPAWN_TABLE.filter((r) => n >= r[1]);
+  const L = ((state.map && state.map.spawn) || SPAWN_TABLE).filter(
+    (r) => n >= r[1],
+  );
   let x = Math.random() * L.reduce((s, r) => s + r[2], 0);
   for (const r of L) if ((x -= r[2]) <= 0) return ENEMIES[r[0]];
   return ENEMIES.grunt;
@@ -59,18 +65,20 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
     stats = {};
   for (const k in def.stats || {})
     stats[k] = def.stats[k] * (k === 'ad' || k === 'ap' ? sc * power : 1); // düşmanlar da oyuncuyla aynı statlara sahip
-  const hp =
-    def.hp *
-    (boss
-      ? BAL.bossHp * (1 + n * BAL.bossHpPerWave + n * n * BAL.bossHpQuad)
-      : BAL.enemyHp *
-        (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
-        (def.mini ? BAL.miniHp : 1)) *
-    power *
-    (elite ? 2.5 : 1) *
-    (state.curse && state.curse.waves > 0 ? 1.25 : 1) *
-    state.mut.enemyHp *
-    (1 + 0.15 * state.heat);
+  const df = state.map ? state.map.diff : 1,
+    hp =
+      df *
+      def.hp *
+      (boss
+        ? BAL.bossHp * (1 + n * BAL.bossHpPerWave + n * n * BAL.bossHpQuad)
+        : BAL.enemyHp *
+          (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
+          (def.mini ? BAL.miniHp : 1)) *
+      power *
+      (elite ? 2.5 : 1) *
+      (state.curse && state.curse.waves > 0 ? 1.25 : 1) *
+      state.mut.enemyHp *
+      (1 + 0.15 * state.heat);
   const e = make({
     team: 'e',
     x: sp.x,
@@ -89,6 +97,7 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
       damage:
         (1 + n * BAL.enemyDmgPerWave) *
         (1 + 0.1 * state.heat) *
+        (1 + (df - 1) * 0.6) *
         power *
         (boss ? BAL.bossDmg : 1) *
         (elite ? 1.25 : 1),
@@ -266,10 +275,18 @@ export function updateWaves(dt) {
       w.phase = 'idle';
       w.cd = 2;
       state.coins += 5 + w.n * 2;
-      state.vacuum = 3; // tur sonu: tüm altın/itemlar sana çekilir onWaveEnd(w.n); endObjective(); state.bannerQ.push({ text: 'TUR ' + w.n + ' TAMAMLANDI', sub: '+' + (5 + w.n * 2) + ' altın', kind: 'done' });
+      state.vacuum = 3;
+      onWaveEnd(w.n);
+      endObjective();
+      state.bannerQ.push({
+        text: 'TUR ' + w.n + ' TAMAMLANDI',
+        sub: '+' + (5 + w.n * 2) + ' altın',
+        kind: 'done',
+      }); // tur sonu: tüm altın/itemlar sana çekilir
       const p = state.player;
       p.hp = Math.min(stat(p, 'maxHp'), p.hp + stat(p, 'maxHp') * 0.25);
       toast('Tur ' + w.n + ' bitti! Bonus altın');
+      if (!state.won && state.map && w.n >= state.map.rounds) onVictory();
     }
   } else if (w.auto && !state.over && (w.cd -= dt) <= 0) startWave();
 }

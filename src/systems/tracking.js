@@ -1,3 +1,4 @@
+import { settleRun } from './characters.js';
 import { state } from '../core/state.js';
 import { on } from '../core/events.js';
 import { meta, save, hooks } from '../core/save.js';
@@ -98,6 +99,7 @@ export function onWaveStart(n, boss) {
 }
 export function finishRun() {
   meta.stats.deaths++;
+  state.lastGain = settleRun();
   save(true);
 }
 let acc = 0;
@@ -126,5 +128,6 @@ export function updateTracking(dt) {
 }
 
 export function abandonRun() {
+  state.lastGain = settleRun();
   save(true);
 }

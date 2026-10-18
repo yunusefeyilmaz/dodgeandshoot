@@ -61,4 +61,13 @@ export const CAPS = {
   dashIframe: 0.6,
   dashBlast: 4,
   dashTrail: 3,
+  ricochet: 5,
+  homing: 12,
+  projSpeed: 2.5,
+  focus: 0.15,
+  crescent: 3,
+  surge: 3,
+  volley: 3,
+  pull: 120,
+  killNova: 1.5,
 };

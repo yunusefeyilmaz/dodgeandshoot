@@ -7,7 +7,17 @@ export const ABILITIES = {
     tags: ['Weapon', 'Bow', 'Projectile'],
     dmgType: 'phys',
     cooldown: 0.7,
-    effects: [{ type: 'Projectile', damage: 14, speed: 420, color: '#d8c08a' }],
+    effects: [
+      {
+        type: 'Projectile',
+        shape: 'arrow',
+        size: 5,
+        trail: 0.25,
+        damage: 14,
+        speed: 760,
+        color: '#d8c08a',
+      },
+    ],
   },
   staff: {
     id: 'staff',
@@ -18,8 +28,12 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'orb',
+        size: 7,
+        trail: 0.3,
+        tcol: '#e0ccff',
         damage: 20,
-        speed: 360,
+        speed: 330,
         ratio: 1.2,
         color: '#c9a8ff',
       },
@@ -41,7 +55,18 @@ export const ABILITIES = {
     tags: ['Fire', 'Projectile'],
     dmgType: 'magic',
     cooldown: 1.6,
-    effects: [{ type: 'Projectile', damage: 30, speed: 300, color: '#ff8a3d' }],
+    effects: [
+      {
+        type: 'Projectile',
+        shape: 'fire',
+        size: 9,
+        trail: 0.35,
+        tcol: '#ff8a3d',
+        damage: 30,
+        speed: 250,
+        color: '#ff8a3d',
+      },
+    ],
   },
   nova: {
     id: 'nova',
@@ -70,6 +95,8 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'blade',
+        size: 5,
         damage: 12,
         speed: 300,
         count: 12,
@@ -88,8 +115,12 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'glob',
+        size: 6,
+        trail: 0.2,
+        tcol: '#6be04a',
         damage: 14,
-        speed: 340,
+        speed: 300,
         color: '#6be04a',
         proc: { poison: 0.7 },
       },
@@ -138,14 +169,16 @@ export const ABILITIES = {
     name: 'Karanlık Tükürük',
     tags: ['Dark', 'Projectile'],
     dmgType: 'magic',
-    cooldown: 3.0,
+    cooldown: 2.6,
     effects: [
       {
         type: 'Projectile',
+        shape: 'glob',
+        size: 5,
         damage: 8,
-        speed: 150,
+        speed: 200,
         color: '#c46bff',
-        proc: { poison: 0.1 },
+        proc: { poison: 0.6 },
       },
     ],
   },
@@ -158,6 +191,8 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'bolt',
+        size: 5,
         damage: 8,
         speed: 210,
         count: 5,
@@ -175,6 +210,8 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'orb',
+        size: 4,
         damage: 7,
         speed: 170,
         count: 14,
@@ -199,7 +236,16 @@ export const ABILITIES = {
     dmgType: 'phys',
     cooldown: 1.8,
     range: 430,
-    effects: [{ type: 'Projectile', damage: 9, speed: 380, color: '#d8c08a' }],
+    effects: [
+      {
+        type: 'Projectile',
+        shape: 'arrow',
+        size: 4,
+        damage: 9,
+        speed: 520,
+        color: '#d8c08a',
+      },
+    ],
   },
   blast: {
     id: 'blast',
@@ -397,6 +443,8 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'shard',
+        size: 4,
         damage: 9,
         speed: 260,
         count: 7,
@@ -417,6 +465,8 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'fire',
+        size: 6,
         damage: 18,
         speed: 280,
         count: 8,
@@ -493,6 +543,7 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'fire',
         damage: 40,
         speed: 520,
         count: 7,
@@ -647,8 +698,11 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'shard',
+        trail: 0.3,
+        tcol: '#bff0ff',
         damage: 26,
-        speed: 520,
+        speed: 640,
         pierce: 3,
         size: 6,
         color: '#9be0ff',
@@ -665,8 +719,10 @@ export const ABILITIES = {
     effects: [
       {
         type: 'Projectile',
+        shape: 'dagger',
+        size: 4,
         damage: 11,
-        speed: 480,
+        speed: 540,
         count: 3,
         spread: 0.45,
         color: '#b8b0ff',

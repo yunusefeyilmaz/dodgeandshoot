@@ -39,6 +39,16 @@ export const LABELS = {
   dashBlast: 'Dash patlaması',
   dashTrail: 'Dash izi',
   dashIframe: 'Dash dokunulmazlığı (sn)',
+  crescent: 'Hilal dalgası',
+  surge: 'Üçleme',
+  volley: 'Ok yağmuru',
+  pull: 'Çekim',
+  refreshDash: 'Dash yenileme',
+  ricochet: 'Sekme',
+  focus: 'Odak',
+  homing: 'Güdüm',
+  projSpeed: 'Mermi hızı',
+  killNova: 'Ölüm patlaması',
 };
 const PCT = new Set([
   'critChance',
@@ -63,6 +73,7 @@ const MUL = new Set([
   'effPower',
   'blastRadius',
   'dashCdMul',
+  'projSpeed',
 ]);
 export const DESCS = {
   ad: 'Fiziksel skillerin taban hasarına eklenir.',
@@ -118,3 +129,46 @@ DESCS.dashCdMul = 'Dash dolum süresi çarpanı (düşük = hızlı).';
 DESCS.dashBlast = 'Dash bittiğinde patlama hasarı çarpanı.';
 DESCS.dashTrail = 'Dash yolunda bırakılan yanan iz gücü.';
 DESCS.dashIframe = 'Dash sırasındaki dokunulmazlık süresi (saniye).';
+Object.assign(DESCS, {
+  // net açıklamalar: ne yapar, nasıl hesaplanır
+  crescent:
+    "Her 3. saldırıda ek olarak delici bir hilal dalgası fırlatır (hasarı: temel hasarın %60'ı × değer).",
+  surge:
+    'Her 3. saldırı +%50 hasar, +%35 alan (mermide +1 delme, daha büyük) ile vurur.',
+  volley: 'Her 5. atışta hedefin çevresine 5 ok yağdırır.',
+  pull: 'Vuruşlar, düşmanları sana doğru çeker (değer = çekim gücü).',
+  refreshDash: 'Kılıçla bir düşman öldürünce 1 dash hakkın geri gelir.',
+  ricochet:
+    'Mermi vurduktan sonra yakındaki başka bir düşmana sekerek devam eder (değer kadar kez).',
+  focus:
+    'Aynı hedefe art arda vuruşlarda her seferinde hasar +%X artar (en fazla 5 kez). Hedef değişince sıfırlanır.',
+  homing: 'Mermiler, yakındaki düşmanlara doğru döner (değer = dönüş hızı).',
+  projSpeed: 'Mermilerin uçuş hızı çarpanı.',
+  killNova:
+    "Öldürdüğün düşman patlar: çevresine, öldüren vuruşun hasarının %X'i kadar büyü hasarı verir.",
+  poison:
+    "Zehir: her vuruşun hasarının %X'i kadar ek hasar, 3 saniyeye yayılarak işler (zırhı ve büyü direncini yok sayar). Örn. %35 zehir: 100 hasarlık vuruş → 35 zehir hasarı.",
+  chain:
+    "Zincir: her vuruş, yakındaki 2 düşmana vuruş hasarının %X'i kadar büyü hasarı (şimşek) atlatır. Örn. %50 zincir: 100 hasarlık vuruş → 2 düşmana 50 büyü hasarı.",
+  slow: 'Yavaşlatma: vurulan düşman 1.5 saniye boyunca %X yavaşlar (en fazla %70).',
+  voidShred:
+    "Void: vurulan düşmanın zırh ve büyü direnci 4 saniye %X azalır, ayrıca vuruşun %X'inin yarısı kadar saf void hasarı verir.",
+  blast:
+    "Patlama: her vuruş bu ihtimalle patlar; patlama çevredeki düşmanlara vuruşun 'Patlama hasarı' oranında hasar verir.",
+  blastPower:
+    'Patlamanın, vuruş hasarının yüzde kaçını vurduğu (başlangıç %80).',
+  critChance:
+    'Her vuruşun kritik olma ihtimali. Kritik vuruş, Kritik hasarı çarpanı kadar vurur.',
+  critDmg: 'Kritik vuruşun hasar çarpanı (başlangıç ×1.5).',
+  luck: 'Şans: kart/item/class nadirliğini yükseltir; item düşme şansına çok az etki eder.',
+});
+Object.assign(LABELS, {
+  rageGain: 'Öfke kazanımı',
+  rageDur: 'Öfke süresi (sn)',
+  stillBonus: 'Nişan gücü',
+  shadowDmg: 'Gölge hasarı',
+  arcanaEvery: 'Arkana aralığı (skill)',
+  soulEvery: 'Ruh hasadı aralığı (öldürme)',
+  soldierMax: 'Asker sınırı',
+  soldierLife: 'Asker ömrü (sn)',
+});

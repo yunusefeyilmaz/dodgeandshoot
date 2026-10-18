@@ -176,6 +176,89 @@ export function abDesc(ab, o) {
   );
 }
 // Skill ipucu: etkin bekleme süresi, gerçek hasar, toplam hasar ve öldürme
+// Skillin sayısal özeti: [etiket, değer]. Kart/yükseltme önizlemesi için önce/sonra karşılaştırılır
+export const abCooldown = (ab, o) =>
+  Math.max(
+    ab.tags.includes('Weapon') ? 0.16 : 0.3,
+    (ab.cooldown * 100) /
+      (100 + stat(o, 'haste', ab.tags)) /
+      Math.min(
+        3,
+        ab.tags.includes('Weapon') ? stat(o, 'attackSpeed', ab.tags) : 1,
+      ),
+  );
+export function abNums(ab, o) {
+  const out = [],
+    dmgOf = (f) =>
+      Math.round(
+        (f.damage +
+          stat(o, ab.dmgType === 'magic' ? 'ap' : 'ad') * (f.ratio ?? 1)) *
+          stat(o, 'damage', ab.tags) *
+          (o.pw || 1),
+      ),
+    area = stat(o, 'area', ab.tags);
+  ab.effects.forEach((f, i) => {
+    const k = ab.effects.length > 1 ? ' ' + (i + 1) : '';
+    if (f.type === 'Projectile')
+      out.push(
+        ['Mermi adedi' + k, (f.count || 1) + bonus(o, ab, 'multishot')],
+        ['Hasar' + k, dmgOf(f)],
+        ['Delme' + k, (f.pierce || 0) + bonus(o, ab, 'pierce')],
+        ['Mermi hızı' + k, Math.round(f.speed * stat(o, 'projSpeed', ab.tags))],
+      );
+    else if (f.type === 'Nova')
+      out.push(
+        ['Hasar' + k, dmgOf(f)],
+        ['Yarıçap' + k, Math.round(f.radius * area)],
+      );
+    else if (f.type === 'Rain')
+      out.push(
+        ['Vuruş sayısı' + k, f.count + bonus(o, ab, 'multishot')],
+        ['Hasar' + k, dmgOf(f)],
+        ['Yarıçap' + k, Math.round(f.radius * area)],
+      );
+    else if (f.damage) out.push(['Hasar' + k, dmgOf(f)]);
+  });
+  out.push(
+    ['Bekleme (sn)', +abCooldown(ab, o).toFixed(2)],
+    ['Menzil', Math.round((ab.range || 340) * area)],
+  );
+  return out;
+}
+// Bir parça (kart/yükseltme) alınırsa sahip olunan skillerde ne değişir: "Mermi adedi 1 → 2"
+export function previewParts(part, o = state.player) {
+  if (!part || !part.mods || !o) return '';
+  const o2 = { ...o, parts: [...o.parts, part] };
+  let h = '';
+  for (const ab of o.abilities) {
+    if (o.off && o.off[ab.id]) continue;
+    const a = abNums(ab, o),
+      b = abNums(ab, o2),
+      ch = a
+        .map((x, i) =>
+          b[i][1] !== x[1]
+            ? x[0] +
+              ' <b>' +
+              x[1] +
+              '</b> → <b style="color:#8be28b">' +
+              b[i][1] +
+              '</b>'
+            : '',
+        )
+        .filter(Boolean);
+    if (ch.length)
+      h +=
+        '<div style="margin-top:3px"><small>' +
+        ab.name +
+        '</small><br>' +
+        ch.join(' · ') +
+        '</div>';
+  }
+  return h
+    ? '<div class="dim" style="margin-top:5px">Etkisi (şu an → sonra):</div>' +
+        h
+    : '';
+}
 export function abTip(ab, o) {
   const s = state.abStats[ab.id] || { dmg: 0, kills: 0 },
     as = ab.tags.includes('Weapon') ? stat(o, 'attackSpeed', ab.tags) : 1;
