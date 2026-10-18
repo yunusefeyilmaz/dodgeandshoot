@@ -72,7 +72,7 @@ const MECH = {
           }),
         };
         toast('Karanlık çöküyor! Işık çemberine gir!');
-        shake(1);
+        shake(0.3);
       }
     },
   },

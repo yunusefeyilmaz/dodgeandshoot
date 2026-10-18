@@ -110,6 +110,8 @@ function mainScreen() {
 }
 
 function weaponScreen() {
+  selM = meta.settings.map || selM;
+  selC = meta.settings.char || selC;
   if (!isUnlocked(selW)) selW = 'sword';
   if (!isMapUnlocked(selM)) selM = 'forest';
   if (!isCharUnlocked(selC)) selC = 'warrior';
