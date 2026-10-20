@@ -46,7 +46,15 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
   if (t.invuln > 0) {
     if (!tags.includes('Status') && src !== t) perfectDodge();
     return 0;
-  } // dash dokunulmazlığı; saldırı değerse mükemmel kaçış
+  }
+  if (t.stance > 0 && src.team === 'p' && !tags.includes('Status')) {
+    amt *= 0.25;
+    if (!(t.counterCd > 0)) {
+      t.counterCd = 0.6;
+      state.fx.push({ x: t.x, y: t.y, r: 90, t: 0.25, s: 'slash' });
+      dealDamage(t, src, 34 * stat(t, 'damage'), ['Area'], { type: 'phys' });
+    }
+  } // Garu: karşı duruş   // dash dokunulmazlığı; saldırı değerse mükemmel kaçış
   const status = tags.includes('Status');
   if (
     o.dir !== undefined &&

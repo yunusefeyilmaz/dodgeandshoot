@@ -330,3 +330,207 @@ SCRIPTS.titan = {
     }
   },
 };
+
+// ——— F3: anime bossları ———
+const addAb = (e, ...ids) =>
+  ids.forEach((id) => {
+    e.abilities.push(ABILITIES[id]);
+    e.cd[id] = 1;
+  });
+const bump = (e, mods) => e.parts.push({ mods });
+const M = (stat, op, value) => ({ stat, op, value });
+// Garu: arada KARŞI DURUŞA geçer (beyaz). O sırada vurursan hasarın %25'i işler ve sana karşılık verir: dur ve bekle!
+SCRIPTS.garu = {
+  phases: [
+    {
+      at: 0.66,
+      text: 'Garu kendini ısıtıyor! Daha hızlı!',
+      enter(e) {
+        bump(e, [M('speed', 'mul', 1.2), M('attackSpeed', 'mul', 1.25)]);
+        e.exposed = 2;
+        e.stance = 0;
+      },
+    },
+    {
+      at: 0.33,
+      text: 'Garu son hamlesinde! Karşı duruşlar sıklaşıyor!',
+      enter(e) {
+        bump(e, [M('damage', 'mul', 1.3), M('speed', 'mul', 1.15)]);
+        e.stanceEvery = 4.5;
+        e.exposed = 1.5;
+        e.stance = 0;
+      },
+    },
+  ],
+  tick(e, p, dt) {
+    e.counterCd = Math.max(0, (e.counterCd || 0) - dt);
+    e.stanceT = (e.stanceT ?? 5) - dt;
+    if (e.stance > 0) e.stance = Math.max(0, e.stance - dt);
+    else if (e.stanceT <= 0 && !(e.exposed > 0) && !e.under) {
+      e.stanceT = e.stanceEvery || 7;
+      e.stance = 2;
+      toast('Garu karşı duruşta! Saldırma, dash ile uzaklaş!');
+      ring(e.x, e.y, 90, '#ffffff');
+    }
+    e.col = e.stance > 0 ? '#ffffff' : '#d9a35a';
+  },
+};
+// Kenpaçi: gözbağını söker, ruhani baskı alanı büyür (arena: aura)
+SCRIPTS.kenpachi = {
+  phases: [
+    {
+      at: 0.5,
+      text: 'Kenpaçi gözbağını söktü! Baskı alanı büyüdü!',
+      enter(e) {
+        bump(e, [M('damage', 'mul', 1.3), M('speed', 'mul', 1.2)]);
+        e.exposed = 1.5;
+        e.col = '#ff2a2a';
+      },
+    },
+    {
+      at: 0.25,
+      text: 'Kenpaçi sınırsız güçte! Yaklaşma!',
+      enter(e) {
+        bump(e, [M('haste', 'add', 40), M('attackSpeed', 'mul', 1.25)]);
+        e.exposed = 1;
+      },
+    },
+  ],
+};
+// Ayzen: Kyoka Suigetsu — gerçek Ayzen'in kopyaları (1 can, dokununca/vurulunca patlar). Gerçeğini bul!
+function decoys(e, n) {
+  for (let i = 0; i < n; i++) {
+    const c = make({
+      team: 'e',
+      x: e.x + rnd(-130, 130),
+      y: e.y + rnd(-130, 130),
+      r: e.r,
+      col: e.col,
+      shape: e.shape,
+      base: { speed: 95, armor: 0, mr: 0, damage: 1.2, kbResist: 0.2 },
+    });
+    c.hpMax = c.hp = 1;
+    c.name = e.name;
+    c.decoy = true;
+    c.xp = 0;
+    c.coin = 0;
+    c.contact = 1.5;
+    c.deathBlast = { radius: 90, damage: 30 };
+    c.res = {};
+    state.ents.push(c);
+  }
+  burst(e.x, e.y, '#c08aff', 20, 260, 0.6);
+}
+SCRIPTS.ayzen = {
+  phases: [
+    {
+      at: 0.7,
+      text: 'Kyoka Suigetsu! Sahte Ayzenler belirdi — gerçeği bul!',
+      enter(e) {
+        decoys(e, 3);
+        bump(e, [M('haste', 'add', 20)]);
+        e.exposed = 2;
+      },
+    },
+    {
+      at: 0.4,
+      text: 'Sahte Ayzen sürüsü! Gerçeğin canı çubukta!',
+      enter(e) {
+        decoys(e, 5);
+        bump(e, [M('damage', 'mul', 1.25)]);
+        addAb(e, 'senbon');
+        e.exposed = 1.5;
+      },
+    },
+  ],
+  onDeath(e) {
+    for (const c of state.ents) if (c.decoy) c.hp = 0;
+    return false;
+  },
+};
+// Frizo: 4 form. Her dönüşümde daha güçlü ve yeni skiller
+const FORMS = [
+  [
+    'Frizo · 2. Form',
+    '#ff8ae0',
+    'deathball',
+    'Frizo ikinci formuna dönüştü! Ölüm Topu geliyor!',
+  ],
+  [
+    'Frizo · 3. Form',
+    '#b0ff8a',
+    'quake',
+    'Frizo üçüncü formda! Yer sarsılıyor!',
+  ],
+  [
+    'Frizo · Tam Güç',
+    '#ffd84f',
+    'ring',
+    'FRİZO TAM GÜÇTE! Her şey daha hızlı!',
+  ],
+];
+SCRIPTS.frizo = {
+  phases: [0.75, 0.5, 0.25].map((at, i) => ({
+    at,
+    text: FORMS[i][3],
+    enter(e) {
+      e.name = FORMS[i][0];
+      e.col = FORMS[i][1];
+      e.r += 3;
+      bump(e, [
+        M('speed', 'mul', 1.15),
+        M('damage', 'mul', 1.2),
+        M('haste', 'add', 15),
+      ]);
+      addAb(e, FORMS[i][2]);
+      e.exposed = 2;
+    },
+  })),
+};
+// Ulkiora: Segunda Etapa
+SCRIPTS.ulkiora = {
+  phases: [
+    {
+      at: 0.66,
+      text: 'Ulkiora ciddileşti!',
+      enter(e) {
+        bump(e, [M('haste', 'add', 20)]);
+        e.exposed = 2;
+      },
+    },
+    {
+      at: 0.4,
+      text: 'SEGUNDA ETAPA! Ulkiora gerçek formunu açtı!',
+      enter(e) {
+        e.name = 'Ulkiora · Segunda Etapa';
+        e.col = '#2a2a3a';
+        e.r = Math.round(e.r * 1.15);
+        bump(e, [M('damage', 'mul', 1.4), M('speed', 'mul', 1.15)]);
+        addAb(e, 'lanza', 'fan');
+        e.exposed = 2;
+      },
+    },
+  ],
+};
+// Sukuno: Kutsal Mabet (arena: domain, 2. fazdan sonra iki kat çizgi) + Kesik Yelpazesi
+SCRIPTS.sukuno = {
+  phases: [
+    {
+      at: 0.66,
+      text: 'KUTSAL MABET! Kesik çizgileri sıklaştı!',
+      enter(e) {
+        bump(e, [M('damage', 'mul', 1.2), M('haste', 'add', 25)]);
+        e.exposed = 1.5;
+      },
+    },
+    {
+      at: 0.33,
+      text: 'Sukuno son kozunu oynuyor! Yelpaze kesikleri başladı!',
+      enter(e) {
+        bump(e, [M('speed', 'mul', 1.2), M('haste', 'add', 40)]);
+        addAb(e, 'cleavefan');
+        e.exposed = 1;
+      },
+    },
+  ],
+};

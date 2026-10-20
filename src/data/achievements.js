@@ -208,4 +208,166 @@ export const ACHIEVEMENTS = [
     desc: 'Toplam 1.000.000 hasar ver',
     test: (m) => m.stats.damage >= 1e6,
   },
+  // ——— F3: harita / yıldız / karakter / boss başarımları ———
+  {
+    id: 'mf',
+    name: 'Orman Efendisi',
+    desc: "Gölge Ormanı'nı bitir (50 tur)",
+    test: (m) => (m.maps?.forest?.clears || 0) >= 1,
+  },
+  {
+    id: 'md',
+    name: 'Çöl Gezgini',
+    desc: "Kızıl Çöl'ü bitir",
+    test: (m) => (m.maps?.desert?.clears || 0) >= 1,
+  },
+  {
+    id: 'mv',
+    name: 'Boşluğun Fatihi',
+    desc: "Boşluk Kalesi'ni bitir",
+    test: (m) => (m.maps?.void?.clears || 0) >= 1,
+  },
+  {
+    id: 'm3',
+    name: 'Üç Diyar',
+    desc: 'Üç haritayı da bitir',
+    test: (m) =>
+      ['forest', 'desert', 'void'].every(
+        (k) => (m.maps?.[k]?.clears || 0) >= 1,
+      ),
+  },
+  {
+    id: 'st3',
+    name: 'Üç Yıldız',
+    desc: 'Bir haritada 3 yıldız topla (Zorluk 4+)',
+    test: (m) => Object.values(m.maps || {}).some((x) => x.stars >= 3),
+  },
+  {
+    id: 'st5',
+    name: 'Yıldız Toplayıcı',
+    desc: 'Toplam 5 yıldız',
+    test: (m) =>
+      Object.values(m.maps || {}).reduce((s, x) => s + x.stars, 0) >= 5,
+  },
+  {
+    id: 'st9',
+    name: 'Gökyüzü',
+    desc: 'Tüm haritalarda 3 yıldız (9)',
+    test: (m) =>
+      Object.values(m.maps || {}).reduce((s, x) => s + x.stars, 0) >= 9,
+  },
+  {
+    id: 'ch2',
+    name: 'Yeni Yüz',
+    desc: 'İkinci karakterini aç',
+    test: (m) => (m.unlockedChars || []).length >= 2,
+  },
+  {
+    id: 'ch5',
+    name: 'Tüm Kahramanlar',
+    desc: 'Beş karakterin hepsini aç',
+    test: (m) => (m.unlockedChars || []).length >= 5,
+  },
+  {
+    id: 'cl10',
+    name: 'Tecrübeli',
+    desc: 'Bir karakteri 10. seviyeye çıkar',
+    test: (m) => Object.values(m.chars || {}).some((c) => c.lvl >= 10),
+  },
+  {
+    id: 'cl30',
+    name: 'Efsanevi Kahraman',
+    desc: 'Bir karakteri 30. seviyeye (MAX) çıkar',
+    test: (m) => Object.values(m.chars || {}).some((c) => c.lvl >= 30),
+  },
+  {
+    id: 'soul5k',
+    name: 'Ruh Toplayıcı',
+    desc: 'Toplam 5.000 Ruh kazan',
+    test: (m) => (m.stats.souls || 0) >= 5000,
+  },
+  {
+    id: 'rev1',
+    name: 'İkinci Nefes',
+    desc: 'Ölümden geri dön',
+    test: (m) => (m.stats.revives || 0) >= 1,
+  },
+  {
+    id: 'bgaru',
+    name: 'Dövüş Ustası',
+    desc: "Garu'yu yen",
+    test: (m) => (m.stats.bossKills?.['Garu'] || 0) >= 1,
+  },
+  {
+    id: 'bita',
+    name: 'Göz Alıcı',
+    desc: "Itaçi'yi yen",
+    test: (m) => (m.stats.bossKills?.['Itaçi'] || 0) >= 1,
+  },
+  {
+    id: 'bpeyn',
+    name: 'Tanrı Yıkıcı',
+    desc: "Peyn'i yen",
+    test: (m) => (m.stats.bossKills?.['Peyn'] || 0) >= 1,
+  },
+  {
+    id: 'bken',
+    name: 'Savaş Delisi',
+    desc: "Kenpaçi'yi yen",
+    test: (m) => (m.stats.bossKills?.['Kenpaçi'] || 0) >= 1,
+  },
+  {
+    id: 'bulk',
+    name: 'Boşluk Avcısı',
+    desc: "Ulkiora'yı yen",
+    test: (m) => (m.stats.bossKills?.['Ulkiora'] || 0) >= 1,
+  },
+  {
+    id: 'bayz',
+    name: 'Gerçeği Bulan',
+    desc: "Ayzen'i yen",
+    test: (m) => (m.stats.bossKills?.['Ayzen'] || 0) >= 1,
+  },
+  {
+    id: 'bfri',
+    name: 'Dördüncü Form',
+    desc: "Frizo'yu yen",
+    test: (m) => (m.stats.bossKills?.['Frizo'] || 0) >= 1,
+  },
+  {
+    id: 'bsuk',
+    name: 'Lanetlerin Kralı',
+    desc: "Sukuno'yu yen",
+    test: (m) => (m.stats.bossKills?.['Sukuno'] || 0) >= 1,
+  },
+  {
+    id: 'b20',
+    name: 'Boss Efsanesi',
+    desc: '20 farklı boss yen',
+    test: (m) => m.bossesDefeated.length >= 20,
+  },
+  {
+    id: 'b29',
+    name: 'Tam Koleksiyon',
+    desc: '29 bossun hepsini yen',
+    test: (m) => m.bossesDefeated.length >= 29,
+  },
+  {
+    id: 'cls5',
+    name: 'Çok Yönlü',
+    desc: '5 farklı sınıf keşfet',
+    test: (m) => Object.keys(m.found.classes).length >= 5,
+  },
+  {
+    id: 'cls12',
+    name: 'Sınıf Ustası',
+    desc: '12 sınıfın hepsini keşfet',
+    test: (m) => Object.keys(m.found.classes).length >= 12,
+  },
+  {
+    id: 'w75',
+    name: 'Sonsuzluk',
+    desc: 'Sonsuz modda 75. tura ulaş',
+    test: (m) => m.stats.bestWave >= 75,
+  },
 ];

@@ -480,6 +480,19 @@ export function render() {
     circle(w.x, w.y, w.r);
     g.stroke();
   }
+  for (const m of state.arena.mines || []) {
+    const bl = Math.sin(performance.now() / 160 + m.x) > 0;
+    g.fillStyle = '#2a1010';
+    circle(m.x, m.y, m.r);
+    g.fill();
+    g.fillStyle = bl ? '#ff3a3a' : '#7a1a1a';
+    circle(m.x, m.y, 6);
+    g.fill();
+    g.strokeStyle = '#ff3a3a66';
+    g.lineWidth = 2;
+    circle(m.x, m.y, m.r + 3);
+    g.stroke();
+  }
   for (const q of state.arena.pillars) {
     g.fillStyle = '#6a7080';
     circle(q.x, q.y, q.r);

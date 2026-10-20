@@ -236,3 +236,130 @@ SYNERGIES['staff:tank'] = {
     { stat: 'attackSpeed', op: 'mul', value: 1.1, tag: 'Staff' },
   ],
 };
+// ——— F3: yeni sınıflar ———
+Object.assign(CLASSES, {
+  paladin: {
+    name: 'Paladin',
+    rarity: 'common',
+    desc: "+50 can, +8 zırh. Canın %50'nin altındayken yenileme +3/sn.",
+    part: {
+      mods: [
+        { stat: 'maxHp', op: 'add', value: 50 },
+        { stat: 'armor', op: 'add', value: 8 },
+        {
+          stat: 'regen',
+          op: 'add',
+          get value() {
+            const p = state.player;
+            return p.hp < stat(p, 'maxHp') * 0.5 ? 3 : 0;
+          },
+        },
+      ],
+    },
+  },
+  ranger: {
+    name: 'Avcı',
+    rarity: 'uncommon',
+    desc: 'Kritik şansı +%8, mermi hızı +%20, mermiler +1 düşmanı deler.',
+    part: {
+      mods: [
+        { stat: 'critChance', op: 'add', value: 0.08 },
+        { stat: 'projSpeed', op: 'mul', value: 1.2 },
+        { stat: 'pierce', op: 'add', value: 1, tag: 'Projectile' },
+      ],
+    },
+  },
+  pyro: {
+    name: 'Piroman',
+    rarity: 'rare',
+    desc: '+8 AP. Vuruşlar %25 ihtimalle patlar (alan hasarı).',
+    part: {
+      mods: [
+        { stat: 'ap', op: 'add', value: 8 },
+        { stat: 'blast', op: 'add', value: 0.25 },
+      ],
+    },
+  },
+  monk: {
+    name: 'Keşiş',
+    rarity: 'epic',
+    desc: '+1 dash hakkı, dash dolumu %15 hızlı, hareket hızı +%10, +20 yetenek hızlandırma.',
+    part: {
+      mods: [
+        { stat: 'dashCharges', op: 'add', value: 1 },
+        { stat: 'dashCdMul', op: 'mul', value: 0.85 },
+        { stat: 'speed', op: 'mul', value: 1.1 },
+        { stat: 'haste', op: 'add', value: 20 },
+      ],
+    },
+  },
+  voidwalker: {
+    name: 'Boşluk Yürüyücüsü',
+    rarity: 'legendary',
+    desc: 'Vuruşlar zırh ve büyü direncini %25 aşındırır, %4 tam can çalma, %15 büyü delme.',
+    part: {
+      mods: [
+        { stat: 'voidShred', op: 'add', value: 0.25 },
+        { stat: 'omnivamp', op: 'add', value: 0.04 },
+        { stat: 'magicPen', op: 'add', value: 0.15 },
+      ],
+    },
+  },
+});
+const SY = (w, c, name, desc, mods) =>
+  (SYNERGIES[w + ':' + c] = { name, desc, mods });
+const T = (stat, op, value, tag) => ({ stat, op, value, tag });
+SY('sword', 'paladin', 'Kutsal Kılıç', 'Kılıç alanı +%10, +10 büyü direnci.', [
+  T('area', 'mul', 1.1, 'Sword'),
+  T('mr', 'add', 10),
+]);
+SY('bow', 'paladin', 'Muhafız Oku', 'Ok hasarı +%12, +8 zırh.', [
+  T('damage', 'mul', 1.12, 'Bow'),
+  T('armor', 'add', 8),
+]);
+SY('staff', 'paladin', 'Şifa Asası', 'Asa lifesteal +%6, +10 zırh.', [
+  T('lifesteal', 'add', 0.06, 'Staff'),
+  T('armor', 'add', 10),
+]);
+SY('sword', 'ranger', 'Fırlatma Kılıcı', 'Kılıç kritik şansı +%8.', [
+  T('critChance', 'add', 0.08, 'Sword'),
+]);
+SY('bow', 'ranger', 'Usta Avcı', 'Yaya +1 ok, ok hızı +%15.', [
+  T('multishot', 'add', 1, 'Bow'),
+  T('projSpeed', 'mul', 1.15, 'Bow'),
+]);
+SY('staff', 'ranger', 'Güdümlü Büyü', 'Asa büyüleri hafif güdümlü (+3).', [
+  T('homing', 'add', 3, 'Staff'),
+]);
+SY('sword', 'pyro', 'Alev Kılıcı', 'Kılıç %20 patlar.', [
+  T('blast', 'add', 0.2, 'Sword'),
+]);
+SY('bow', 'pyro', 'Ateş Oku', 'Oklar %25 patlar, +6 AP.', [
+  T('blast', 'add', 0.25, 'Bow'),
+  T('ap', 'add', 6),
+]);
+SY('staff', 'pyro', 'Cehennem Asası', 'Asa hasarı +%15, %20 patlama.', [
+  T('damage', 'mul', 1.15, 'Staff'),
+  T('blast', 'add', 0.2, 'Staff'),
+]);
+SY('sword', 'monk', 'Akış Yumruğu', 'Kılıç hızı +%20.', [
+  T('attackSpeed', 'mul', 1.2, 'Sword'),
+]);
+SY('bow', 'monk', 'Rüzgar Oku', 'Ok hızı +%20, atış hızı +%10.', [
+  T('projSpeed', 'mul', 1.2, 'Bow'),
+  T('attackSpeed', 'mul', 1.1, 'Bow'),
+]);
+SY('staff', 'monk', 'Zihin Akışı', 'Asa hızı +%15, +10 hızlandırma.', [
+  T('attackSpeed', 'mul', 1.15, 'Staff'),
+  T('haste', 'add', 10),
+]);
+SY('sword', 'voidwalker', 'Boşluk Kesiği', 'Kılıç %15 void aşındırma.', [
+  T('voidShred', 'add', 0.15, 'Sword'),
+]);
+SY('bow', 'voidwalker', 'Boşluk Oku', 'Oklar %15 zırh deler.', [
+  T('armorPen', 'add', 0.15, 'Bow'),
+]);
+SY('staff', 'voidwalker', 'Karanlık Büyü', 'Asa %15 büyü deler, +8 AP.', [
+  T('magicPen', 'add', 0.15, 'Staff'),
+  T('ap', 'add', 8),
+]);

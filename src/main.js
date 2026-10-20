@@ -12,6 +12,7 @@ import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
 import { updateTracking } from './systems/tracking.js';
 import { updateCharacter } from './systems/characters.js';
+import { updateMusic } from './core/music.js';
 import { render } from './systems/render.js';
 import { initHud, updateHud } from './ui/hud.js';
 import { openCards, openClassPick } from './ui/cards.js';
@@ -79,6 +80,7 @@ function loop(now) {
   if (acc > STEP * 5) acc = 0;
   render();
   updateHud();
+  updateMusic();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

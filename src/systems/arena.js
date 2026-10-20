@@ -17,6 +17,7 @@ export const newArena = () => ({
   dark: null,
   ring: null,
   wind: null,
+  mines: [],
 });
 const idle = (e) => e.exposed > 0 || e.under;
 const waveMech = (hint, every, speed, dmg, proc, col) => ({
@@ -51,7 +52,7 @@ const MECH = {
         ar.tk = (ar.tk || 0) - dt;
         if (ar.tk <= 0) {
           ar.tk = 0.5;
-          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 1);
+          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 14);
         }
         if (A.dark.t <= 0) {
           A.dark = null;
@@ -281,7 +282,14 @@ export function updateArena(dt) {
     (e) => e.boss && e.arena && e.hp > 0 && MECH[e.arena],
   );
   if (!bosses.length) {
-    if (A.waves.length || A.pillars.length || A.dark || A.ring || A.wind)
+    if (
+      A.waves.length ||
+      A.pillars.length ||
+      A.dark ||
+      A.ring ||
+      A.wind ||
+      A.mines.length
+    )
       state.arena = newArena();
     return;
   }
@@ -308,6 +316,29 @@ export function updateArena(dt) {
     }
   }
   A.waves = A.waves.filter((w) => w.r < 1300);
+  for (const m of A.mines) {
+    m.t -= dt;
+    if (dist(m, p) < m.r + 10 && !p.dashV) {
+      m.t = 0;
+      dealDamage(m.src, p, 45 * stat(m.src, 'damage'), ['Area'], {
+        type: 'phys',
+      });
+      state.fx.push({ x: m.x, y: m.y, r: 90, t: 0.3, s: 'fire' });
+      burst(m.x, m.y, '#ff7a3a', 20, 300, 0.5);
+      shake(0.3);
+    } else
+      for (const pr of state.projs)
+        if (pr.team === 'p' && Math.hypot(pr.x - m.x, pr.y - m.y) < m.r + 6) {
+          m.t = 0;
+          state.fx.push({ x: m.x, y: m.y, r: 90, t: 0.3, s: 'fire' });
+          burst(m.x, m.y, '#ff7a3a', 16, 260, 0.5);
+          for (const f of state.ents)
+            if (f.team === 'e' && f.hp > 0 && !f.boss && dist(f, m) < 90)
+              f.hp -= 40;
+          break;
+        }
+  }
+  A.mines = A.mines.filter((m) => m.t > 0);
 }
 MECH.sand = {
   hint: 'Kum çukurları çekiyor! Çukurlardan uzak dur!',
@@ -342,3 +373,367 @@ MECH.magma = {
     MECH.golem.tick(e, (ar.g ??= {}), dt, A);
   },
 };
+// ——— F3: yeni boss arena mekanikleri ———
+const segDist = (p, x1, y1, x2, y2) => {
+  const dx = x2 - x1,
+    dy = y2 - y1,
+    t = clamp(
+      ((p.x - x1) * dx + (p.y - y1) * dy) / (dx * dx + dy * dy || 1),
+      0,
+      1,
+    );
+  return Math.hypot(p.x - (x1 + dx * t), p.y - (y1 + dy * t));
+};
+const slash = (e, x1, y1, x2, y2, w, t, dmg) =>
+  addTele({
+    kind: 'line',
+    x1,
+    y1,
+    x2,
+    y2,
+    w,
+    t,
+    team: 'e',
+    follow: e,
+    onEnd: () => {
+      // çizgi uyarısı: bitince çizgide duran vurulur
+      if (segDist(P(), x1, y1, x2, y2) < w / 2 + 10)
+        dealDamage(e, P(), dmg * stat(e, 'damage'), ['Area'], { type: 'phys' });
+      shake(0.12);
+      state.fx.push({
+        x: (x1 + x2) / 2,
+        y: (y1 + y2) / 2,
+        r: 60,
+        t: 0.25,
+        s: 'slash',
+      });
+    },
+  });
+const ray = (e, a, w, t, dmg) =>
+  slash(
+    e,
+    e.x,
+    e.y,
+    e.x + Math.cos(a) * 1500,
+    e.y + Math.sin(a) * 1500,
+    w,
+    t,
+    dmg,
+  );
+const through = (e, cx, cy, a, w, t, dmg) =>
+  slash(
+    e,
+    cx - Math.cos(a) * 700,
+    cy - Math.sin(a) * 700,
+    cx + Math.cos(a) * 700,
+    cy + Math.sin(a) * 700,
+    w,
+    t,
+    dmg,
+  );
+const cloud = (hint, every, col, dps) => ({
+  hint,
+  tick(e, ar, dt) {
+    ar.t = (ar.t ?? 3) - dt;
+    if (ar.t > 0 || idle(e)) return;
+    ar.t = every;
+    const p = P();
+    for (let i = 0; i < 3; i++) {
+      const a = rnd(0, 6.28),
+        d = rnd(60, 240);
+      state.zones.push({
+        x: p.x + Math.cos(a) * d,
+        y: p.y + Math.sin(a) * d,
+        r: 80,
+        t: 9,
+        team: 'e',
+        src: e,
+        dps: dps * stat(e, 'damage'),
+        col,
+        tick: 0,
+        grow: 8,
+      });
+    }
+  },
+});
+Object.assign(MECH, {
+  shock: waveMech(
+    'Şok dalgaları! Dalganın içinden dash ile geç!',
+    3.4,
+    400,
+    26,
+    undefined,
+    '#ffd08a',
+  ),
+  blood: {
+    hint: 'Kan havuzları yayılıyor! Kırmızı alanlardan kaç!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 3) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 4.5;
+      const p = P();
+      for (let i = 0; i < 5; i++) {
+        const a = i * 1.257 + rnd(0, 1),
+          d = rnd(80, 230);
+        state.zones.push({
+          x: clamp(p.x + Math.cos(a) * d, 40, W - 40),
+          y: clamp(p.y + Math.sin(a) * d, 40, H - 40),
+          r: 55,
+          t: 6,
+          team: 'e',
+          src: e,
+          dps: 20 * stat(e, 'damage'),
+          col: '#b01030',
+          tick: 0,
+        });
+      }
+    },
+  },
+  mines: {
+    hint: 'Mayınlar saçılıyor! Kırmızı noktalara basma, ateşle patlat!',
+    tick(e, ar, dt, A) {
+      ar.t = (ar.t ?? 2) - dt;
+      if (ar.t > 0 || idle(e) || A.mines.length > 14) return;
+      ar.t = 4;
+      const p = P();
+      for (let i = 0; i < 4; i++) {
+        const a = rnd(0, 6.28),
+          d = rnd(90, 300);
+        A.mines.push({
+          x: clamp(p.x + Math.cos(a) * d, 60, W - 60),
+          y: clamp(p.y + Math.sin(a) * d, 60, H - 60),
+          r: 18,
+          t: 22,
+          src: e,
+        });
+      }
+    },
+  },
+  moon: {
+    hint: 'Ay ışığı çizgileri! Işığın geçeceği yerden çekil!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 3) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 3.2;
+      ar.k = (ar.k || 0) + 1;
+      const p = P(),
+        base = Math.atan2(p.y - e.y, p.x - e.x) + (ar.k % 2 ? 0.35 : -0.35);
+      for (let i = -1; i <= 1; i++) ray(e, base + i * 0.5, 60, 1.1, 38);
+    },
+  },
+  genjutsu: {
+    hint: 'Tsukuyomi! Kırmızı ekranda kontroller TERS döner (dash bozar)!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 6) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 11 - (e.phaseIdx || 0) * 2;
+      state.reverse = 3;
+      state.flash = 1;
+      toast('TSUKUYOMI! Kontroller ters!');
+      ring(P().x, P().y, 200, '#ff2040');
+    },
+  },
+  storm: {
+    hint: 'Şimşek fırtınası! Mavi alanlardan çekil!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 2) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 1.6 - (e.phaseIdx || 0) * 0.3;
+      const p = P(),
+        a = rnd(0, 6.28),
+        d = rnd(0, 200),
+        x = p.x + Math.cos(a) * d,
+        y = p.y + Math.sin(a) * d;
+      addTele({
+        kind: 'circle',
+        x,
+        y,
+        r: 70,
+        t: 0.9,
+        team: 'e',
+        follow: e,
+        onEnd: () => {
+          if (dist({ x, y }, P()) < 80)
+            dealDamage(e, P(), 30 * stat(e, 'damage'), ['Area'], {
+              type: 'magic',
+            });
+          state.fx.push({ x, y, r: 70, t: 0.3, s: 'bolt' });
+          burst(x, y, '#9bd8ff', 14, 260, 0.5);
+          shake(0.15);
+        },
+      });
+    },
+  },
+  gravity: {
+    hint: 'Shinra Tensei! Çekilirsin, sonra patlama: patlamadan uzaklaş!',
+    tick(e, ar, dt) {
+      const p = P();
+      if (ar.m === 'pull') {
+        ar.pt -= dt;
+        const d = dist(e, p) || 1;
+        if (!p.dashV) {
+          p.x += ((e.x - p.x) / d) * 190 * dt;
+          p.y += ((e.y - p.y) / d) * 190 * dt;
+        }
+        if (ar.pt <= 0) {
+          ar.m = null;
+          ring(e.x, e.y, 300, '#ff9a3a');
+          const ex = e.x,
+            ey = e.y;
+          addTele({
+            kind: 'circle',
+            x: ex,
+            y: ey,
+            r: 260,
+            t: 0.8,
+            team: 'e',
+            follow: e,
+            onEnd: () => {
+              const q = P(),
+                d2 = dist({ x: ex, y: ey }, q) || 1;
+              if (d2 < 270) {
+                dealDamage(e, q, 55 * stat(e, 'damage'), ['Area'], {
+                  type: 'magic',
+                });
+                q.x = clamp(q.x + ((q.x - ex) / d2) * 380, 0, W);
+                q.y = clamp(q.y + ((q.y - ey) / d2) * 380, 0, H);
+              }
+              burst(ex, ey, '#ff9a3a', 30, 400, 0.6);
+              shake(0.6);
+            },
+          });
+        }
+        return;
+      }
+      ar.t = (ar.t ?? 5) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 9;
+      ar.m = 'pull';
+      ar.pt = 2.6;
+      toast('Çekim başladı! Dash ile kurtul');
+    },
+  },
+  aura: {
+    hint: "Ruhani baskı! Kenpaçi'ye fazla yaklaşma, yakınında can erir!",
+    tick(e, ar, dt) {
+      const R = 200 + (e.phaseIdx || 0) * 60;
+      ar.R = R;
+      ar.tk = (ar.tk || 0) - dt;
+      if (ar.tk <= 0) {
+        ar.tk = 0.4;
+        if (dist(e, P()) < R && !e.under) drain(e, 9);
+      }
+      if (Math.random() < 0.5)
+        state.parts.push({
+          x: e.x + rnd(-R, R) * 0.8,
+          y: e.y + rnd(-R, R) * 0.8,
+          vx: 0,
+          vy: -60,
+          t: 0.5,
+          max: 0.5,
+          col: '#ffd84f',
+          r: 2,
+        });
+    },
+  },
+  petals: {
+    hint: 'Senbonzakura! Yaprak spirallerinin arasından geç!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 1.5) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 1.1 - (e.phaseIdx || 0) * 0.15;
+      ar.k = (ar.k || 0) + 0.37;
+      for (let i = 0; i < 10; i++) {
+        const a = ar.k + i * 0.6283;
+        state.projs.push({
+          x: e.x,
+          y: e.y,
+          vx: Math.cos(a) * 150,
+          vy: Math.sin(a) * 150,
+          dmg: 9 * stat(e, 'damage'),
+          type: 'phys',
+          team: 'e',
+          src: e,
+          tags: ['Projectile'],
+          life: 4,
+          col: '#ffb0d0',
+          size: 5,
+          shape: 'petal',
+          pierce: 0,
+          hit: new Set(),
+          accel: 0.15,
+        });
+      }
+    },
+  },
+  abyss: {
+    hint: 'Boşluk çukurları her şeyi içine çekiyor!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 3) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 4.5;
+      const p = P();
+      for (let i = 0; i < 2; i++) {
+        const a = rnd(0, 6.28),
+          d = rnd(80, 240);
+        state.zones.push({
+          x: p.x + Math.cos(a) * d,
+          y: p.y + Math.sin(a) * d,
+          r: 95,
+          t: 8,
+          team: 'e',
+          src: e,
+          dps: 12 * stat(e, 'damage'),
+          col: '#2a1a5a',
+          slow: 0.4,
+          pull: 170,
+          tick: 0,
+        });
+      }
+    },
+  },
+  claws: {
+    hint: 'Pençe izleri! Çizgilerin dışına çık!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 2.5) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      ar.t = 3.4 - (e.phaseIdx || 0) * 0.4;
+      const p = P(),
+        base = Math.atan2(p.y - e.y, p.x - e.x);
+      for (let i = 0; i < 5; i++) ray(e, base + (i - 2) * 0.3, 46, 0.9, 40);
+    },
+  },
+  butterfly: cloud(
+    'Reishi kelebekleri! Mor bulutlardan uzak dur!',
+    5.5,
+    '#a070ff',
+    11,
+  ),
+  planet: {
+    hint: 'Gezegen çöküyor! Çemberin içinde kal, dalgalardan geç!',
+    tick(e, ar, dt, A) {
+      MECH.ring.tick(e, (ar.r ??= {}), dt, A);
+      MECH.golem.tick(e, (ar.g ??= {}), dt, A);
+    },
+  },
+  domain: {
+    hint: 'Kutsal Mabet! Kesik çizgilerinin arasında kal!',
+    tick(e, ar, dt) {
+      ar.t = (ar.t ?? 3) - dt;
+      if (ar.t > 0 || idle(e)) return;
+      const ph = e.phaseIdx || 0;
+      ar.t = ph >= 1 ? 0.9 : 2.2;
+      const p = P();
+      for (let i = 0; i < (ph >= 1 ? 2 : 1); i++)
+        through(
+          e,
+          p.x + rnd(-90, 90),
+          p.y + rnd(-90, 90),
+          rnd(0, 3.14),
+          44,
+          0.75,
+          34,
+        );
+    },
+  },
+});

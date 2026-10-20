@@ -78,6 +78,7 @@ export function settleRun() {
   state.paid = total;
   if (!gain) return { souls: 0, xp: 0, up: 0 };
   meta.souls = (meta.souls || 0) + gain;
+  meta.stats.souls = (meta.stats.souls || 0) + gain;
   const up = addCharXp(state.charId || 'warrior', gain);
   save(true);
   return { souls: gain, xp: gain, up };

@@ -123,6 +123,7 @@ export function onVictory() {
 export function reviveIfPossible(p, maxHp) {
   if (!state.revive || state.revive < 1) return false;
   state.revive--;
+  meta.stats.revives = (meta.stats.revives || 0) + 1;
   p.hp = maxHp * 0.4;
   p.invuln = 2;
   state.slowT = 0.8;

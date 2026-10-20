@@ -1,3 +1,4 @@
+import { ANIME, ANIME_ENEMIES } from './animeBosses.js';
 // hp = taban can (BAL.enemyHp / BAL.bossHp ile çarpılır). stats: oyuncuyla AYNI stat isimleri (ad, ap, mr, critChance, armorPen, haste...). res: efekt dirençleri. dr: hasar azaltma.
 // abilities: data/abilities.js'teki HERHANGİ bir skill. parts: ekstra mod/slot. orbit: dönen tırpanlar. dodge: kaçınma. deathBlast: ölünce patlar.
 const E = (o) => ({
@@ -442,4 +443,15 @@ const ABS = {
 };
 BOSSES.forEach((b) => {
   if (ABS[b.name]) b.absorb = ABS[b.name];
+});
+BOSSES.push(...ANIME);
+Object.assign(
+  ENEMIES,
+  Object.fromEntries(
+    Object.entries(ANIME_ENEMIES).map(([k, v]) => [k, { ...v }]),
+  ),
+);
+const AR2 = { 'Kan Rahibi': 'blood', Kaboom: 'mines', Vesper: 'moon' };
+BOSSES.forEach((b) => {
+  if (AR2[b.name]) b.arena = AR2[b.name];
 });

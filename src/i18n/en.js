@@ -1,3 +1,4 @@
+import { EN2 } from './en2.js';
 // Türkçe -> İngilizce sözlük (tam kelime/ifade eşleşmesi, uzun ifadeler önce). Eksik olanlar Türkçe kalır; yeni satır eklemek yeterli.
 export const EN = {
   // menü
@@ -486,3 +487,4 @@ export const EN = {
   BOSS: 'BOSS',
   Tırpanlar: 'Scythes',
 };
+Object.assign(EN, EN2);

@@ -13,6 +13,7 @@ const ac = () => {
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
 };
+export const getAc = ac;
 addEventListener('pointerdown', ac);
 addEventListener('keydown', ac);
 function tone(f, d, type = 'square', vol = 0.1, slide = 0, delay = 0) {
@@ -25,7 +26,7 @@ function tone(f, d, type = 'square', vol = 0.1, slide = 0, delay = 0) {
   o.frequency.setValueAtTime(f, t);
   if (slide)
     o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
-  g.gain.setValueAtTime(vol * meta.settings.vol * 2, t);
+  g.gain.setValueAtTime(vol * (meta.settings.sfx ?? meta.settings.vol) * 2, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   o.connect(g);
   g.connect(c.destination);

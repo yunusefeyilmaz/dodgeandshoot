@@ -19,6 +19,7 @@ import { sellItem } from '../systems/inventory.js';
 import { releaseClass } from '../systems/classes.js';
 import { removePet } from '../systems/pets.js';
 import { updateCharHud } from './charhud.js';
+import { tipOf } from '../data/tips.js';
 import { openShop } from './shop.js';
 import { picked } from './cards.js';
 import {
@@ -95,7 +96,8 @@ let shopBtn,
   petSig = '',
   frame = 0,
   overShown = false,
-  wonShown = false;
+  wonShown = false,
+  lastTipW = 0;
 const open = (k) => panels[k].style.display === 'block';
 const anyOpen = () => Object.keys(panels).some(open);
 
@@ -785,6 +787,10 @@ function summaryEl() {
       state.lastGain.xp +
       (state.lastGain.up ? ' · SEVİYE ATLADI ×' + state.lastGain.up : '') +
       '</b></div>';
+  d.innerHTML +=
+    '<div class="dim" style="margin-top:8px">💡 ' +
+    tipOf((Math.random() * 99) | 0) +
+    '</div>';
   return d;
 }
 export function updateHud() {
@@ -1066,6 +1072,17 @@ export function updateHud() {
   if (frame % 6 === 0) refreshTip();
   if (frame % 60 === 1) refreshKbd();
   updateCharHud();
+  if (w.phase === 'active' && w.n !== lastTipW) {
+    lastTipW = w.n;
+    if (meta.settings.tips !== false && w.n % 3 === 1 && w.n < 40)
+      toast(
+        '💡 ' +
+          tipOf((meta.settings.tipI = (meta.settings.tipI || 0) + 1)).replace(
+            /<[^>]+>/g,
+            '',
+          ),
+      );
+  }
   if (state.victory && !wonShown) {
     wonShown = true;
     const v = state.victory,
