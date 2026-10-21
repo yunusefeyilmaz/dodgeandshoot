@@ -52,7 +52,7 @@ const MECH = {
         ar.tk = (ar.tk || 0) - dt;
         if (ar.tk <= 0) {
           ar.tk = 0.5;
-          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 14);
+          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 1);
         }
         if (A.dark.t <= 0) {
           A.dark = null;

@@ -3,11 +3,18 @@ import { stat } from '../core/stats.js';
 import { RARITIES } from '../core/rarity.js';
 import { T } from '../i18n/index.js';
 const cv = document.getElementById('c'),
-  g = cv.getContext('2d'),
   v = state.view;
+let g = cv.getContext('2d', { alpha: false, desynchronized: true });
+v.scale = 1;
 function resize() {
-  cv.width = v.w = innerWidth;
-  cv.height = v.h = innerHeight;
+  v.w = innerWidth;
+  v.h = innerHeight;
+  cv.width = Math.round(v.w * v.scale);
+  cv.height = Math.round(v.h * v.scale);
+} // tuval çözünürlüğü ölçeklenir, mantıksal boyut (v.w/v.h) sabit kalır
+export function setScale(s) {
+  v.scale = s;
+  resize();
 }
 addEventListener('resize', resize);
 resize();
@@ -20,12 +27,39 @@ const hash = (x, y) => {
   h = ((h ^ (h >>> 13)) * 1274126177) | 0;
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
-function drawDecor(th) {
-  // haritaya özel zemin süsleri (ağaç, kaktüs, kristal): hücre başına sabit, ekran dışı çizilmez
-  const S = 170,
-    t = performance.now() / 1000;
-  for (let cx = Math.floor(v.x / S) - 1; cx <= (v.x + v.w) / S; cx++)
-    for (let cy = Math.floor(v.y / S) - 1; cy <= (v.y + v.h) / S; cy++) {
+let decorKey = null,
+  decorCv = null;
+const DS = 0.5;
+function drawDecorCached(th) {
+  // dekor harita başına BİR kez ayrı tuvale çizilir; her karede tek drawImage
+  if (decorKey !== state.map.id) {
+    decorKey = state.map.id;
+    decorCv = document.createElement('canvas');
+    decorCv.width = W * DS;
+    decorCv.height = H * DS;
+    const keep = g;
+    g = decorCv.getContext('2d');
+    g.setTransform(DS, 0, 0, DS, 0, 0);
+    drawDecor(th, 0, 0, W, H, 0);
+    g = keep;
+  }
+  g.drawImage(
+    decorCv,
+    v.x * DS,
+    v.y * DS,
+    v.w * DS,
+    v.h * DS,
+    v.x,
+    v.y,
+    v.w,
+    v.h,
+  );
+}
+function drawDecor(th, x0, y0, x1, y1, t) {
+  // haritaya özel zemin süsleri (ağaç, kaktüs, kristal): hücre başına sabit
+  const S = 170;
+  for (let cx = Math.floor(x0 / S) - 1; cx <= x1 / S; cx++)
+    for (let cy = Math.floor(y0 / S) - 1; cy <= y1 / S; cy++) {
       if (hash(cx, cy) > th.density) continue;
       const x = cx * S + hash(cy, cx) * S,
         y = cy * S + hash(cx + 7, cy + 3) * S,
@@ -386,6 +420,7 @@ const body = (e) => {
 
 export function render() {
   const p = state.player;
+  g.setTransform(v.scale, 0, 0, v.scale, 0, 0);
   v.x = Math.max(0, Math.min(W - v.w, p.x - v.w / 2));
   v.y = Math.max(0, Math.min(H - v.h, p.y - v.h / 2));
   const th = state.map.theme;
@@ -397,7 +432,7 @@ export function render() {
     -v.x + (Math.random() - 0.5) * sh,
     -v.y + (Math.random() - 0.5) * sh,
   );
-  drawDecor(th);
+  drawDecorCached(th);
   g.strokeStyle = th.grid;
   g.lineWidth = 1;
   g.beginPath();
@@ -440,10 +475,18 @@ export function render() {
     g.stroke();
   }
   for (const q of state.parts) {
-    g.globalAlpha = Math.max(0, q.t / q.max);
+    if (
+      q.x < v.x - 10 ||
+      q.x > v.x + v.w + 10 ||
+      q.y < v.y - 10 ||
+      q.y > v.y + v.h + 10
+    )
+      continue;
+    const al = q.t / q.max;
+    if (al < 0.06) continue;
+    g.globalAlpha = al;
     g.fillStyle = q.col;
-    circle(q.x, q.y, q.r);
-    g.fill();
+    g.fillRect(q.x - q.r, q.y - q.r, q.r * 2, q.r * 2);
   }
   g.globalAlpha = 1;
   for (const k of state.pickups) {
@@ -710,11 +753,12 @@ export function render() {
     g.globalAlpha = e === p && p.invuln > 0 ? 0.45 : 1;
     g.fillStyle = e === p ? '#5cc8ff' : e.col;
     if (e === p) {
-      g.shadowColor = '#5cc8ff';
-      g.shadowBlur = 18;
+      g.globalAlpha = 0.22;
+      circle(e.x, e.y, e.r + 7);
+      g.fill();
+      g.globalAlpha = p.invuln > 0 ? 0.45 : 1;
     }
     body(e);
-    g.shadowBlur = 0;
     g.globalAlpha = 1;
     if (e.icon) {
       g.font = '16px system-ui';
@@ -809,17 +853,31 @@ export function render() {
       g.strokeText(T(e.name), e.x, e.y - e.r - 14);
       g.fillText(T(e.name), e.x, e.y - e.r - 14);
     } // boss isimleri
-  g.textAlign = 'center';
-  g.lineJoin = 'round';
-  g.lineWidth = 3;
-  g.strokeStyle = '#000b'; // hasar sayıları
-  for (const x of state.texts) {
-    const kk = x.big ? 1 + Math.max(0, x.t - 0.5) * 7 : 1;
+  g.textAlign = 'center'; // hasar sayıları: kontur yerine 1px gölge (strokeText pahalı), font yalnız boyut değişince atanır
+  let lf = '',
+    nT = 0;
+  const maxT = (state.fxQ ?? 1) < 1 ? 14 : 40;
+  for (let i = state.texts.length - 1; i >= 0 && nT < maxT; i--, nT++) {
+    const x = state.texts[i];
+    if (
+      x.x < v.x - 40 ||
+      x.x > v.x + v.w + 40 ||
+      x.y < v.y - 40 ||
+      x.y > v.y + v.h + 40
+    )
+      continue;
+    const kk = x.big ? 1 + Math.max(0, x.t - 0.5) * 7 : 1,
+      f = 'bold ' + Math.round((x.big ? 20 : 13) * kk) + 'px system-ui';
+    if (f !== lf) {
+      g.font = f;
+      lf = f;
+    }
+    const s = /^[\d+\-.,%x× ]/.test(x.text) ? x.text : T(x.text);
     g.globalAlpha = Math.min(1, x.t * 3);
-    g.font = 'bold ' + Math.round((x.big ? 20 : 13) * kk) + 'px system-ui';
-    g.fillStyle = x.col; // kritik yazısı büyüyerek belirir
-    g.strokeText(T(x.text), x.x, x.y);
-    g.fillText(T(x.text), x.x, x.y);
+    g.fillStyle = '#000c';
+    g.fillText(s, x.x + 1, x.y + 1);
+    g.fillStyle = x.col;
+    g.fillText(s, x.x, x.y);
   }
   g.globalAlpha = 1;
   g.restore();

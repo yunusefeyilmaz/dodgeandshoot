@@ -1,6 +1,8 @@
 import { state, rnd } from '../core/state.js';
 // Parçacık, halka ve ekran sarsıntısı
 export function burst(x, y, col, n = 6, sp = 140, life = 0.5) {
+  n = Math.ceil(n * (state.fxQ ?? 1));
+  const cap = Math.round(260 * (state.fxQ ?? 1));
   for (let i = 0; i < n; i++) {
     const a = rnd(0, 6.28),
       s = rnd(0.3, 1) * sp;
@@ -15,7 +17,7 @@ export function burst(x, y, col, n = 6, sp = 140, life = 0.5) {
       r: rnd(1.5, 3.5),
     });
   }
-  if (state.parts.length > 260) state.parts.splice(0, state.parts.length - 260);
+  if (state.parts.length > cap) state.parts.splice(0, state.parts.length - cap);
 }
 export const ring = (x, y, r, col = '#fff') =>
   state.rings.push({ x, y, r: 0, max: r, col, t: 0.4 });

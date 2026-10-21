@@ -19,7 +19,7 @@ import {
 } from '../systems/meta.js';
 import { startRun } from '../systems/run.js';
 import { MAP_LIST } from '../data/maps.js';
-import { GUIDE, tipOf } from '../data/tips.js';
+import { guideList, tipOf } from '../data/tips.js';
 import { CHARS, CHAR_LIST, xpFor, MAX_CHAR_LEVEL } from '../data/characters.js';
 import {
   mapState,
@@ -42,7 +42,7 @@ import {
   resetCharTree,
 } from '../systems/characters.js';
 import { renderTree } from './tree.js';
-import { statGlyph } from './icons.js';
+import { nodeGlyph, statGlyph } from './icons.js';
 import { setTip } from './tooltip.js';
 const M = document.getElementById('menu'),
   $ = (id) => document.getElementById(id);
@@ -196,7 +196,7 @@ function weaponScreen() {
   const draw = () => {
     $('bp').textContent = points();
     renderTree($('mtree'), WEAPONS[selW].tree, {
-      icon: (n) => statGlyph(n.mods[0].stat),
+      icon: nodeGlyph,
       level: (n) => (owned(selW, n.id) ? 1 : 0),
       can: (n) => !owned(selW, n.id) && points() >= n.cost,
       sub: (n) => (owned(selW, n.id) ? 'Açık ✓' : n.cost + ' Boss Puanı'),
@@ -303,7 +303,7 @@ function charsScreen() {
     const draw = () => {
       $('cp').textContent = charPoints(viewC);
       renderTree($('ctree'), c.tree, {
-        icon: (n) => statGlyph(n.mods[0].stat),
+        icon: nodeGlyph,
         level: (n) => (charOwned(viewC, n.id) ? 1 : 0),
         can: (n) =>
           !charOwned(viewC, n.id) &&
@@ -461,19 +461,36 @@ function achScreen() {
 
 function settingsScreen() {
   // tuş atama: bir tuşa tıkla, sonra yeni tuşa bas (çakışan tuş yer değiştirir)
-  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Ayarlar</h2></div><h3>Ses</h3><div class="keys"><div class="krow"><span>Oyun içi ipuçları</span><button id="sTips"></button></div><div class="krow"><span>Müzik</span><button id="sMusic"></button></div><div class="krow"><span>Müzik seviyesi</span><button id="sMv"></button></div><div class="krow"><span>Efekt seviyesi</span><button id="sSv"></button></div></div><h3>Tuş atamaları</h3><div class="sub">Bir tuşa tıkla, sonra yeni tuşa bas. Ok tuşları her zaman da hareket ettirir. İptal için Esc.</div>
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Ayarlar</h2></div><h3>Performans</h3><div class="keys"><div class="krow"><span>Grafik kalitesi</span><button id="sGfx"></button></div><div class="krow"><span>FPS göstergesi</span><button id="sFps"></button></div></div><h3>Ses</h3><div class="keys"><div class="krow"><span>Oyun içi ipuçları</span><button id="sTips"></button></div><div class="krow"><span>Müzik</span><button id="sMusic"></button></div><div class="krow"><span>Müzik seviyesi</span><button id="sMv"></button></div><div class="krow"><span>Efekt seviyesi</span><button id="sSv"></button></div></div><h3>Tuş atamaları</h3><div class="sub">Bir tuşa tıkla, sonra yeni tuşa bas. Ok tuşları her zaman da hareket ettirir. İptal için Esc.</div>
     <div class="keys">${ACTIONS.map(([id, name]) => `<div class="krow"><span>${name}</span><button data-a="${id}"></button></div>`).join('')}</div><div class="treehead"><span></span><button id="kReset">Varsayılana dön</button></div></div>`;
   const lv = ['0%', '25%', '50%', '75%', '100%'],
     idx = (v) => Math.round((v ?? 0.5) * 4),
     snd = () => {
       $('sMusic').textContent =
-        meta.settings.music === false ? 'Kapalı' : 'Açık';
+        meta.settings.music === false ? 'Pasif' : 'Aktif';
       $('sMv').textContent = lv[idx(meta.settings.mvol)];
       $('sSv').textContent = lv[idx(meta.settings.sfx ?? meta.settings.vol)];
     };
   snd();
+  const GF = ['auto', 'high', 'medium', 'low'],
+    GN = { auto: 'Otomatik', high: 'Yüksek', medium: 'Orta', low: 'Düşük' },
+    gf = () => {
+      $('sGfx').textContent = GN[meta.settings.gfx || 'auto'];
+      $('sFps').textContent = meta.settings.fps ? 'Aktif' : 'Pasif';
+    };
+  gf();
+  $('sGfx').onclick = () => {
+    meta.settings.gfx = GF[(GF.indexOf(meta.settings.gfx || 'auto') + 1) % 4];
+    save(true);
+    gf();
+  };
+  $('sFps').onclick = () => {
+    meta.settings.fps = !meta.settings.fps;
+    save(true);
+    gf();
+  };
   const tp = () =>
-    ($('sTips').textContent = meta.settings.tips === false ? 'Kapalı' : 'Açık');
+    ($('sTips').textContent = meta.settings.tips === false ? 'Pasif' : 'Aktif');
   tp();
   $('sTips').onclick = () => {
     meta.settings.tips = meta.settings.tips === false;
@@ -526,6 +543,7 @@ function settingsScreen() {
 }
 let guideI = 0;
 function guideScreen() {
+  const GUIDE = guideList();
   M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Rehber</h2></div><div class="cdet"><div style="flex:0 0 220px;min-width:180px">${GUIDE.map((g, i) => `<button class="big" data-g="${i}" style="display:block;width:100%;margin:3px 0;${i === guideI ? 'border-color:#e8c878' : ''}">${g.t}</button>`).join('')}</div>
     <div style="flex:2;min-width:280px"><h3 style="margin-top:0">${GUIDE[guideI].t}</h3>${GUIDE[guideI].b()}</div></div>
     <div class="sh2">İPUÇLARI</div><div class="dim">${[0, 1, 2].map((k) => '💡 ' + tipOf(guideI * 3 + k + 3)).join('<br>')}</div></div>`;

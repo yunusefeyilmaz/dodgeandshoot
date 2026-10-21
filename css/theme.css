@@ -312,12 +312,10 @@ kbd {
   0% {
     opacity: 0;
     transform: scale(2.4);
-    filter: blur(8px);
   }
   12% {
     opacity: 1;
     transform: scale(1);
-    filter: none;
   }
   78% {
     opacity: 1;
@@ -335,7 +333,6 @@ kbd {
 /* kartlar, yükseltmeler, çark */
 #ov {
   background: radial-gradient(ellipse at center, #0a0810cc, #050308f4);
-  backdrop-filter: blur(3px);
   animation: ovin 0.2s both;
 }
 @keyframes ovin {

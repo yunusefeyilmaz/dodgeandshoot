@@ -14,6 +14,7 @@ const ac = () => {
   return ctx;
 };
 export const getAc = ac;
+export const peekAc = () => ctx; // oluşturmadan/resume etmeden mevcut bağlam
 addEventListener('pointerdown', ac);
 addEventListener('keydown', ac);
 function tone(f, d, type = 'square', vol = 0.1, slide = 0, delay = 0) {

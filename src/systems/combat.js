@@ -1032,7 +1032,7 @@ export function updateCombat(dt) {
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;
     pr.life -= dt;
-    if (Math.random() < (pr.trail || 0.12))
+    if (Math.random() < (pr.trail || 0.12) * (state.fxQ ?? 1))
       burst(pr.x, pr.y, pr.tcol || pr.col || '#fff', 1, 10, 0.25);
     if (pr.team !== 'p') {
       if (pillarBlocks(pr)) continue;

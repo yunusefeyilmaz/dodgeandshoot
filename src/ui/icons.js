@@ -56,6 +56,10 @@ export const glyphOf = (ab) => {
   return '✦';
 };
 export const statGlyph = (s) => SG[s] || '✦';
+export const nodeGlyph = (n) =>
+  n.part && n.part.orbit
+    ? '🔮'
+    : statGlyph(n.mods && n.mods[0] && n.mods[0].stat); // mods boş olan düğümler (örn. orbit) için güvenli
 export const CLASS_GLYPH = {
   assassin: '🗡️',
   vampire: '🦇',
@@ -83,6 +87,24 @@ const SG = {
   speed: '👟',
   critChance: '🎯',
   critDmg: '🎯',
+  crescent: '🌙',
+  surge: '⚡',
+  volley: '🏹',
+  ricochet: '↩️',
+  focus: '🎯',
+  homing: '🧲',
+  projSpeed: '💨',
+  pull: '🌀',
+  refreshDash: '🔁',
+  killNova: '💥',
+  rageGain: '🔥',
+  rageDur: '🔥',
+  stillBonus: '🎯',
+  shadowDmg: '🌑',
+  arcanaEvery: '🔮',
+  soulEvery: '💀',
+  soldierMax: '💀',
+  soldierLife: '💀',
   luck: '🍀',
   haste: '⏱️',
   damage: '💢',

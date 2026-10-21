@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { meta } from './save.js';
-import { getAc } from './audio.js';
+import { peekAc } from './audio.js';
 // Dosyasız, WebAudio ile üretilen prosedürel müzik. Mod: menü / harita (orman, çöl, boşluk) / boss. Kaydırmalı zamanlayıcı yok:
 // notalar ses saatine göre ileriye planlanır (update() her karede çağrılır).
 const MODES = {
@@ -184,10 +184,11 @@ function schedule(M, t) {
 }
 export function updateMusic() {
   if (!ctx) {
-    ctx = getAc();
+    ctx = peekAc();
     if (!ctx) return;
     setup(ctx);
   }
+  if (ctx.state !== 'running') return; // kullanıcı etkileşimi öncesi sessiz bekle (her karede resume() çağrısı yok)
   const on = !meta.settings.mute && meta.settings.music !== false,
     target = on ? (meta.settings.mvol ?? 0.5) * 0.55 : 0;
   master.gain.setTargetAtTime(target, ctx.currentTime, 0.25);
