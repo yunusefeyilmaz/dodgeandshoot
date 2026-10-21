@@ -9,7 +9,7 @@ import { addBuff } from './buffs.js';
 import { dealDamage } from './combat.js';
 import { inputDir } from './player.js';
 import { is } from '../core/keymap.js';
-// DASH (Shift): kısa mesafe atılır, kısa süre dokunulmaz. Dokunulmazken bir saldırı değerse MÜKEMMEL KAÇIŞ: zaman yavaşlar + buff.
+// DASH (Shift): kısa mesafe atılır, kısa süre dokunulmaz. Dokunulmazken bir saldırı değerse MÜKEMMEL KAÇIŞ: saldırı/hareket hızı buff'ı (zaman yavaşlamaz).
 const maxCharges = (p) => Math.round(stat(p, 'dashCharges'));
 export const dashRecharge = (p) =>
   Math.max(0.5, (1.6 * stat(p, 'dashCdMul') * 100) / (100 + stat(p, 'haste')));
@@ -65,7 +65,8 @@ export function updateDash(dt) {
   p.x = Math.min(3200, Math.max(0, p.x + v.dx * 900 * dt));
   p.y = Math.min(2400, Math.max(0, p.y + v.dy * 900 * dt));
   v.t -= dt;
-  if (Math.random() < 0.8) burst(p.x, p.y, '#5cc8ff', 1, 20, 0.25);
+  if (Math.random() < 0.8 * (state.dt || 1 / 60) * 60)
+    burst(p.x, p.y, '#5cc8ff', 1, 20, 0.25);
   const tr = stat(p, 'dashTrail'); // Ateş İzi: dash yolunda yanan bölgeler
   if (tr > 0 && (v.z = (v.z || 0) - dt) <= 0) {
     v.z = 0.04;
@@ -100,7 +101,6 @@ export function perfectDodge() {
   const p = state.player;
   if ((p.pdCd || 0) > 0) return;
   p.pdCd = 1.2;
-  state.slowT = 0.45;
   meta.stats.dodges = (meta.stats.dodges || 0) + 1;
   addBuff(p, {
     id: 'perfect',

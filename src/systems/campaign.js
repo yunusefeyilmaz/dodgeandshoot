@@ -126,7 +126,6 @@ export function reviveIfPossible(p, maxHp) {
   meta.stats.revives = (meta.stats.revives || 0) + 1;
   p.hp = maxHp * 0.4;
   p.invuln = 2;
-  state.slowT = 0.8;
   state.flash = 1;
   toast('İkinci Nefes! Yeniden doğdun');
   return true;

@@ -617,7 +617,7 @@ const dashItem = (p) => {
       d.charges +
       '/' +
       mx +
-      '</b></div><div class="dim">Bir saldırı değmeden hemen önce dash atarsan <b>MÜKEMMEL KAÇIŞ</b>: zaman yavaşlar + saldırı hızı buff\'ı.</div>',
+      '</b></div><div class="dim">Bir saldırı değmeden hemen önce dash atarsan <b>MÜKEMMEL KAÇIŞ</b>: saldırı hızı + hareket hızı buff\'ı.</div>',
   };
 };
 function renderObj() {
@@ -865,7 +865,7 @@ export function updateHud() {
   if (
     aff &&
     w.phase === 'idle' &&
-    (state.remindT = (state.remindT ?? 10) - 1 / 60) <= 0
+    (state.remindT = (state.remindT ?? 10) - (state.hudDt || 1 / 60)) <= 0
   ) {
     toast('💰 Yükseltme alacak kadar altının var! (B)');
     state.remindT = 30;
@@ -873,7 +873,7 @@ export function updateHud() {
   const t = $('toast');
   t.textContent = state.msg;
   t.style.opacity = state.msgT > 0 ? 1 : 0;
-  if (state.msgT > 0) state.msgT -= 1 / 60;
+  if (state.msgT > 0) state.msgT -= state.hudDt || 1 / 60;
 
   // buff / debuff barı (HP'nin altı)
   syncIcons($('buffs'), [

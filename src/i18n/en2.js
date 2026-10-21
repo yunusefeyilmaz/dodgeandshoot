@@ -827,7 +827,8 @@ Object.assign(EN2, {
     'Its bonuses and combos are removed and the slot is freed.',
   'Direnç: yavaşlatma %': 'Resistance: slow %',
   "Bir saldırı değmeden hemen önce dash atarsan MÜKEMMEL KAÇIŞ : zaman yavaşlar + saldırı hızı buff'ı.":
-    'If you dash right before an attack lands, it is a PERFECT DODGE: time slows + attack speed buff.',
+    'If you dash right before an attack lands, it is a PERFECT DODGE: attack speed + move speed buff.',
+  "saldırı hızı + hareket hızı buff'ı.": 'attack speed + move speed buff.',
   'Yol işareti kaldırıldı': 'Waypoint removed',
   '📍 Yol gösteriliyor:': '📍 Showing path:',
   'KALICI İLERLEME': 'PERMANENT PROGRESS',
@@ -1012,4 +1013,10 @@ Object.assign(EN2, {
   Yüksek: 'High',
   Orta: 'Medium',
   Düşük: 'Low',
+});
+Object.assign(EN2, {
+  'Ekran sarsıntısı': 'Screen shake',
+  Kapalı: 'Off',
+  Az: 'Low',
+  Normal: 'Normal',
 });

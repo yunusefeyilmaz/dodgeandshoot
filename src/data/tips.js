@@ -8,7 +8,7 @@ export const TIPS = [
     K('dash') +
     ' ile dash at, dokunulmazken saldırı değerse MÜKEMMEL KAÇIŞ olur.',
   () =>
-    'Mükemmel kaçış zamanı yavaşlatır ve kısa bir güç bonusu verir. Boss saldırısının tam vuracağı anda dash at.',
+    'Mükemmel kaçış 4 sn boyunca saldırı ve hareket hızı bonusu verir. Boss saldırısının tam vuracağı anda dash at.',
   () =>
     'Kırmızı daireler ve çizgiler (uyarılar) dolunca patlar. İçinde durma, dışarı çık.',
   () =>
@@ -116,7 +116,7 @@ const TIPS_EN = [
     K('dash') +
     '; if an attack lands while you are invulnerable it is a PERFECT DODGE.',
   () =>
-    'A perfect dodge slows time and gives a short power bonus. Dash at the exact moment a boss attack would hit.',
+    'A perfect dodge gives an attack and move speed bonus for 4s. Dash at the exact moment a boss attack would hit.',
   () =>
     'Red circles and lines (warnings) explode when they fill up. Do not stand inside, step out.',
   () =>

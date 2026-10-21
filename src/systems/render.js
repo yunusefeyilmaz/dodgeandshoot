@@ -1,3 +1,4 @@
+import { meta } from '../core/save.js';
 import { state, W, H } from '../core/state.js';
 import { stat } from '../core/stats.js';
 import { RARITIES } from '../core/rarity.js';
@@ -426,7 +427,10 @@ export function render() {
   const th = state.map.theme;
   g.fillStyle = th.bg;
   g.fillRect(0, 0, v.w, v.h);
-  const sh = state.shake * 14;
+  const sh =
+    state.shake *
+    14 *
+    { off: 0, low: 0.35, normal: 1 }[meta.settings.shake || 'low'];
   g.save();
   g.translate(
     -v.x + (Math.random() - 0.5) * sh,
