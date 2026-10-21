@@ -41,15 +41,14 @@ state.paused = true; // menüden silah seçilince startRun() oyunu başlatır
 initHud();
 openMenu();
 
-// SABİT ZAMAN ADIMI: oyun her zaman 1/60 sn'lik adımlarla ilerler (kare hızı düşse bile yavaş çekim olmaz, cooldown'lar şaşmaz)
-const STEP = 1 / 240;
-let last = null,
-  acc = 0;
-function step() {
-  const dt =
-    STEP * (state.slowT > 0 ? 0.35 : 1) * (state.hitstop > 0 ? 0.06 : 1);
-  state.slowT = Math.max(0, (state.slowT || 0) - STEP);
-  state.hitstop = Math.max(0, (state.hitstop || 0) - STEP); // hit-stop: kritik/boss ölümünde kısa donma     // mükemmel kaçışta zaman yavaşlar
+// GERÇEK ZAMANLI ADIM: oyun, ekranın kare süresi kadar ilerler (144 Hz ekranda 144 adım/sn, 60 Hz'de 60). Kare uzunsa en çok 1/60 sn'lik alt adımlara
+// bölünür (çarpışma/mermi tünellemesi olmasın). Böylece fps ne olursa olsun oyun gerçek hızda akar: ne yavaş çekim, ne fps tavanı. 15 fps altında oyun yavaşlar.
+const MAX_SUB = 1 / 60,
+  MAX_FRAME = 1 / 15;
+let last = null;
+function step(h) {
+  const dt = h;
+  state.dt = dt; // oyun HER ZAMAN gerçek hızda akar: yavaş çekim / hit-stop yok (kaçış, kritik, boss ölümü, hasar yemek zamanı yavaşlatmaz)
   updateWaves(dt);
   updatePlayer(dt);
   updateDash(dt);
@@ -66,36 +65,36 @@ function step() {
 }
 let lastR = 0,
   prevR = 0,
-  hudN = 0,
+  lastHud = 0,
   fpsEl = null,
   fpsT = 0,
   fpsN = 0;
 function loop(now) {
   if (last === null) last = now; // ilk kare: zaman tabanı ne olursa olsun güvenli
-  acc += Math.max(0, Math.min(0.25, (now - last) / 1000));
-  last = now; // negatif/çok büyük süreler (sekme dönüşü) yok sayılır
-  let did = 0;
-  for (let n = 0; acc >= STEP && n < 3; n++) {
-    // bir karede en fazla 3 adım: ağır sahnede sarmal yerine oyun hafifçe yavaşlar
-    acc -= STEP;
-    if (state.mode === 'run' && !state.paused && !state.over) {
-      step();
-      did++;
-      if (state.paused) {
-        acc = 0;
-        break;
-      }
+  const ft = Math.max(0, Math.min(MAX_FRAME, (now - last) / 1000));
+  last = now; // negatif/çok büyük süreler (sekme dönüşü) kırpılır
+  let did = false;
+  if (state.mode === 'run' && !state.paused && !state.over && ft > 0) {
+    const n = Math.max(1, Math.ceil(ft / MAX_SUB - 0.05)),
+      h = ft / n; // 60 Hz'de 1 adım, 30 fps'te 2 alt adım, 144 Hz'de 1 küçük adım
+    for (let i = 0; i < n; i++) {
+      step(h);
+      did = true;
+      if (state.paused || state.over) break;
     }
   }
-  if (acc > STEP * 3) acc = 0;
-  // Sadece yeni simülasyon adımı varsa çiz (144 Hz ekranda boşa çizim yok); duraklatılmış/menüde 10 Hz yeter
+  // Çizim: simülasyon ilerlediyse her ekran karesinde (maksimum akıcılık); duraklatılmış/menüde 10 Hz yeter
   if (did || now - lastR > 100) {
     if (did && state.mode === 'run' && prevR)
       sampleQuality(now, now - prevR, setScale);
     prevR = did ? now : 0;
     lastR = now;
     render();
-    if (++hudN % 3 === 0 || !did) updateHud(); // HUD 20 Hz: DOM yazımları pahalı
+    if (now - lastHud >= 45 || !did) {
+      state.hudDt = Math.min(0.25, (now - lastHud) / 1000);
+      lastHud = now;
+      updateHud();
+    } // HUD ~20 Hz: DOM yazımları pahalı
     if (meta.settings.fps) {
       fpsN++;
       if (now - fpsT > 500) {
