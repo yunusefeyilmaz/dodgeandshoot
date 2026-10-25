@@ -1,9 +1,10 @@
 import { setTip } from './tooltip.js';
-// Yetenek ağacı: kökler görünür, bir düğüm açılınca çocukları belirir; bir adım ötesi "???" silüeti olarak görünür.
-const NW = 172,
-  NH = 66,
-  GX = 214,
-  GY = 82;
+// Yetenek ağacı (Yükseltmeler, silah ağacı, karakter ağacı ortak bileşeni). Kökler görünür, bir düğüm açılınca çocukları belirir;
+// bir adım ötesi kilitli "???" silüeti olarak görünür (merak). api: {icon, level, can, sub, tip, buy, rerender, max?, cost?, detail?}
+const NW = 214,
+  NH = 80,
+  GX = 256,
+  GY = 98;
 export function renderTree(el, nodes, api) {
   const by = {},
     kids = {};
@@ -26,8 +27,8 @@ export function renderTree(el, nodes, api) {
   const vis = (n) => !n.parent || api.level(by[n.parent]) > 0,
     ghost = (n) => !vis(n) && vis(by[n.parent]);
   const D = Math.max(...Object.values(pos).map((p) => p.d)) + 1,
-    Wd = D * GX,
-    Ht = Math.max(1, row) * GY;
+    Wd = D * GX - (GX - NW) + 8,
+    Ht = Math.max(1, row) * GY - (GY - NH) + 8;
   let svg = '';
   for (const n of nodes)
     if (n.parent && (vis(n) || ghost(n))) {
@@ -37,8 +38,9 @@ export function renderTree(el, nodes, api) {
         y1 = a.r * GY + NH / 2,
         x2 = b.d * GX,
         y2 = b.r * GY + NH / 2,
-        mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${vis(n) && api.level(n) > 0 ? '#e0b040' : '#555'}" stroke-width="2"/>`;
+        mx = (x1 + x2) / 2,
+        on = vis(n) && api.level(n) > 0;
+      svg += `<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="${on ? 'edge on' : 'edge'}"/>`;
     }
   const box = document.createElement('div');
   box.className = 'treebox';
@@ -48,22 +50,34 @@ export function renderTree(el, nodes, api) {
     if (!vis(n) && !ghost(n)) continue;
     const p = pos[n.id],
       d = document.createElement('div'),
-      g = ghost(n);
+      g = ghost(n),
+      lv = g ? 0 : api.level(n),
+      mx = !g && api.max ? api.max(n) : 0,
+      can = !g && api.can(n),
+      maxed = mx > 0 && lv >= mx;
     d.className =
       'tn' +
-      (g ? ' ghost' : api.level(n) > 0 ? ' own' : '') +
-      (!g && api.can(n) ? ' can' : '');
+      (g ? ' ghost' : lv > 0 ? ' own' : '') +
+      (can ? ' can' : '') +
+      (maxed ? ' maxed' : '');
     d.style.cssText = `left:${p.d * GX}px;top:${p.r * GY}px;width:${NW}px;height:${NH}px`;
+    const cost = !g && api.cost ? api.cost(n) : '';
     d.innerHTML = g
-      ? '<b>???</b><small>Üst yeteneği aç</small>'
-      : `<span class="ni">${api.icon ? api.icon(n) : ''}</span><b>${n.name}</b><small>${api.sub(n)}</small>`;
+      ? '<div class="tn-ico">🔒</div><div class="tn-main"><b>???</b><small>Üstteki yeteneği aç</small></div>'
+      : `<div class="tn-ico">${api.icon ? api.icon(n) : ''}${lv > 0 ? '<i class="tn-lv">' + (maxed ? '✔' : lv) + '</i>' : ''}</div><div class="tn-main"><b>${n.name}</b>${mx > 1 ? '<div class="tn-bar"><i style="width:' + Math.min(100, (100 * lv) / mx) + '%"></i></div>' : ''}<small>${api.sub(n)}</small></div>${cost && !maxed ? '<span class="tn-cost ' + (can ? 'ok' : 'no') + '">' + cost + '</span>' : ''}`;
     if (!g) {
-      d.onmouseenter = () => setTip(() => api.tip(n));
-      d.onmouseleave = () => setTip(null);
+      d.onmouseenter = () => {
+        if (api.detail) api.detail.innerHTML = api.tip(n);
+        else setTip(() => api.tip(n));
+      };
+      d.onmouseleave = () => {
+        if (!api.detail) setTip(null);
+      };
       d.onclick = () => {
         if (api.can(n)) {
           api.buy(n);
           setTip(null);
+          d.classList.add('bought');
           api.rerender();
         }
       };
@@ -71,4 +85,34 @@ export function renderTree(el, nodes, api) {
     box.appendChild(d);
   }
   el.replaceChildren(box);
+  if (!el._pan) {
+    // boş alandan sürükleyerek kaydırma
+    el._pan = 1;
+    let sx,
+      sy,
+      sl,
+      st,
+      on = false;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.tn')) return;
+      on = true;
+      sx = e.clientX;
+      sy = e.clientY;
+      sl = el.scrollLeft;
+      st = el.scrollTop;
+      el.classList.add('panning');
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!on) return;
+      el.scrollLeft = sl - (e.clientX - sx);
+      el.scrollTop = st - (e.clientY - sy);
+    });
+    const end = () => {
+      on = false;
+      el.classList.remove('panning');
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
 }

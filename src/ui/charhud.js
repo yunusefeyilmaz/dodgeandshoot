@@ -16,7 +16,7 @@ export function updateCharHud() {
     el.id = 'cpass';
     el.innerHTML =
       '<div class="cn"></div><div class="bar"><i></i><span></span></div>';
-    document.getElementById('coins').after(el);
+    document.getElementById('chips').after(el);
     nm = el.firstChild;
     bar = el.querySelector('i');
     txt = el.querySelector('span');

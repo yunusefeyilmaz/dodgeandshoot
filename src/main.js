@@ -12,6 +12,7 @@ import { updateWaves } from './systems/waves.js';
 import { updatePickups, xpNeed } from './systems/rewards.js';
 import { updateTracking } from './systems/tracking.js';
 import { updateCharacter } from './systems/characters.js';
+import { updateGoals } from './systems/progress.js';
 import { updateMusic } from './core/music.js';
 import { sampleQuality } from './core/quality.js';
 import { render, setScale } from './systems/render.js';
@@ -60,6 +61,15 @@ function step(h) {
   updateArena(dt);
   updatePickups(dt);
   updateTracking(dt);
+  state.goalT = (state.goalT || 0) - dt;
+  if (state.goalT <= 0) {
+    state.goalT = 0.5;
+    updateGoals();
+  }
+  if (state.freeCards > 0 && state.wave.n === 0 && !state.paused) {
+    state.freeCards--;
+    state.xp += xpNeed();
+  } // rütbe ödülü: koşuya ücretsiz kartla başla
   if (state.xp >= xpNeed()) openCards();
   else if (state.pendingClass) openClassPick();
 }

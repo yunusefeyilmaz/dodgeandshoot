@@ -1,4 +1,7 @@
 import { state, W, H, dist, rnd } from '../core/state.js';
+import { meta } from '../core/save.js';
+// Oyuncuya uygulanan yavaşlatma/sersemletme (debuff) ayarı: varsayılan KAPALI (oyun yavaşlıyormuş hissi vermesin). Ayarlar → Performans'tan açılır.
+const ccOn = (t) => t !== state.player || meta.settings.cc === true;
 import { stat } from '../core/stats.js';
 import { emit } from '../core/events.js';
 import { foes, nearest } from '../core/entity.js';
@@ -128,10 +131,7 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       0.35,
     );
     sfx(crit ? 'crit' : 'hit');
-    if (crit) {
-      shake(0.18);
-      state.hitstop = Math.max(state.hitstop || 0, 0.03);
-    }
+    if (crit) shake(0.18);
   } else {
     state.hitsTaken++;
     state.flash = Math.min(1, state.flash + 0.5);
@@ -213,7 +213,7 @@ function applyStatus(src, t, amt, tags, o) {
       });
     }
   const sl = k('slow') * resOf(t, 'slow', rp); // YAVAŞLATMA
-  if (sl > 0.02 && (!t.slow || sl >= t.slow.v))
+  if (sl > 0.02 && ccOn(t) && (!t.slow || sl >= t.slow.v))
     t.slow = { v: Math.min(0.7, sl), t: 1.5 };
   const vs = k('voidShred') * resOf(t, 'void', rp); // VOID: zırh/MR aşındırma + void hasarı
   if (vs > 0.02) {
@@ -693,7 +693,7 @@ function enemyAI(e, p, dt) {
     if (!v.hit && d < e.r + 12) {
       v.hit = true;
       dealDamage(e, p, v.dmg, v.tags, { type: 'phys' });
-      if (v.stun) p.stun = Math.max(p.stun || 0, v.stun);
+      if (v.stun && ccOn(p)) p.stun = Math.max(p.stun || 0, v.stun);
     }
     if (v.t <= 0) {
       e.dashV = null;
@@ -748,7 +748,7 @@ function updateZones(dt) {
       }
     if (z.slow)
       for (const f of foes({ team: z.team }))
-        if (dist(z, f) < z.r + f.r) f.slow = { v: z.slow, t: 0.4 };
+        if (ccOn(f) && dist(z, f) < z.r + f.r) f.slow = { v: z.slow, t: 0.4 };
     if ((z.tick -= dt) <= 0) {
       z.tick = 0.35;
       if (z.dps)
@@ -1032,7 +1032,7 @@ export function updateCombat(dt) {
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;
     pr.life -= dt;
-    if (Math.random() < (pr.trail || 0.12) * (state.fxQ ?? 1))
+    if (Math.random() < (pr.trail || 0.12) * (state.fxQ ?? 1) * dt * 60)
       burst(pr.x, pr.y, pr.tcol || pr.col || '#fff', 1, 10, 0.25);
     if (pr.team !== 'p') {
       if (pillarBlocks(pr)) continue;
@@ -1072,11 +1072,7 @@ export function updateCombat(dt) {
       state.deaths.push({ x: e.x, y: e.y, r: e.r, col: e.col, t: 0.4 });
       burst(e.x, e.y, e.col, e.boss ? 40 : 8, e.boss ? 320 : 160, 0.6);
       sfx('kill');
-      if (e.boss) {
-        shake(0.8);
-        state.hitstop = 0.12;
-        state.slowT = Math.max(state.slowT || 0, 1.1);
-      }
+      if (e.boss) shake(0.8);
       if (e.deathBlast) deathBlast(e);
       else if (state.mut.explode && e.team === 'e' && !e.boss) {
         e.deathBlast = { radius: 70, damage: 18 };

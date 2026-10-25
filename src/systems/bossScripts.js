@@ -157,7 +157,7 @@ export const SCRIPTS = {
         dead = e.groupN - 1 - alive;
       e.pw = 1 + dead * 0.7;
       if (dead < 1) return;
-      e.reflectCd = (e.reflectCd || 0) - 1 / 60;
+      e.reflectCd = (e.reflectCd || 0) - (state.dt || 1 / 60);
       if (e.reflectCd > 0) return;
       for (const pr of state.projs)
         if (pr.team === 'p' && dist(pr, e) < e.r + 14) {

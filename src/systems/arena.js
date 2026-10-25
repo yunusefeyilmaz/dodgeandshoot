@@ -52,7 +52,7 @@ const MECH = {
         ar.tk = (ar.tk || 0) - dt;
         if (ar.tk <= 0) {
           ar.tk = 0.5;
-          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 1);
+          if (!A.dark.lights.some((l) => dist(l, P()) < l.r)) drain(e, 2);
         }
         if (A.dark.t <= 0) {
           A.dark = null;
@@ -185,7 +185,7 @@ const MECH = {
         p.x = clamp(p.x + Math.cos(w.a) * w.f * dt, 0, W);
         p.y = clamp(p.y + Math.sin(w.a) * w.f * dt, 0, H);
       }
-      if (Math.random() < 0.5)
+      if (Math.random() < 0.5 * (state.dt || 1 / 60) * 60)
         state.parts.push({
           x: p.x + rnd(-500, 500),
           y: p.y + rnd(-350, 350),
@@ -623,7 +623,7 @@ Object.assign(MECH, {
         ar.tk = 0.4;
         if (dist(e, P()) < R && !e.under) drain(e, 9);
       }
-      if (Math.random() < 0.5)
+      if (Math.random() < 0.5 * (state.dt || 1 / 60) * 60)
         state.parts.push({
           x: e.x + rnd(-R, R) * 0.8,
           y: e.y + rnd(-R, R) * 0.8,

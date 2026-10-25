@@ -7,6 +7,7 @@ import { CHARS, xpFor, MAX_CHAR_LEVEL } from '../data/characters.js';
 import { ABILITIES } from '../data/abilities.js';
 import { burst } from './fx.js';
 import { dealDamage } from './combat.js';
+import { addAccXp } from './progress.js';
 import { inputDir } from './player.js';
 // ——— kalıcı ilerleme: Ruh (açma parası), karakter XP/seviyesi, Ruh Puanı ağacı ———
 export const charMeta = (id) =>
@@ -63,25 +64,48 @@ export function addCharXp(id, xp) {
 // Koşu sonu ödülü: Ruh = öldürme/4 + tur*6 + boss*30 (+ zafer bonusu). Aynı koşuda iki kez çağrılırsa sadece farkı verir.
 export function runSouls() {
   const mp = state.map || { diff: 1 };
-  return Math.floor(
-    (state.kills / 4 +
-      state.wave.n * 6 +
-      (state.bossKillsRun || 0) * 30 +
-      (state.won ? 400 * mp.diff : 0)) *
-      (1 + 0.1 * (state.heat || 0)) *
-      mp.diff,
+  return (
+    Math.floor(
+      (state.kills / 4 +
+        state.wave.n * 6 +
+        (state.bossKillsRun || 0) * 30 +
+        (state.won ? 400 * mp.diff : 0)) *
+        (1 + 0.1 * (state.heat || 0)) *
+        mp.diff,
+    ) + (state.goalSouls || 0)
   );
 }
 export function settleRun() {
   const total = runSouls(),
     gain = Math.max(0, total - (state.paid || 0));
   state.paid = total;
-  if (!gain) return { souls: 0, xp: 0, up: 0 };
+  if (!gain)
+    return {
+      souls: 0,
+      xp: 0,
+      up: 0,
+      lvFrom: charMeta(state.charId || 'warrior').lvl,
+      lvTo: charMeta(state.charId || 'warrior').lvl,
+      acc: null,
+    };
+  const cm = charMeta(state.charId || 'warrior'),
+    lvFrom = cm.lvl,
+    xpFrom = cm.xp;
   meta.souls = (meta.souls || 0) + gain;
   meta.stats.souls = (meta.stats.souls || 0) + gain;
   const up = addCharXp(state.charId || 'warrior', gain);
+  const acc = addAccXp(Math.floor(gain * 0.6));
   save(true);
-  return { souls: gain, xp: gain, up };
+  return {
+    souls: gain,
+    xp: gain,
+    up,
+    lvFrom,
+    lvTo: cm.lvl,
+    xpFrom,
+    xpTo: cm.xp,
+    acc,
+  };
 }
 // ——— koşu içi pasifler ———
 const g = (s, op, fn) => ({

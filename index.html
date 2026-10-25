@@ -6,14 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/ui2.css" />
   </head>
   <body>
     <canvas id="c"></canvas>
     <div id="ui">
       <div id="tl">
-        <div class="bar hp"><i id="hpf"></i><span id="hpt"></span></div>
-        <div class="bar xp"><i id="xpf"></i></div>
-        <div id="coins"></div>
+        <div id="hero">
+          <div id="badge"><span id="bIco">🛡️</span><b id="bLv">1</b></div>
+          <div id="vit">
+            <div class="bar hp">
+              <i id="hpl"></i><i id="hpf"></i><span id="hpt"></span>
+            </div>
+            <div class="bar xp"><i id="xpf"></i><span id="xpt"></span></div>
+          </div>
+        </div>
+        <div id="chips">
+          <span id="coins" class="chip gold"></span
+          ><span id="pwr" class="chip pwr"
+            ><em>⚡</em><b id="pwrN">0</b><i id="pwrD"></i
+          ></span>
+        </div>
+        <div id="syn" class="irow"></div>
+        <div id="goals"></div>
         <div id="buffs" class="irow"></div>
         <div id="tgt">
           <b id="tn"></b>
@@ -31,12 +46,24 @@
         <label><input type="checkbox" id="auto" /> Otomatik tur</label>
       </div>
       <div id="tr">
-        <button data-p="inv">Envanter <kbd>I</kbd></button>
-        <button data-p="stat">Statlar <kbd>C</kbd></button>
-        <button data-p="cls">Sınıflar <kbd>K</kbd></button>
-        <button data-p="pet">Petler <kbd>P</kbd></button>
-        <button data-p="shop">Yükseltmeler <kbd>B</kbd></button>
-        <button data-p="menu">Menü <kbd>Esc</kbd></button>
+        <button data-p="inv">
+          <b class="ic">🎒</b><span class="lbl">Envanter</span><kbd>I</kbd>
+        </button>
+        <button data-p="stat">
+          <b class="ic">📊</b><span class="lbl">Statlar</span><kbd>C</kbd>
+        </button>
+        <button data-p="cls">
+          <b class="ic">🎭</b><span class="lbl">Sınıflar</span><kbd>K</kbd>
+        </button>
+        <button data-p="pet">
+          <b class="ic">🐾</b><span class="lbl">Petler</span><kbd>P</kbd>
+        </button>
+        <button data-p="shop">
+          <b class="ic">⚒️</b><span class="lbl">Yükseltmeler</span><kbd>B</kbd>
+        </button>
+        <button data-p="menu">
+          <b class="ic">☰</b><span class="lbl">Menü</span><kbd>Esc</kbd>
+        </button>
       </div>
       <div id="side">
         <div class="panel" id="invP">
@@ -82,6 +109,7 @@
       <div id="toast"></div>
       <div id="ov">
         <div id="ovt"></div>
+        <div id="ovs"></div>
         <div id="choices"></div>
       </div>
       <div id="menu"></div>

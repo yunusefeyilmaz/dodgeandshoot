@@ -16,6 +16,7 @@ import { sfx } from '../core/audio.js';
 import { showOverlay, hideOverlay, btn } from './overlay.js';
 import { renderTree } from './tree.js';
 import { previewParts, statGlyph } from './icons.js';
+import { powerRating, fmtPower } from '../systems/progress.js';
 // Yükseltmeler ekranı (ağaç). Tooltip: ne artıyor, şu anki -> sonraki değer, örnek hasar, maliyet.
 const owner = (u) =>
   u.pet
@@ -103,16 +104,32 @@ const tip = (n) => {
 };
 export function openShop() {
   state.remindT = 40; // hatırlatma sayacı sıfırlanır
-  const el = document.createElement('div'),
+  const lay = document.createElement('div'),
+    el = document.createElement('div'),
+    det = document.createElement('aside'),
     nodes = weaponUpgrades().concat(UPGRADES, petNodes());
+  lay.className = 'shoplay';
   el.className = 'treewrap';
+  det.className = 'tdetail';
+  det.innerHTML =
+    '<h4>DETAY</h4><div class="dim">Bir yeteneğin üstüne gel: ne kazandıracağını önce → sonra olarak gör. Tıklayarak satın al.</div>';
+  lay.append(el, det);
   const draw = () => {
-    document.getElementById('ovt').textContent =
-      'Yükseltmeler — ' + state.coins + ' altın';
+    const os = document.getElementById('ovs');
+    os.style.display = 'block';
+    os.innerHTML =
+      '🪙 <b>' +
+      state.coins +
+      '</b> altın · ⚡ Güç <b>' +
+      fmtPower(powerRating()) +
+      '</b>';
     renderTree(el, nodes, {
       icon: (n) => statGlyph(n.stat),
       level: (n) => levelOf(n.id),
       can: (n) => !isMax(n) && state.coins >= costOf(n),
+      detail: det,
+      max: (n) => n.max || 0,
+      cost: (n) => '🪙 ' + costOf(n),
       sub: (n) =>
         'Sv ' +
         levelOf(n.id) +
@@ -124,17 +141,17 @@ export function openShop() {
               stat: n.stat,
               op: n.op,
               value: stepAt(n, levelOf(n.id)),
-            }) +
-            ' · ' +
-            costOf(n) +
-            ' altın'),
-      tip,
+            })),
+      tip: (n) => '<h4>' + n.name.toUpperCase() + '</h4>' + tip(n),
       buy: (n) => {
         if (buyUp(n)) sfx('click');
       },
       rerender: draw,
     });
   };
-  showOverlay('Yükseltmeler', [el, btn('Kapat [B]', hideOverlay)], 'shop');
+  const ctl = document.createElement('div');
+  ctl.className = 'c2-ctl';
+  ctl.append(btn('✕ Kapat <kbd>B</kbd>', hideOverlay));
+  showOverlay('YÜKSELTMELER', [lay, ctl], 'shop', '');
   draw();
 }

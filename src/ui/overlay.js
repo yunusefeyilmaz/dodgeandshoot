@@ -3,15 +3,21 @@ const ov = document.getElementById('ov'),
   box = document.getElementById('choices');
 let kind = null;
 export const overlayKind = () => kind;
-export function showOverlay(title, nodes, k = 'modal') {
-  document.getElementById('ovt').textContent = title;
+export function showOverlay(title, nodes, k = 'modal', sub = '') {
+  document.getElementById('ovt').innerHTML = title;
+  const s = document.getElementById('ovs');
+  s.innerHTML = sub;
+  s.style.display = sub ? 'block' : 'none';
   box.replaceChildren(...nodes);
   ov.style.display = 'flex';
+  document.body.classList.add('ovopen');
+  ov.dataset.kind = k;
   state.paused = true;
   kind = k;
 }
 export function hideOverlay() {
   ov.style.display = 'none';
+  document.body.classList.remove('ovopen');
   state.paused = false;
   kind = null;
 }

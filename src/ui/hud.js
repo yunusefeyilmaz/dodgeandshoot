@@ -6,6 +6,8 @@ import { questList, setWaypoint } from './quests.js';
 import { ABILITIES } from '../data/abilities.js';
 import { stat } from '../core/stats.js';
 import { LABELS, DESCS, fmtStat } from '../core/labels.js';
+import { statGlyph as SGL0 } from './icons.js';
+const SGL = new Proxy({}, { get: (_, k) => SGL0(k) });
 import { RARITIES } from '../core/rarity.js';
 import { CLASSES } from '../data/classes.js';
 import { PETS } from '../data/pets.js';
@@ -19,6 +21,10 @@ import { sellItem } from '../systems/inventory.js';
 import { releaseClass } from '../systems/classes.js';
 import { removePet } from '../systems/pets.js';
 import { updateCharHud } from './charhud.js';
+import { powerRating, fmtPower } from '../systems/progress.js';
+import { SYN, AT } from '../systems/synergy.js';
+import { buildSummary } from './summary.js';
+import { CHARS } from '../data/characters.js';
 import { tipOf } from '../data/tips.js';
 import { openShop } from './shop.js';
 import { picked } from './cards.js';
@@ -97,7 +103,11 @@ let shopBtn,
   frame = 0,
   overShown = false,
   wonShown = false,
-  lastTipW = 0;
+  lastTipW = 0,
+  trailW = 100,
+  lastPw = 0,
+  lastSyn = '',
+  lastGoals = '';
 const open = (k) => panels[k].style.display === 'block';
 const anyOpen = () => Object.keys(panels).some(open);
 
@@ -798,10 +808,43 @@ export function updateHud() {
     w = state.wave,
     mh = stat(p, 'maxHp');
   frame++;
-  $('hpf').style.width = (100 * Math.max(0, p.hp)) / mh + '%';
+  const hpPct = (100 * Math.max(0, p.hp)) / mh;
+  $('hpf').style.width = hpPct + '%';
   $('hpt').textContent = Math.ceil(Math.max(0, p.hp)) + ' / ' + Math.ceil(mh);
-  $('xpf').style.width = (100 * state.xp) / xpNeed() + '%';
-  $('coins').textContent = 'Sv ' + state.level + ' · ' + state.coins + ' altın';
+  trailW = hpPct >= trailW ? hpPct : trailW + (hpPct - trailW) * 0.22;
+  $('hpl').style.width = trailW + '%';
+  $('hpf').parentElement.classList.toggle('low', hpPct < 30); // hasar izi: beyaz şerit yavaşça kapanır
+  const need = xpNeed(),
+    xpPct = Math.min(100, (100 * state.xp) / need);
+  $('xpf').style.width = xpPct + '%';
+  $('xpt').textContent = Math.floor(state.xp) + ' / ' + need;
+  $('badge').style.setProperty('--xp', xpPct);
+  if ($('bLv').textContent !== String(state.level)) {
+    $('bLv').textContent = state.level;
+    $('bLv').classList.remove('pop');
+    void $('bLv').offsetWidth;
+    $('bLv').classList.add('pop');
+  }
+  const ci = (CHARS[state.charId] || {}).icon || '🛡️';
+  if ($('bIco').textContent !== ci) $('bIco').textContent = ci;
+  $('coins').textContent = '🪙 ' + state.coins;
+  if (frame % 2 === 0) {
+    const pw = powerRating(p);
+    if (pw !== lastPw) {
+      const d = pw - lastPw;
+      if (lastPw && Math.abs(d) >= Math.max(1, lastPw * 0.005)) {
+        const el = $('pwrD');
+        el.textContent = (d > 0 ? '▲ +' : '▼ ') + fmtPower(Math.abs(d));
+        el.className = d > 0 ? 'up' : 'down';
+        void el.offsetWidth;
+        el.classList.add('show');
+      }
+      lastPw = pw;
+      state.power = pw;
+      state.bestPower = Math.max(state.bestPower || 0, pw);
+      $('pwrN').textContent = fmtPower(pw);
+    }
+  }
   const left =
     state.ents.filter((e) => e.team === 'e').length +
     w.toSpawn +
@@ -1055,23 +1098,212 @@ export function updateHud() {
     buildPet();
   }
   if (frame % 10 === 0 && open('stat')) {
-    $('statGrid').innerHTML = STAT_KEYS.map(
-      (k) =>
-        '<span data-k="' +
-        k +
-        '">' +
-        LABELS[k] +
-        '</span><b data-k="' +
-        k +
-        '">' +
-        fmtStat(k, stat(p, k)) +
-        '</b>',
-    ).join('');
+    const G = [
+      [
+        '⚔️',
+        'SALDIRI',
+        [
+          'ad',
+          'ap',
+          'attackSpeed',
+          'haste',
+          'critChance',
+          'critDmg',
+          'damage',
+          'backstab',
+          'armorPen',
+          'lethality',
+          'magicPen',
+          'magicFlat',
+        ],
+      ],
+      [
+        '🛡️',
+        'SAVUNMA',
+        ['maxHp', 'armor', 'mr', 'regen', 'lifesteal', 'omnivamp'],
+      ],
+      [
+        '💨',
+        'HAREKET & ŞANS',
+        ['speed', 'magnet', 'luck', 'knockback', 'dashCharges'],
+      ],
+      [
+        '✨',
+        'EFEKTLER',
+        STAT_KEYS.filter((k) =>
+          [
+            'poison',
+            'chain',
+            'slow',
+            'voidShred',
+            'effPower',
+            'resPen',
+            'blast',
+            'blastPower',
+            'blastRadius',
+            'blastCount',
+          ].includes(k),
+        ),
+      ],
+    ];
+    const sec = ([ic, nm, ks]) =>
+      '<div class="sgrp"><h5>' +
+      ic +
+      ' ' +
+      nm +
+      '</h5>' +
+      ks
+        .filter((k) => LABELS[k])
+        .map((k) => {
+          const v = stat(p, k),
+            ch = Math.abs(v - BASE[k]) > 1e-9;
+          return (
+            '<div class="srow' +
+            (ch ? ' up' : '') +
+            '" data-k="' +
+            k +
+            '"><span data-k="' +
+            k +
+            '">' +
+            (SGL[k] || '') +
+            ' ' +
+            LABELS[k] +
+            '</span><b data-k="' +
+            k +
+            '">' +
+            fmtStat(k, v) +
+            '</b></div>'
+          );
+        })
+        .join('') +
+      '</div>';
+    $('statGrid').innerHTML =
+      '<div class="pwrcard"><em>⚡</em><div><small>GÜÇ PUANI</small><b>' +
+      fmtPower(powerRating(p)) +
+      '</b></div><div class="r"><small>BU KOŞUDA EN YÜKSEK</small><b>' +
+      fmtPower(state.bestPower || 0) +
+      '</b></div></div>' +
+      G.map(sec).join('');
   }
   if (open('stat')) updateStatIcons();
   if (frame % 6 === 0) refreshTip();
   if (frame % 60 === 1) refreshKbd();
   updateCharHud();
+  {
+    const tl = $('tl'),
+      q = $('quests');
+    if (tl && q) {
+      const y = Math.round(tl.getBoundingClientRect().bottom + 12);
+      if (q._y !== y) {
+        q._y = y;
+        q.style.top = y + 'px';
+      }
+    }
+  } // görev listesi kahraman bloğunun altında akar
+  {
+    const gs = state.goals || [],
+      sg = gs.map((g) => g.cur + (g.done ? 'd' : '')).join(',');
+    if (sg !== lastGoals) {
+      lastGoals = sg;
+      $('goals').innerHTML = gs.length
+        ? '<h6>🎯 HEDEFLER</h6>' +
+          gs
+            .map(
+              (g) =>
+                '<div class="goal t' +
+                g.tier +
+                (g.done ? ' done' : '') +
+                '"><span>' +
+                (g.done ? '✔ ' : '') +
+                g.text +
+                '</span><b>' +
+                (g.done
+                  ? '+' + g.reward + ' Ruh'
+                  : Math.floor(g.cur) + '/' + g.t) +
+                '</b><i><u style="width:' +
+                (100 * g.cur) / g.t +
+                '%"></u></i></div>',
+            )
+            .join('')
+        : '';
+    }
+  }
+  {
+    const pw = $('pwr');
+    if (!pw._b) {
+      pw._b = 1;
+      pw.onmouseenter = () =>
+        setTip(
+          () =>
+            '<b>⚡ Güç Puanı</b><div class="dim">Saldırı gücünün ve dayanıklılığının tek sayıda özeti. Her kart, eşya ve yükseltme bunu artırır. Rakam yükseldikçe güçleniyorsun!</div>',
+        );
+      pw.onmouseleave = () => setTip(null);
+    }
+  }
+  if (state.synSig !== lastSyn) {
+    lastSyn = state.synSig;
+    const sb = $('syn');
+    if (!sb._b) {
+      sb._b = 1;
+      sb.onmouseover = (e) => {
+        const c = e.target.closest('[data-t]');
+        setTip(
+          c
+            ? () => {
+                const t = c.dataset.t,
+                  S = SYN[t],
+                  s = (state.syn || {})[t] || { n: 0, tier: 0 };
+                return (
+                  '<b style="color:' +
+                  S.col +
+                  '">' +
+                  S.icon +
+                  ' ' +
+                  S.name +
+                  ' bağı</b> <small>' +
+                  s.n +
+                  ' kart</small>' +
+                  S.txt
+                    .map(
+                      (x, k) =>
+                        '<div style="margin-top:3px;color:' +
+                        (s.tier > k ? '#9be7a0' : '#8a8498') +
+                        '">' +
+                        (s.tier > k ? '✔' : '○') +
+                        ' <b>' +
+                        AT[k] +
+                        ' kart:</b> ' +
+                        x +
+                        '</div>',
+                    )
+                    .join('')
+                );
+              }
+            : null,
+        );
+      };
+      sb.onmouseleave = () => setTip(null);
+    }
+    sb.innerHTML = Object.entries(state.syn || {})
+      .sort((a, b) => b[1].n - a[1].n)
+      .map(
+        ([t, s]) =>
+          '<span class="synchip" data-t="' +
+          t +
+          '" style="--tc:' +
+          SYN[t].col +
+          '"><em>' +
+          SYN[t].icon +
+          '</em><b>' +
+          s.n +
+          '</b><i>' +
+          AT.map(
+            (a, k) => '<u class="' + (s.tier > k ? 'on' : '') + '"></u>',
+          ).join('') +
+          '</i></span>',
+      )
+      .join('');
+  }
   if (w.phase === 'active' && w.n !== lastTipW) {
     lastTipW = w.n;
     if (meta.settings.tips !== false && w.n % 3 === 1 && w.n < 40)
@@ -1085,36 +1317,23 @@ export function updateHud() {
   }
   if (state.victory && !wonShown) {
     wonShown = true;
-    const v = state.victory,
-      g = state.lastGain || {};
     hideOverlay();
     showOverlay(
-      'ZAFER — ' + state.map.name,
+      '<span class="vic">HARİTA TAMAMLANDI</span>',
       [
-        summaryEl(),
+        buildSummary('win'),
         (() => {
-          const d = document.createElement('div');
-          d.className = 'sum';
-          d.innerHTML =
-            '<div class="sh">HARİTA TAMAMLANDI</div><div class="stars" style="font-size:28px;text-align:center">' +
-            '★'.repeat(v.stars) +
-            '<span class="off">' +
-            '★'.repeat(3 - v.stars) +
-            '</span></div><div style="text-align:center">' +
-            (v.gained
-              ? '+' +
-                v.gained +
-                ' yeni yıldız kazandın! (Ana menü → Yıldız Yetenekleri)'
-              : 'Daha fazla yıldız için daha yüksek zorlukta dene.') +
-            '</div><div style="text-align:center">Ruh: <b>+' +
-            (g.souls || 0) +
-            '</b></div>';
-          return d;
+          const c = document.createElement('div');
+          c.className = 'c2-ctl';
+          c.append(
+            btn('Sonsuz modda devam et', () => hideOverlay()),
+            btn('Menüye dön', () => location.reload()),
+          );
+          return c;
         })(),
-        btn('Sonsuz modda devam et', () => hideOverlay()),
-        btn('Menüye dön', () => location.reload()),
       ],
       'over',
+      state.map.name,
     );
   }
   if (state.over && !overShown) {
@@ -1122,9 +1341,20 @@ export function updateHud() {
     finishRun();
     hideOverlay();
     showOverlay(
-      'Düştün — ' + state.map.name + ', Tur ' + w.n,
-      [summaryEl(), btn('Menüye dön', () => location.reload())],
+      'Koşu bitti',
+      [
+        buildSummary('over'),
+        (() => {
+          const c = document.createElement('div');
+          c.className = 'c2-ctl';
+          const b = btn('Menüye dön', () => location.reload());
+          b.classList.add('go');
+          c.append(b);
+          return c;
+        })(),
+      ],
       'over',
+      '',
     );
   }
 }

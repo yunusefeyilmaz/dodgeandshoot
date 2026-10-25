@@ -6,6 +6,7 @@ const def = () => ({
   bestBoss: 0,
   unlockedWeapons: ['sword'],
   weaponTree: {},
+  acc: { xp: 0, lvl: 1 },
   maps: {},
   starPerks: {},
   souls: 0,

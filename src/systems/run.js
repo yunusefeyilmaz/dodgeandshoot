@@ -8,6 +8,8 @@ import { pickMutators, MUTATORS } from '../data/mutators.js';
 import { MAPS } from '../data/maps.js';
 import { starPerkMods, hasPerk, STAR_PERKS } from './campaign.js';
 import { applyChar, isCharUnlocked } from './characters.js';
+import { installSynergy } from './synergy.js';
+import { applyAccount, rollGoals } from './progress.js';
 // Menüden silah seçilince koşu başlar: silah skilli + kalıcı ağaç bonusları oyuncuya eklenir
 export function startRun(id, opts = {}) {
   const w = WEAPONS[id];
@@ -20,6 +22,12 @@ export function startRun(id, opts = {}) {
   state.paid = 0;
   state.charId = isCharUnlocked(opts.char) ? opts.char : 'warrior';
   applyChar(state.player, state.charId);
+  installSynergy(state.player);
+  applyAccount(state.player);
+  rollGoals();
+  state.bestPower = 0;
+  state.pwMs = {};
+  state.pwReady = false;
   for (const p of STAR_PERKS)
     if (p.coins && hasPerk(p.id)) state.coins += p.coins;
   addPart(state.player, { ability: w.ability });

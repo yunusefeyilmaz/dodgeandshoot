@@ -28,8 +28,9 @@ export function updateFx(dt) {
   for (const p of state.parts) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    p.vx *= 0.92;
-    p.vy *= 0.92;
+    const fr = Math.pow(0.92, dt * 60);
+    p.vx *= fr;
+    p.vy *= fr;
     p.t -= dt;
   }
   state.parts = state.parts.filter((p) => p.t > 0);

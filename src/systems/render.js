@@ -5,7 +5,7 @@ import { RARITIES } from '../core/rarity.js';
 import { T } from '../i18n/index.js';
 const cv = document.getElementById('c'),
   v = state.view;
-let g = cv.getContext('2d', { alpha: false, desynchronized: true });
+let g = cv.getContext('2d', { alpha: false });
 v.scale = 1;
 function resize() {
   v.w = innerWidth;
@@ -417,6 +417,15 @@ const body = (e) => {
     g.closePath();
   } else g.arc(e.x, e.y, r, 0, 7);
   g.fill();
+  g.lineWidth = 2;
+  g.strokeStyle = '#000a';
+  g.stroke(); // koyu kontur
+  if (s !== 'square' && s !== 'tri') {
+    g.fillStyle = '#ffffff38';
+    g.beginPath();
+    g.arc(e.x - r * 0.3, e.y - r * 0.35, r * 0.42, 0, 7);
+    g.fill();
+  } // üst-sol ışık vurgusu: düz daire yerine hacimli görünüm
 };
 
 export function render() {
@@ -754,6 +763,19 @@ export function render() {
       );
       g.stroke();
     }
+    if (!e.segs && !e.isPet) {
+      g.fillStyle = '#0007';
+      g.beginPath();
+      g.ellipse(e.x, e.y + e.r * 0.8, e.r * 0.95, e.r * 0.38, 0, 0, 7);
+      g.fill();
+    } // yer gölgesi
+    if ((e.boss || e.mini) && !e.segs) {
+      g.globalAlpha = 0.22 + 0.08 * Math.sin(performance.now() / 220);
+      g.fillStyle = e.col;
+      circle(e.x, e.y, e.r + 8);
+      g.fill();
+      g.globalAlpha = 1;
+    } // boss/elit hâlesi
     g.globalAlpha = e === p && p.invuln > 0 ? 0.45 : 1;
     g.fillStyle = e === p ? '#5cc8ff' : e.col;
     if (e === p) {

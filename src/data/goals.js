@@ -1,0 +1,115 @@
+import { meta } from '../core/save.js';
+import { SYN_MAXTIER } from '../systems/synergy.js';
+// KOŞU HEDEFLERİ: her koşuda 3 mini hedef (kolay/orta/zor). Bitirince anında Ruh + Hesap XP. Kısa vadeli "bir tur daha" kancası.
+const base = (s) => s.goalBase || { dodges: 0, evos: 0 };
+export const GOALS = [
+  {
+    id: 'k100',
+    tier: 1,
+    text: '100 düşman öldür',
+    t: 100,
+    cur: (s) => s.kills,
+  },
+  {
+    id: 'k300',
+    tier: 2,
+    text: '300 düşman öldür',
+    t: 300,
+    cur: (s) => s.kills,
+  },
+  {
+    id: 'k800',
+    tier: 3,
+    text: '800 düşman öldür',
+    t: 800,
+    cur: (s) => s.kills,
+  },
+  { id: 'w5', tier: 1, text: '5. tura ulaş', t: 5, cur: (s) => s.wave.n },
+  { id: 'w10', tier: 2, text: '10. tura ulaş', t: 10, cur: (s) => s.wave.n },
+  { id: 'w18', tier: 3, text: '18. tura ulaş', t: 18, cur: (s) => s.wave.n },
+  {
+    id: 'b1',
+    tier: 2,
+    text: 'Bir boss yen',
+    t: 1,
+    cur: (s) => s.bossKillsRun || 0,
+  },
+  {
+    id: 'b2',
+    tier: 3,
+    text: 'İki boss yen',
+    t: 2,
+    cur: (s) => s.bossKillsRun || 0,
+  },
+  {
+    id: 'd5',
+    tier: 1,
+    text: '5 mükemmel kaçış yap',
+    t: 5,
+    cur: (s) => (meta.stats.dodges || 0) - base(s).dodges,
+  },
+  {
+    id: 'd15',
+    tier: 2,
+    text: '15 mükemmel kaçış yap',
+    t: 15,
+    cur: (s) => (meta.stats.dodges || 0) - base(s).dodges,
+  },
+  {
+    id: 'c6',
+    tier: 1,
+    text: '6 kart topla',
+    t: 6,
+    cur: (s) => s.picked.length,
+  },
+  {
+    id: 'c14',
+    tier: 3,
+    text: '14 kart topla',
+    t: 14,
+    cur: (s) => s.picked.length,
+  },
+  {
+    id: 'p300',
+    tier: 2,
+    text: "Güç 300'e ulaş",
+    t: 300,
+    cur: (s) => s.bestPower || 0,
+  },
+  {
+    id: 'p1000',
+    tier: 3,
+    text: "Güç 1.000'e ulaş",
+    t: 1000,
+    cur: (s) => s.bestPower || 0,
+  },
+  {
+    id: 's1',
+    tier: 1,
+    text: "Bir bağda Kademe I'e ulaş",
+    t: 1,
+    cur: (s) => SYN_MAXTIER(s),
+  },
+  {
+    id: 's2',
+    tier: 2,
+    text: "Bir bağda Kademe II'ye ulaş",
+    t: 2,
+    cur: (s) => SYN_MAXTIER(s),
+  },
+  {
+    id: 's3',
+    tier: 3,
+    text: "Bir bağda Kademe III'e ulaş",
+    t: 3,
+    cur: (s) => SYN_MAXTIER(s),
+  },
+  {
+    id: 'e1',
+    tier: 3,
+    text: 'Bir kartı evrimleştir',
+    t: 1,
+    cur: (s) => (meta.stats.evos || 0) - base(s).evos,
+  },
+];
+export const GOAL_REWARD = { 1: 20, 2: 45, 3: 90 };
