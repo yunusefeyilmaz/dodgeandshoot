@@ -4,7 +4,7 @@
 
 Bu oyun **Web Tabanlı Programlama** dersinin proje ödevi olarak hazırlanmıştır. Oyun JavaScript,Html,CSS kullanılarak hazırlanmıştır. Bu projede JavaScript'in hiçbir oyun kütüphanesi kullanılmamıştır. Kullanılan görseller bana aittir.
 
-Oyunu internet üzerinden oynamak için [buraya tıklayınız](http://dodgeandshoot.eu5.org/).
+Oyunu internet üzerinden oynamak için [buraya tıklayınız](https://dodgeandshoot.vercel.app).
 
 Oyun hakkında bilgi edinmek için bu videoyuda izleyebilirsiniz. [tıklayınız](https://www.youtube.com/watch?v=I1MFfeqhGWo).
 
