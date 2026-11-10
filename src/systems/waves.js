@@ -61,18 +61,37 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
   const n = state.wave.n,
     sp = at || spawnPos(def.boss, ang),
     boss = !!def.boss;
-  const sc = 1 + n * BAL.enemyDmgPerWave,
+  const ad = state.adapt || 1,
+    adD = (1 + (ad - 1) * BAL.adaptDmg) * (state.adaptD || 1),
+    sc = (1 + n * BAL.enemyDmgPerWave + n * n * BAL.enemyDmgQuad) * adD,
     stats = {};
   for (const k in def.stats || {})
     stats[k] = def.stats[k] * (k === 'ad' || k === 'ap' ? sc * power : 1); // düşmanlar da oyuncuyla aynı statlara sahip
+  stats.armorPen = Math.min(
+    BAL.enemyPenMax,
+    (stats.armorPen || 0) + n * BAL.enemyPenPerWave,
+  );
+  stats.magicPen = Math.min(
+    BAL.enemyPenMax,
+    (stats.magicPen || 0) + n * BAL.enemyPenPerWave,
+  );
+  stats.lethality = (stats.lethality || 0) + n * BAL.enemyLethPerWave; // geç oyunda oyuncunun zırh yığması tehdidi sıfırlamasın
   const df = state.map ? state.map.diff : 1,
     hp =
       df *
+      (boss ? Math.pow(state.adapt || 1, 0.3) : state.adapt || 1) *
       def.hp *
       (boss
-        ? BAL.bossHp * (1 + n * BAL.bossHpPerWave + n * n * BAL.bossHpQuad)
+        ? BAL.bossHp *
+          (1 +
+            n * BAL.bossHpPerWave +
+            n * n * BAL.bossHpQuad +
+            n * n * n * BAL.bossHpCube)
         : BAL.enemyHp *
-          (1 + n * BAL.enemyHpPerWave + n * n * BAL.enemyHpQuad) *
+          (1 +
+            n * BAL.enemyHpPerWave +
+            n * n * BAL.enemyHpQuad +
+            n * n * n * BAL.enemyHpCube) *
           (def.mini ? BAL.miniHp : 1)) *
       power *
       (elite ? 2.5 : 1) *
@@ -90,12 +109,16 @@ function spawn(def, power = 1, ang, at, elite = false, extra) {
     coin: Math.ceil(def.coin * (1 + n * 0.1) * power * (elite ? 3 : 1)),
     base: {
       speed: def.speed * (elite ? 1.1 : 1) * state.mut.enemySpeed,
-      armor: (def.armor || 0) * (1 + n * 0.03) * power * (elite ? 1.3 : 1),
-      mr: (def.armor || 0) * 0.5 * (1 + n * 0.03) * power,
+      armor:
+        ((def.armor || 0) * (1 + n * 0.03) + n * BAL.armorPerWave) *
+        power *
+        (elite ? 1.3 : 1),
+      mr: ((def.armor || 0) * 0.5 * (1 + n * 0.03) + n * BAL.mrPerWave) * power,
       kbResist: def.kbResist || 0,
       ...stats,
       damage:
-        (1 + n * BAL.enemyDmgPerWave) *
+        (1 + n * BAL.enemyDmgPerWave + n * n * BAL.enemyDmgQuad) *
+        adD *
         (1 + 0.1 * state.heat) *
         (1 + (df - 1) * 0.6) *
         power *
@@ -175,12 +198,38 @@ state.spawnAt = (id, x, y, elite) =>
     !!elite,
   );
 
+// UYARLANABİLİR ZORLUK (kapalı döngü): sıradan bir tur hedef süreden belirgin hızlı temizlenirse düşmanlar güçlenir, çok yavaşsa biraz rahatlar.
+// Her kart/eşya kombinasyonuna tek tek denge yapmadan "oyuncu güçlendikçe oyun kolaylaşıyor" sorununu her yapıda çözer. Boss turları ve ilk turlar sayılmaz.
+export const adaptTarget = (n) =>
+  Math.min(BAL.adaptTargetMax, BAL.adaptTarget0 + n * BAL.adaptTargetPerWave);
+export function adaptWave(w) {
+  if (isBossWave(w.n) || w.n < BAL.adaptFrom || state.mode !== 'run') return;
+  const dur = (state.clock || 0) - (w.t0 || 0),
+    tg = adaptTarget(w.n),
+    a = state.adapt || 1;
+  if (dur < tg * 0.55)
+    state.adapt = Math.min(BAL.adaptMax, a * BAL.adaptUp * BAL.adaptUp);
+  else if (dur < tg * 0.8)
+    state.adapt = Math.min(BAL.adaptMax, a * BAL.adaptUp);
+  else if (dur > tg * 1.5)
+    state.adapt = Math.max(BAL.adaptMin, a * BAL.adaptDown); // çok hızlı bitiş: iki kat hızlı tırman
+  const mh = Math.max(1, stat(state.player, 'maxHp')),
+    hr = (state.waveHurt || 0) / mh,
+    d = state.adaptD || 1; // 2. kontrolcü: oyuncu neredeyse hasar almıyorsa düşman hasarı artar, aşırı hasar alıyorsa azalır
+  if (hr < BAL.adaptHurtLow && dur < tg * 1.3)
+    state.adaptD = Math.min(BAL.adaptDmgMax, d * BAL.adaptDmgUp);
+  else if (hr > BAL.adaptHurtHigh)
+    state.adaptD = Math.max(BAL.adaptDmgMin, d * BAL.adaptDmgDown);
+  state.adaptLast = { n: w.n, dur, tg, hr };
+}
 export function startWave() {
   const w = state.wave;
   if (w.phase !== 'idle' || state.over) return;
   w.n++;
   w.phase = 'active';
   w.timer = 0;
+  w.t0 = state.clock || 0;
+  state.waveHurt = 0;
   w.bossPending = isBossWave(w.n);
   w.swarmPending = isSwarmWave(w.n);
   w.miniPending =
@@ -272,6 +321,7 @@ export function updateWaves(dt) {
       w.toSpawn <= 0 &&
       !state.ents.some((e) => e.team === 'e' && !e.dormant)
     ) {
+      adaptWave(w);
       w.phase = 'idle';
       w.cd = 2;
       state.coins += 5 + w.n * 2;

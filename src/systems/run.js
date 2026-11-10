@@ -20,6 +20,10 @@ export function startRun(id, opts = {}) {
   addPart(state.player, { mods: starPerkMods() });
   state.revive = hasPerk('sp_rev') ? 1 : 0;
   state.paid = 0;
+  state.adapt = 1;
+  state.adaptD = 1;
+  state.adaptLast = null;
+  state.waveHurt = 0;
   state.charId = isCharUnlocked(opts.char) ? opts.char : 'warrior';
   applyChar(state.player, state.charId);
   installSynergy(state.player);

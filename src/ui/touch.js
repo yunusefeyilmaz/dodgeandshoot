@@ -3,6 +3,7 @@ import { meta } from '../core/save.js';
 import { tryDash } from '../systems/dash.js';
 import { interact } from '../systems/pois.js';
 import { calcZoom } from '../systems/render.js';
+import { showOverlay, hideOverlay, btn } from './overlay.js';
 // ——— MOBİL / TABLET: dokunmatik kontroller + ekran sınıfları ———
 // Sol yarıda herhangi bir yere dokun-sürükle: yüzen joystick (analog). Sağ altta DASH, yanında bağlamsal ETKİLEŞİM düğmesi.
 // body sınıfları: touch (kontroller açık), sm (<900 genişlik veya <520 yükseklik), xs (<600 genişlik), short (<520 yükseklik), portrait.
@@ -123,6 +124,22 @@ export function initTouch() {
   document.getElementById('rotX').onclick = () => {
     state.hideRot = true;
   };
+  document.addEventListener('visibilitychange', () => {
+    // uygulama/sekme arka plana gidince oyunu duraklat (telefonda arama, uygulama değiştirme)
+    if (
+      document.hidden &&
+      state.mode === 'run' &&
+      !state.paused &&
+      !state.over
+    ) {
+      const b = btn('▶ Devam', () => hideOverlay());
+      b.classList.add('go');
+      const c = document.createElement('div');
+      c.className = 'c2-ctl';
+      c.append(b);
+      showOverlay('Duraklatıldı', [c], 'modal', 'Oyun arka plana alındı');
+    }
+  });
   addEventListener('resize', applyLayout);
   addEventListener('orientationchange', () => setTimeout(applyLayout, 120));
   applyLayout();
@@ -152,8 +169,10 @@ export function updateTouch() {
   const rot =
     document.body.classList.contains('touch') &&
     document.body.classList.contains('portrait') &&
+    document.body.classList.contains('xs') &&
     state.mode === 'run' &&
-    !state.hideRot;
+    !state.hideRot &&
+    !state.paused;
   if (rot !== hint._v) {
     hint._v = rot;
     hint.style.display = rot ? 'flex' : 'none';
@@ -162,6 +181,7 @@ export function updateTouch() {
 export function toggleFullscreen() {
   const d = document,
     el = d.documentElement;
+  if (!el) return;
   if (d.fullscreenElement) {
     d.exitFullscreen && d.exitFullscreen();
     return;

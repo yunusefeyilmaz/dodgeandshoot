@@ -24,7 +24,7 @@ export const ABILITIES = {
     name: 'Asa',
     tags: ['Weapon', 'Staff', 'Projectile'],
     dmgType: 'magic',
-    cooldown: 0.9,
+    cooldown: 0.8,
     effects: [
       {
         type: 'Projectile',
@@ -32,7 +32,7 @@ export const ABILITIES = {
         size: 7,
         trail: 0.3,
         tcol: '#e0ccff',
-        damage: 20,
+        damage: 24,
         speed: 330,
         ratio: 1.2,
         color: '#c9a8ff',
@@ -44,10 +44,10 @@ export const ABILITIES = {
     name: 'Kılıç',
     tags: ['Weapon', 'Sword', 'Area'],
     dmgType: 'phys',
-    cooldown: 0.5,
-    range: 70,
-    effects: [{ type: 'Nova', damage: 28, radius: 70 }],
-  },
+    cooldown: 0.6,
+    range: 64,
+    effects: [{ type: 'Nova', damage: 30, radius: 52 }],
+  }, // kılıç: simülasyonda yay/asaya göre çok geride kalıyordu (menzil ve hasar artırıldı)
   // --- oyuncu skilleri
   fireball: {
     id: 'fireball',

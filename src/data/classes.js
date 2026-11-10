@@ -77,7 +77,7 @@ export const CLASSES = {
             for (const a of d.target.abilities)
               if (
                 canSteal(a) &&
-                o.abilities.length < 999 &&
+                o.abilities.length < 20 &&
                 !o.abilities.includes(a)
               ) {
                 o.abilities.push(a);

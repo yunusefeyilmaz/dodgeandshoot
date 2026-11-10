@@ -379,3 +379,29 @@ export function openClassPick() {
     'Kalıcı bir bonus ve silahınla sinerji kazanırsın',
   );
 }
+
+// ——— Arayüzsüz seviye atlama / sınıf seçimi: denge simülatörü ve testler için (tools/balance, test/) ———
+export function autoLevelUp(choose) {
+  state.xp -= xpNeed();
+  state.level++;
+  const picks = drawPicks();
+  if (!picks.length) return null;
+  const c = (choose && choose(picks)) || picks[0];
+  c.apply();
+  state.picked.push(c.name);
+  recount();
+  if (c.evo) meta.stats.evos = (meta.stats.evos || 0) + 1;
+  return c;
+}
+export function autoClassPick(choose) {
+  const p = state.player;
+  state.pendingClass = false;
+  if (p.classes.length >= state.classSlots) return null;
+  const pool = Object.entries(CLASSES)
+    .filter(([id]) => !p.classes.includes(id))
+    .map(([id, c]) => ({ id, ...c }));
+  if (!pool.length) return null;
+  const c = (choose && choose(pool)) || pool[0];
+  addClass(c.id);
+  return c;
+}

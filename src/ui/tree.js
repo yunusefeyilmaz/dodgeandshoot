@@ -74,6 +74,35 @@ export function renderTree(el, nodes, api) {
         if (!api.detail) setTip(null);
       };
       d.onclick = () => {
+        const touchy = document.body.classList.contains('touch') && api.detail;
+        if (touchy && el._sel !== n.id) {
+          // dokunmatik: ilk dokunuş = seç ve detayı göster (hover yok)
+          el._sel = n.id;
+          el.querySelectorAll('.tn.sel').forEach((x) =>
+            x.classList.remove('sel'),
+          );
+          d.classList.add('sel');
+          api.detail.innerHTML =
+            api.tip(n) +
+            (api.can(n)
+              ? '<button class="buybtn go">Satın al</button>'
+              : '<div class="dim" style="margin-top:6px">' +
+                (api.level(n) > 0 && api.max && api.level(n) >= api.max(n)
+                  ? '✔ Tamamlandı'
+                  : 'Henüz alınamaz') +
+                '</div>');
+          const bb = api.detail.querySelector('.buybtn');
+          if (bb)
+            bb.onclick = (e) => {
+              e.stopPropagation();
+              if (api.can(n)) {
+                api.buy(n);
+                d.classList.add('bought');
+                api.rerender();
+              }
+            };
+          return;
+        }
         if (api.can(n)) {
           api.buy(n);
           setTip(null);
@@ -85,6 +114,33 @@ export function renderTree(el, nodes, api) {
     box.appendChild(d);
   }
   el.replaceChildren(box);
+  if (el._sel && api.detail) {
+    const sn = by[el._sel],
+      dn = [...box.children].find(
+        (x) =>
+          x.classList &&
+          x.classList.contains('tn') &&
+          x.querySelector('b') &&
+          sn &&
+          x.querySelector('b').textContent === sn.name,
+      );
+    if (dn) {
+      dn.classList.add('sel');
+      if (sn && api.detail && document.body.classList.contains('touch')) {
+        api.detail.innerHTML =
+          api.tip(sn) +
+          (api.can(sn) ? '<button class="buybtn go">Satın al</button>' : '');
+        const bb = api.detail.querySelector('.buybtn');
+        if (bb)
+          bb.onclick = () => {
+            if (api.can(sn)) {
+              api.buy(sn);
+              api.rerender();
+            }
+          };
+      }
+    }
+  }
   if (!el._pan) {
     // boş alandan sürükleyerek kaydırma
     el._pan = 1;

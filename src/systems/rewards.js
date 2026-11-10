@@ -11,7 +11,7 @@ import { meta } from '../core/save.js';
 import { RARITIES } from '../core/rarity.js';
 
 export const xpNeed = () =>
-  Math.round(8 + 4 * state.level + 0.35 * state.level * state.level); // level atlama giderek yavaşlar
+  Math.round(10 + 5 * state.level + 0.5 * state.level * state.level); // level atlama giderek yavaşlar
 
 // Öldürme: altın, xp, item. Luck: altın değeri, item şansı ve item nadirliğini artırır (boss'ta ekstra).
 on('Kill', ({ target: t }) => {

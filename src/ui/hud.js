@@ -1190,6 +1190,28 @@ export function updateHud() {
   if (frame % 60 === 1) refreshKbd();
   updateCharHud();
   {
+    const ac = $('adaptChip'),
+      th =
+        Math.round(
+          (state.adapt || 1) * (1 + ((state.adaptD || 1) - 1) * 0.5) * 100,
+        ) / 100;
+    if (ac._v !== th) {
+      ac._v = th;
+      ac.style.display = th >= 1.05 ? 'inline-flex' : 'none';
+      ac.textContent = '☠ Tehdit ×' + th.toFixed(1);
+      ac.className = 'chip' + (th >= 2.5 ? ' hot' : '');
+    }
+    if (!ac._b) {
+      ac._b = 1;
+      ac.onmouseenter = () =>
+        setTip(
+          () =>
+            '<b>☠ Tehdit çarpanı</b><div class="dim">Turları çok hızlı geçtikçe ve az hasar aldıkça düşmanlar güçlenir. Güçlü bir build oyunu kolaylaştıramaz: oyun seninle birlikte zorlaşır.</div>',
+        );
+      ac.onmouseleave = () => setTip(null);
+    }
+  }
+  {
     const tl = $('tl'),
       q = $('quests');
     if (tl && q) {

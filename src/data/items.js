@@ -54,9 +54,12 @@ export const ITEMS = [
     'reaper',
     'Biçici Kılıç',
     'veryrare',
-    'Aldıktan sonra her öldürme kritik şansını artırır.',
+    'Aldıktan sonra her öldürme kritik şansını +%0.02 artırır (en fazla +%12).',
     (i) => ({
-      mods: [mod('ad', 12), dyn('critChance', () => i.kills * 0.0005)],
+      mods: [
+        mod('ad', 10),
+        dyn('critChance', () => Math.min(0.12, i.kills * 0.0002)),
+      ],
       triggers: [track(i)],
     }),
     true,
@@ -94,9 +97,9 @@ export const ITEMS = [
     'crown',
     'Kumarbaz Tacı',
     'mythic',
-    'Aldıktan sonra her öldürme luck artırır.',
+    'Aldıktan sonra her öldürme +0.015 luck artırır (en fazla +15).',
     (i) => ({
-      mods: [mod('luck', 10), dyn('luck', () => i.kills * 0.05)],
+      mods: [mod('luck', 6), dyn('luck', () => Math.min(15, i.kills * 0.015))],
       triggers: [track(i)],
     }),
     true,

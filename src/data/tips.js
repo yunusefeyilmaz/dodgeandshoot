@@ -1,6 +1,23 @@
 import { keyOf, keyName } from '../core/keymap.js';
 import { getLang } from '../i18n/index.js';
-const K = (a) => '<b>' + keyName(keyOf(a)) + '</b>';
+const isTouch = () =>
+  typeof document !== 'undefined' &&
+  document.body &&
+  document.body.classList.contains('touch');
+const TK = {
+  dash: 'DASH',
+  interact: '✋',
+  inv: '🎒',
+  stat: '📊',
+  cls: '🎭',
+  pet: '🐾',
+  shop: '⚒️',
+  wave: '▶',
+  quests: '🎯',
+  menu: '☰',
+};
+const K = (a) =>
+  '<b>' + (isTouch() ? TK[a] || keyName(keyOf(a)) : keyName(keyOf(a))) + '</b>'; // dokunmatikte tuş adı yerine ekran düğmesi
 // İpuçları (tur başında, ölüm/zafer ekranında) ve Rehber bölümleri. Tuşlar atamaya göre dinamik yazılır.
 export const TIPS = [
   () =>
@@ -72,7 +89,9 @@ export const GUIDE = [
   {
     t: 'Temel Kontroller',
     b: () =>
-      `<p>Hareket: <b>${keyName(keyOf('up'))}${keyName(keyOf('left'))}${keyName(keyOf('down'))}${keyName(keyOf('right'))}</b> veya ok tuşları. Karakterin yakındaki düşmanlara <b>otomatik</b> saldırır.</p><p>${K('dash')}: dash (kısa dokunulmazlık). ${K('wave')}: turu başlat. ${K('interact')}: etkileşim. ${K('inv')} envanter, ${K('stat')} statlar, ${K('cls')} sınıflar, ${K('pet')} petler, ${K('shop')} yükseltmeler, ${K('quests')} görevler.</p><p>Tuşları Ayarlar'dan değiştirebilirsin.</p>`,
+      isTouch()
+        ? `<p><b>Hareket:</b> ekranın sol yarısına dokunup sürükle (joystick; ne kadar çok itersen o kadar hızlı). Karakterin yakındaki düşmanlara <b>otomatik</b> saldırır.</p><p><b>DASH</b> düğmesi (sağ alt): kısa dokunulmazlık. <b>✋</b> düğmesi sandık/sunak gibi nesnelerin yanında belirir. Üstteki simgeler: 🎒 envanter, 📊 statlar, 🎭 sınıflar, 🐾 petler, ⚒️ yükseltmeler, ☰ menü. Turu başlatmak için <b>Turu başlat</b> düğmesine dokun.</p><p>Beceri ikonlarına dokunarak açıp kapatabilirsin. Daha iyi oynanış için telefonu yatay tut.</p>`
+        : `<p>Hareket: <b>${keyName(keyOf('up'))}${keyName(keyOf('left'))}${keyName(keyOf('down'))}${keyName(keyOf('right'))}</b> veya ok tuşları. Karakterin yakındaki düşmanlara <b>otomatik</b> saldırır.</p><p>${K('dash')}: dash (kısa dokunulmazlık). ${K('wave')}: turu başlat. ${K('interact')}: etkileşim. ${K('inv')} envanter, ${K('stat')} statlar, ${K('cls')} sınıflar, ${K('pet')} petler, ${K('shop')} yükseltmeler, ${K('quests')} görevler.</p><p>Tuşları Ayarlar'dan değiştirebilirsin.</p>`,
   },
   {
     t: 'Turlar ve Haritalar',
@@ -182,7 +201,9 @@ const GUIDE_EN = [
   {
     t: 'Basic Controls',
     b: () =>
-      `<p>Move: <b>${keyName(keyOf('up'))}${keyName(keyOf('left'))}${keyName(keyOf('down'))}${keyName(keyOf('right'))}</b> or the arrow keys. Your character attacks nearby enemies <b>automatically</b>.</p><p>${K('dash')}: dash (brief invulnerability). ${K('wave')}: start the wave. ${K('interact')}: interact. ${K('inv')} inventory, ${K('stat')} stats, ${K('cls')} classes, ${K('pet')} pets, ${K('shop')} upgrades, ${K('quests')} quests.</p><p>You can rebind keys in Settings.</p>`,
+      isTouch()
+        ? `<p><b>Move:</b> touch and drag on the left half of the screen (joystick; the further you push, the faster you go). Your character attacks nearby enemies <b>automatically</b>.</p><p>The <b>DASH</b> button (bottom right) gives brief invulnerability. The <b>✋</b> button appears next to chests, altars and similar objects. Icons at the top: 🎒 inventory, 📊 stats, 🎭 classes, 🐾 pets, ⚒️ upgrades, ☰ menu. Tap <b>Start wave</b> to begin a wave.</p><p>Tap the skill icons to toggle them. Hold your phone in landscape for the best experience.</p>`
+        : `<p>Move: <b>${keyName(keyOf('up'))}${keyName(keyOf('left'))}${keyName(keyOf('down'))}${keyName(keyOf('right'))}</b> or the arrow keys. Your character attacks nearby enemies <b>automatically</b>.</p><p>${K('dash')}: dash (brief invulnerability). ${K('wave')}: start the wave. ${K('interact')}: interact. ${K('inv')} inventory, ${K('stat')} stats, ${K('cls')} classes, ${K('pet')} pets, ${K('shop')} upgrades, ${K('quests')} quests.</p><p>You can rebind keys in Settings.</p>`,
   },
   {
     t: 'Waves and Maps',

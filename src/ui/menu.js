@@ -21,6 +21,7 @@ import { startRun } from '../systems/run.js';
 import { MAP_LIST } from '../data/maps.js';
 import { guideList, tipOf } from '../data/tips.js';
 import { acc } from '../systems/progress.js';
+import { applyLayout, toggleFullscreen } from './touch.js';
 import {
   REWARDS,
   accNeed,
@@ -661,7 +662,7 @@ function achScreen() {
 
 function settingsScreen() {
   // tuş atama: bir tuşa tıkla, sonra yeni tuşa bas (çakışan tuş yer değiştirir)
-  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Ayarlar</h2></div><h3>Performans</h3><div class="keys"><div class="krow"><span>Grafik kalitesi</span><button id="sGfx"></button></div><div class="krow"><span>Yavaşlatma/sersemletme (sana)</span><button id="sCc"></button></div><div class="krow"><span>Ekran sarsıntısı</span><button id="sShk"></button></div><div class="krow"><span>FPS göstergesi</span><button id="sFps"></button></div></div><h3>Ses</h3><div class="keys"><div class="krow"><span>Oyun içi ipuçları</span><button id="sTips"></button></div><div class="krow"><span>Müzik</span><button id="sMusic"></button></div><div class="krow"><span>Müzik seviyesi</span><button id="sMv"></button></div><div class="krow"><span>Efekt seviyesi</span><button id="sSv"></button></div></div><h3>Tuş atamaları</h3><div class="sub">Bir tuşa tıkla, sonra yeni tuşa bas. Ok tuşları her zaman da hareket ettirir. İptal için Esc.</div>
+  M.innerHTML = `<div class="mwrap wide"><div class="mhead">${back}<h2>Ayarlar</h2></div><h3>Performans</h3><div class="keys"><div class="krow"><span>Dokunmatik kontroller</span><button id="sTouch"></button></div><div class="krow"><span>Tam ekran</span><button id="sFull"></button></div><div class="krow"><span>Grafik kalitesi</span><button id="sGfx"></button></div><div class="krow"><span>Yavaşlatma/sersemletme (sana)</span><button id="sCc"></button></div><div class="krow"><span>Ekran sarsıntısı</span><button id="sShk"></button></div><div class="krow"><span>FPS göstergesi</span><button id="sFps"></button></div></div><h3>Ses</h3><div class="keys"><div class="krow"><span>Oyun içi ipuçları</span><button id="sTips"></button></div><div class="krow"><span>Müzik</span><button id="sMusic"></button></div><div class="krow"><span>Müzik seviyesi</span><button id="sMv"></button></div><div class="krow"><span>Efekt seviyesi</span><button id="sSv"></button></div></div><h3>Tuş atamaları</h3><div class="sub">Bir tuşa tıkla, sonra yeni tuşa bas. Ok tuşları her zaman da hareket ettirir. İptal için Esc.</div>
     <div class="keys">${ACTIONS.map(([id, name]) => `<div class="krow"><span>${name}</span><button data-a="${id}"></button></div>`).join('')}</div><div class="treehead"><span></span><button id="kReset">Varsayılana dön</button></div></div>`;
   const lv = ['0%', '25%', '50%', '75%', '100%'],
     idx = (v) => Math.round((v ?? 0.5) * 4),
@@ -672,6 +673,19 @@ function settingsScreen() {
       $('sSv').textContent = lv[idx(meta.settings.sfx ?? meta.settings.vol)];
     };
   snd();
+  const TM = ['auto', 'on', 'off'],
+    TN = { auto: 'Otomatik', on: 'Açık', off: 'Kapalı' },
+    tm = () => ($('sTouch').textContent = TN[meta.settings.touch || 'auto']);
+  tm();
+  $('sTouch').onclick = () => {
+    meta.settings.touch =
+      TM[(TM.indexOf(meta.settings.touch || 'auto') + 1) % 3];
+    save(true);
+    applyLayout();
+    tm();
+  };
+  $('sFull').textContent = 'Aç / Kapat';
+  $('sFull').onclick = () => toggleFullscreen();
   const GF = ['auto', 'high', 'medium', 'low'],
     GN = { auto: 'Otomatik', high: 'Yüksek', medium: 'Orta', low: 'Düşük' },
     gf = () => {

@@ -13,6 +13,7 @@ import { updatePickups, xpNeed } from './systems/rewards.js';
 import { updateTracking } from './systems/tracking.js';
 import { updateCharacter } from './systems/characters.js';
 import { updateGoals } from './systems/progress.js';
+import { updateCollisions } from './systems/collide.js';
 import { updateMusic } from './core/music.js';
 import { sampleQuality } from './core/quality.js';
 import { initTouch, updateTouch } from './ui/touch.js';
@@ -50,7 +51,8 @@ const MAX_SUB = 1 / 60,
 let last = null;
 function step(h) {
   const dt = h;
-  state.dt = dt; // oyun HER ZAMAN gerçek hızda akar: yavaş çekim / hit-stop yok (kaçış, kritik, boss ölümü, hasar yemek zamanı yavaşlatmaz)
+  state.dt = dt;
+  state.clock = (state.clock || 0) + dt; // oyun HER ZAMAN gerçek hızda akar: yavaş çekim / hit-stop yok (kaçış, kritik, boss ölümü, hasar yemek zamanı yavaşlatmaz)
   updateWaves(dt);
   updatePlayer(dt);
   updateDash(dt);
@@ -58,6 +60,7 @@ function step(h) {
   updateObjective(dt);
   updatePets(dt);
   updateCombat(dt);
+  updateCollisions();
   updateCharacter(dt);
   updateArena(dt);
   updatePickups(dt);

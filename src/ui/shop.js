@@ -112,7 +112,11 @@ export function openShop() {
   el.className = 'treewrap';
   det.className = 'tdetail';
   det.innerHTML =
-    '<h4>DETAY</h4><div class="dim">Bir yeteneğin üstüne gel: ne kazandıracağını önce → sonra olarak gör. Tıklayarak satın al.</div>';
+    '<h4>DETAY</h4><div class="dim">' +
+    (document.body.classList.contains('touch')
+      ? 'Bir yeteneğe dokun: ne kazandıracağını önce → sonra olarak gör. "Satın al" ile al.'
+      : 'Bir yeteneğin üstüne gel: ne kazandıracağını önce → sonra olarak gör. Tıklayarak satın al.') +
+    '</div>';
   lay.append(el, det);
   const draw = () => {
     const os = document.getElementById('ovs');

@@ -105,6 +105,17 @@ export function dealDamage(src, t, amt, tags = [], o = {}) {
       stat(t, 'maxHp') * (src.boss ? BAL.bossHitCap : BAL.enemyHitCap);
     if (amt > cap) amt = cap;
   } // düşman tek vuruşta öldüremez
+  if (t.boss && !t.decoy && t.hpMax > 0) {
+    const w = t.dw || (t.dw = { t: -9, s: 0 });
+    if (state.clock - w.t >= 1) {
+      w.t = state.clock;
+      w.s = 0;
+    }
+    const room = Math.max(0, t.hpMax * BAL.bossDpsCap - w.s);
+    if (amt > room) amt = room;
+    w.s += amt;
+  } // boss saniyede en çok %4.5 canını kaybeder: en az ~22 sn sürer, tek vuruşta düşmez
+  if (t === state.player) state.waveHurt = (state.waveHurt || 0) + amt; // uyarlanabilir zorluk: tur boyunca alınan hasar
   t.hp -= amt;
   t.hurt = 0.12;
   t.barT = 2.5;
@@ -714,9 +725,11 @@ function enemyAI(e, p, dt) {
     }
   }
   if (d < e.r + 10 && !(p.invuln > 0)) {
-    p.hp -=
+    const ctd =
       (12 * (e.contact || 1) * stat(e, 'damage') * dt * 100) /
       (100 + stat(p, 'armor'));
+    p.hp -= ctd;
+    state.waveHurt = (state.waveHurt || 0) + ctd;
     state.hitsTaken++;
     p.hurt = 0.12;
     state.flash = Math.max(state.flash, 0.3);

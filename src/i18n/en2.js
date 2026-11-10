@@ -1167,3 +1167,35 @@ Object.assign(EN2, {
   EFEKTLER: 'EFFECTS',
   Çaylak: 'Rookie',
 });
+Object.assign(EN2, {
+  'Bir yeteneğe dokun: ne kazandıracağını önce → sonra olarak gör. "Satın al" ile al.':
+    'Tap a skill to see what it gives, before → after. Use "Buy" to get it.',
+  'Satın al': 'Buy',
+  'Henüz alınamaz': 'Cannot buy yet',
+  '✔ Tamamlandı': '✔ Completed',
+});
+Object.assign(EN2, {
+  'Dokunmatik kontroller': 'Touch controls',
+  'Tam ekran': 'Fullscreen',
+  'Aç / Kapat': 'On / Off',
+  '↻ Daha iyi oynanış için telefonu yatay çevir':
+    '↻ Rotate your phone to landscape for a better experience',
+  Dash: 'Dash',
+});
+Object.assign(EN2, {
+  Duraklatıldı: 'Paused',
+  'Oyun arka plana alındı': 'The game was sent to the background',
+  '▶ Devam': '▶ Resume',
+});
+Object.assign(EN2, {
+  'Aldıktan sonra her öldürme kritik şansını +%0.02 artırır (en fazla +%12).':
+    'After pickup, every kill increases crit chance by +0.02% (max +12%).',
+  'Aldıktan sonra her öldürme +0.015 luck artırır (en fazla +15).':
+    'After pickup, every kill increases luck by +0.015 (max +15).',
+});
+Object.assign(EN2, {
+  '☠ Tehdit ×': '☠ Threat ×',
+  '☠ Tehdit çarpanı': '☠ Threat multiplier',
+  'Turları çok hızlı geçtikçe ve az hasar aldıkça düşmanlar güçlenir. Güçlü bir build oyunu kolaylaştıramaz: oyun seninle birlikte zorlaşır.':
+    'The faster you clear waves and the less damage you take, the stronger enemies become. A strong build cannot trivialize the game: it gets harder along with you.',
+});
