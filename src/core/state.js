@@ -2,6 +2,7 @@
 export const W = 3200,
   H = 2400; // dünya boyutu (kamera bunun içinde gezer)
 export const state = {
+  touch: { x: 0, y: 0, active: false },
   ents: [],
   projs: [],
   pickups: [],

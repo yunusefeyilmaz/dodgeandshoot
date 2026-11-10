@@ -15,6 +15,7 @@ import { updateCharacter } from './systems/characters.js';
 import { updateGoals } from './systems/progress.js';
 import { updateMusic } from './core/music.js';
 import { sampleQuality } from './core/quality.js';
+import { initTouch, updateTouch } from './ui/touch.js';
 import { render, setScale } from './systems/render.js';
 import { meta } from './core/save.js';
 import { initHud, updateHud } from './ui/hud.js';
@@ -127,7 +128,9 @@ function loop(now) {
       }
     } else if (fpsEl) fpsEl.style.display = 'none';
   }
+  updateTouch();
   updateMusic();
   requestAnimationFrame(loop);
 }
+initTouch();
 requestAnimationFrame(loop);

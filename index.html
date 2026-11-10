@@ -3,14 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <title>Dodge and Shoot</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0b0810" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/ui2.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
   </head>
   <body>
     <canvas id="c"></canvas>
     <div id="ui">
+      <div id="touchUI">
+        <div id="joyZone"></div>
+        <div id="joy"><i></i></div>
+        <button id="tDash" aria-label="Dash">💨<small>DASH</small></button
+        ><button id="tAct" aria-label="Etkileşim">✋<small>E</small></button>
+      </div>
+      <div id="rotHint">
+        ↻ Daha iyi oynanış için telefonu yatay çevir
+        <button id="rotX">×</button>
+      </div>
       <div id="tl">
         <div id="hero">
           <div id="badge"><span id="bIco">🛡️</span><b id="bLv">1</b></div>

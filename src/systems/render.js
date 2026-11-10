@@ -7,11 +7,14 @@ const cv = document.getElementById('c'),
   v = state.view;
 let g = cv.getContext('2d', { alpha: false });
 v.scale = 1;
+export const calcZoom = (w, h) =>
+  Math.max(0.55, Math.min(1, Math.min(w / 900, h / 620))); // küçük ekranda dünya daha geniş görünür (telefonda karakter/düşman okunur kalır)
 function resize() {
-  v.w = innerWidth;
-  v.h = innerHeight;
-  cv.width = Math.round(v.w * v.scale);
-  cv.height = Math.round(v.h * v.scale);
+  v.zoom = calcZoom(innerWidth, innerHeight);
+  v.w = innerWidth / v.zoom;
+  v.h = innerHeight / v.zoom;
+  cv.width = Math.round(innerWidth * v.scale);
+  cv.height = Math.round(innerHeight * v.scale);
 } // tuval çözünürlüğü ölçeklenir, mantıksal boyut (v.w/v.h) sabit kalır
 export function setScale(s) {
   v.scale = s;
@@ -430,7 +433,10 @@ const body = (e) => {
 
 export function render() {
   const p = state.player;
-  g.setTransform(v.scale, 0, 0, v.scale, 0, 0);
+  {
+    const k = cv.width / v.w;
+    g.setTransform(k, 0, 0, k, 0, 0);
+  }
   v.x = Math.max(0, Math.min(W - v.w, p.x - v.w / 2));
   v.y = Math.max(0, Math.min(H - v.h, p.y - v.h / 2));
   const th = state.map.theme;

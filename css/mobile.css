@@ -1,0 +1,533 @@
+/* ============================================================
+   MOBİL / TABLET — body sınıfları touch.js'ten gelir: touch · sm (<900w veya <520h) · xs (<600w) · short (<520h) · portrait
+   Yükleme sırası: en son (ui2.css'i ezer).
+   ============================================================ */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+body.touch,
+body.touch * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+button,
+.pick,
+.card2,
+.tn,
+.cx,
+.wcard {
+  touch-action: manipulation;
+}
+#touchUI {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#joyZone {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 55%;
+  pointer-events: auto;
+  touch-action: none;
+}
+#joy {
+  position: fixed;
+  left: calc(max(24px, env(safe-area-inset-left)) + 62px);
+  top: calc(100% - max(26px, env(safe-area-inset-bottom)) - 62px);
+  width: 124px;
+  height: 124px;
+  margin: -62px 0 0 -62px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    #ffffff10 0,
+    #ffffff08 60%,
+    #ffffff14 100%
+  );
+  border: 2px solid #ffffff44;
+  box-shadow:
+    inset 0 0 22px #0008,
+    0 0 18px #0008;
+  opacity: 0.42;
+  transition: opacity 0.12s;
+}
+#joy.on {
+  opacity: 1;
+}
+#joy i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ffffffcc,
+    #9bb0c8aa 60%,
+    #5a6a80aa
+  );
+  box-shadow: 0 3px 10px #000a;
+  border: 1px solid #fff8;
+}
+#tDash,
+#tAct {
+  position: fixed;
+  pointer-events: auto;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 30px;
+  line-height: 1;
+  color: #fff;
+  border: 2px solid #ffffffaa;
+  box-shadow:
+    0 5px 16px #000b,
+    inset 0 0 14px #ffffff30;
+}
+#tDash small,
+#tAct small {
+  font: 700 10px system-ui;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+#tDash {
+  right: calc(max(22px, env(safe-area-inset-right)));
+  bottom: calc(max(26px, env(safe-area-inset-bottom)));
+  width: 88px;
+  height: 88px;
+  background: radial-gradient(circle at 35% 30%, #7fe3ff, #2b6cb8 70%, #14305a);
+}
+#tDash.hit,
+#tDash:active {
+  transform: scale(0.92);
+  filter: brightness(1.3);
+}
+#tAct {
+  right: calc(max(30px, env(safe-area-inset-right)) + 8px);
+  bottom: calc(max(26px, env(safe-area-inset-bottom)) + 108px);
+  width: 66px;
+  height: 66px;
+  font-size: 24px;
+  display: none;
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #c0841c 70%, #6a4208);
+  animation: startpulse 1s infinite;
+}
+#rotHint {
+  display: none;
+  position: fixed;
+  left: 50%;
+  top: 70px;
+  transform: translateX(-50%);
+  z-index: 30;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #0b0910ee;
+  border: 1px solid var(--gold2);
+  font-size: 13px;
+  pointer-events: auto;
+}
+#rotHint button {
+  padding: 0 8px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+/* kontrol göstergeleri: klavye ipuçları dokunmatikte anlamsız */
+.touch kbd {
+  display: none !important;
+}
+.touch #startBtn {
+  padding: 12px 34px;
+  font-size: 17px;
+}
+/* ---------- HUD kompakt ---------- */
+.sm #tl {
+  left: calc(max(8px, env(safe-area-inset-left)));
+  top: 8px;
+  width: 218px;
+  gap: 5px;
+}
+.sm #hero {
+  gap: 8px;
+}
+.sm #badge {
+  width: 50px;
+  height: 50px;
+  padding: 4px;
+}
+.sm #badge::before {
+  inset: 5px;
+}
+.sm #bIco {
+  font-size: 23px;
+}
+.sm #bLv {
+  min-width: 22px;
+  height: 22px;
+  font: 700 11px/22px var(--serif);
+  right: -4px;
+  bottom: -4px;
+}
+.sm .bar.hp {
+  height: 21px;
+  border-radius: 11px;
+}
+.sm .bar.hp span {
+  font-size: 11px;
+  line-height: 21px;
+}
+.sm .bar.xp {
+  height: 11px;
+}
+.sm .bar.xp span {
+  display: none;
+}
+.sm .chip {
+  padding: 2px 9px;
+  font-size: 12px;
+}
+.sm #chips {
+  gap: 5px;
+}
+.sm #cpass {
+  padding: 4px 8px 5px;
+}
+.sm #cpass .cn {
+  display: none;
+}
+.sm #cpass .bar {
+  height: 13px;
+}
+.sm .synchip {
+  padding: 2px 6px 2px 4px;
+  font-size: 11px;
+}
+.short #goals,
+.short #quests,
+.xs #goals {
+  display: none !important;
+}
+.sm #tc {
+  top: 3px;
+  padding: 4px 14px 6px;
+  gap: 3px;
+}
+.sm #wave {
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+.sm #pips {
+  gap: 5px;
+}
+.sm .pip {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+}
+.sm #startBtn {
+  padding: 7px 20px;
+  font-size: 13px;
+}
+.sm #tc label {
+  font-size: 11px;
+  padding: 1px 8px;
+}
+.sm #bossbar {
+  width: min(300px, 50vw);
+  height: 14px;
+}
+.sm #bossbar span {
+  font-size: 10px;
+  line-height: 14px;
+}
+.sm #tr {
+  right: calc(max(8px, env(safe-area-inset-right)));
+  top: 8px;
+  gap: 5px;
+}
+.sm #tr button {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+.sm #tr button .ic {
+  font-size: 18px;
+}
+.sm #skills {
+  bottom: calc(max(8px, env(safe-area-inset-bottom)));
+  padding: 5px 8px;
+  gap: 5px;
+  border-radius: 12px;
+}
+.sm #skills .ico {
+  width: 44px;
+  height: 44px;
+  font-size: 21px;
+  border-radius: 10px;
+}
+.portrait.touch #skills {
+  bottom: calc(max(26px, env(safe-area-inset-bottom)) + 142px);
+}
+.sm #side {
+  top: 54px;
+  right: 8px;
+  width: 290px;
+  max-height: calc(100vh - 64px);
+}
+.xs #side {
+  left: 8px;
+  right: 8px;
+  width: auto;
+}
+.touch #toast {
+  top: 58px;
+  font-size: 13px;
+  padding: 6px 16px;
+  max-width: 90vw;
+}
+.sm .popup {
+  max-width: 70vw;
+}
+.sm #dice,
+.sm #rer {
+  left: calc(max(8px, env(safe-area-inset-left)));
+}
+/* ---------- Ekranlar (overlay) ---------- */
+.sm #ov {
+  overflow: auto;
+  padding: 14px 10px 18px;
+  gap: 6px;
+  -webkit-overflow-scrolling: touch;
+  justify-content: flex-start;
+}
+.sm #ovt {
+  font-size: 20px;
+  letter-spacing: 0.08em;
+}
+.sm #ovt .lvl {
+  font-size: 13px;
+  padding: 1px 10px;
+  margin-right: 8px;
+}
+.sm #ovs {
+  font-size: 12px;
+}
+.sm .c2-row {
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 8px 6px 14px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.sm .card2 {
+  flex: none;
+  width: 210px;
+  min-height: 0;
+  padding: 10px 12px 12px;
+  gap: 6px;
+  scroll-snap-align: center;
+}
+.sm .card2:hover {
+  transform: none;
+}
+.sm .c2-art {
+  height: 60px;
+}
+.sm .c2-art span {
+  font-size: 34px;
+}
+.sm .card2 h3 {
+  font-size: 16px;
+}
+.sm .card2 p {
+  font-size: 12.5px;
+}
+.sm .c2-chip {
+  font-size: 11.5px;
+  padding: 3px 8px;
+}
+.sm .c2-tag,
+.sm .c2-evo {
+  font-size: 11.5px;
+}
+.short .c2-art {
+  display: none;
+}
+.short .card2 {
+  width: 200px;
+}
+.sm .c2-ctl {
+  gap: 8px;
+}
+.sm .c2-ctl button {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.sm .shoplay {
+  flex-direction: column;
+  gap: 10px;
+}
+.sm .treewrap {
+  min-height: 200px;
+  max-height: calc(100vh - 250px);
+  padding: 12px;
+}
+.sm .tdetail {
+  flex: none;
+  width: 100%;
+  max-height: 150px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+}
+.sm .tdetail h4 {
+  font-size: 13px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+}
+.sm .buybtn {
+  margin-top: 8px;
+  padding: 9px 18px;
+  width: 100%;
+}
+.sm .sum2 {
+  padding: 12px;
+}
+.sm .sum-head h2 {
+  font-size: 20px;
+}
+.sm .sum-badge {
+  font-size: 32px;
+}
+.sm .sum-tiles {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin: 10px 0;
+}
+.sm .st b {
+  font-size: 17px;
+}
+.sm .sum-cols {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+/* ---------- Menü ---------- */
+.sm #menu {
+  padding: 0;
+}
+.sm .mm {
+  padding: 10px 0 14px;
+  gap: 8px;
+  width: 96vw;
+}
+.sm .mm h1 {
+  font-size: 32px;
+  letter-spacing: 0.2em;
+}
+.sm .mm-grid {
+  gap: 12px;
+}
+.xs .mm-grid {
+  grid-template-columns: 1fr;
+}
+.sm #mPlay {
+  padding: 12px;
+  font-size: 19px;
+}
+.sm .mm-btns button {
+  padding: 9px 10px;
+  font-size: 12.5px;
+}
+.sm .mm-btns button b {
+  font-size: 17px;
+}
+.sm .rank {
+  padding: 12px 14px;
+  gap: 8px;
+}
+.sm .rank h3 {
+  font-size: 19px;
+}
+.sm .rk-badge {
+  width: 56px;
+  height: 56px;
+}
+.sm .rk-badge b {
+  font-size: 22px;
+}
+.short .rk-track {
+  display: none;
+}
+.sm .mwrap {
+  width: 96vw;
+  padding: 8px 0;
+}
+.sm .mhead h2 {
+  font-size: 18px;
+}
+.sm .pick {
+  width: 170px;
+  padding: 9px 10px;
+  gap: 9px;
+}
+.sm .pick.wide {
+  width: 230px;
+}
+.sm .pk-ico {
+  width: 42px;
+  height: 42px;
+  font-size: 22px;
+}
+.sm .pk-body b {
+  font-size: 13.5px;
+}
+.sm .launch {
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  gap: 10px;
+}
+.sm .launch #mGo {
+  padding: 12px 28px;
+  font-size: 16px;
+}
+.sm .lz {
+  flex: 1 1 100%;
+}
+.sm .wtabs button {
+  padding: 7px 12px;
+  font-size: 12.5px;
+}
+.sm .cxgrid {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  max-height: calc(100vh - 210px);
+}
+.sm .keys .krow {
+  gap: 8px;
+}
+.sm .krow button {
+  min-width: 90px;
+}
+.touch button {
+  min-height: 38px;
+}
+/* tooltip dokunmatikte: ekrana sığsın */
+.touch #tip {
+  max-width: min(300px, 86vw);
+  font-size: 12.5px;
+}

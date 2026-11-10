@@ -4,6 +4,10 @@ import { held } from '../core/keymap.js';
 export const inputDir = () => {
   let dx = (held('right') ? 1 : 0) - (held('left') ? 1 : 0),
     dy = (held('down') ? 1 : 0) - (held('up') ? 1 : 0);
+  if (state.touch && state.touch.active) {
+    dx = state.touch.x;
+    dy = state.touch.y;
+  } // dokunmatik joystick (analog: 0..1)
   if (state.reverse > 0) {
     dx = -dx;
     dy = -dy;
@@ -21,8 +25,9 @@ export function updatePlayer(dt) {
   if (p.stun > 0 || p.dashV) return; // sersemlemişken / dash atarken normal hareket yok
   const s = stat(p, 'speed') * (p.slow ? 1 - p.slow.v : 1) * dt,
     [dx, dy] = inputDir(),
-    n = Math.hypot(dx, dy) || 1;
+    n = Math.hypot(dx, dy) || 1,
+    mag = Math.min(1, n); // mag: joystick'te yarım itiş = yarım hız
   if (dx || dy) p.lastDir = [dx / n, dy / n];
-  p.x = Math.min(W, Math.max(0, p.x + (dx / n) * s));
-  p.y = Math.min(H, Math.max(0, p.y + (dy / n) * s));
+  p.x = Math.min(W, Math.max(0, p.x + (dx / n) * s * mag));
+  p.y = Math.min(H, Math.max(0, p.y + (dy / n) * s * mag));
 }
