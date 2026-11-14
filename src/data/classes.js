@@ -17,7 +17,7 @@ export const CLASSES = {
   assassin: {
     name: 'Suikastçı',
     rarity: 'rare',
-    desc: 'Arkadan vuruş +%40 hasar. Her öldürmede +%0.01 kritik şansı (100 öldürme = +%1).',
+    desc: 'Arkadan vuruş +%40 hasar. Her öldürmede +%0.005 kritik şansı (en fazla +%12).',
     part: {
       mods: [
         { stat: 'backstab', op: 'mul', value: 1.4 },
@@ -25,7 +25,7 @@ export const CLASSES = {
           stat: 'critChance',
           op: 'add',
           get value() {
-            return state.kills * 0.0001;
+            return Math.min(0.12, state.kills * 0.00005);
           },
         },
       ],
@@ -91,7 +91,7 @@ export const CLASSES = {
   gambler: {
     name: 'Kumarbaz',
     rarity: 'mythic',
-    desc: '+5 luck. Her öldürmede +0.05 luck (20 öldürme = +1). Luck: drop, altın ve nadir kart şansı.',
+    desc: '+5 luck. Her öldürmede +0.015 luck (en fazla +15). Luck: drop, altın ve nadir kart şansı.',
     part: {
       mods: [
         { stat: 'luck', op: 'add', value: 5 },
@@ -99,7 +99,7 @@ export const CLASSES = {
           stat: 'luck',
           op: 'add',
           get value() {
-            return state.kills * 0.05;
+            return Math.min(15, state.kills * 0.015);
           },
         },
       ],
